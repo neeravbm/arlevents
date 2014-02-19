@@ -1,0 +1,3143 @@
+<?php
+/**
+ * @file
+ * Provides authentication integration with Avectra web service.
+ */
+
+
+define('TIMEZONE', 'UTC');
+
+
+/**
+ * Implements hook_menu().
+ */
+function avectra_menu() {
+  // users
+  $items['admin/config/services/avectra'] = array(
+    'title' => t('Avectra Integration'),
+    'description' => t('Settings for the Avectra integration module.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('avectra_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['update-avectra/%/%'] = array(
+    'page callback' => 'avectra_update_from_avectra',
+    'page arguments' => array(1, 2),
+    'access arguments' => array('update from netforum'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Admin settings form
+ */
+function avectra_settings() {
+  $form = array();
+
+  // login uri
+  $form['avectra_login_uri'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Login Uri'),
+    '#default_value' => variable_get('ppauth_login_uri', ''),
+    '#description' => t('The Uri for the authenticating Portal Plus server.'),
+  );
+  // Client ID
+  $form['ppauth_client_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Client ID'),
+    '#default_value' => variable_get('ppauth_client_id', ''),
+    '#description' => t('The client ID for the authenticating Portal Plus server.'),
+  );
+
+  // Overwrite local password, or not
+  $form['ppauth_overwrite_password'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Overwrite local password'),
+    '#default_value' => variable_get('ppauth_overwrite_password', 0),
+    '#description' => t('If authentication for an existing Drupal user fails locally but succeeds on Portal Plus, should the local password be overwritten by the Portal Plus password?'),
+  );
+
+  // No-overwrite failure message
+  $form['ppauth_no_overwrite_pass_fail_msg'] = array(
+    '#type' => 'textarea',
+    '#title' => t('User message due to disabled password overwrite'),
+    '#rows' => 2,
+    '#default_value' => variable_get('ppauth_no_overwrite_pass_fail_msg',
+      'Your access to this site is denied because your Portal Plus password does not match your password on this site.'),
+    '#description' => t('The message to give the user when their login cannot succeed because overwriting the local password is disabled. If blank, the user will receive no information other than normal login failure.'),
+  );
+
+  // Members only, or not
+  $form['ppauth_members_only'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Only allow Portal Plus members to log in'),
+    '#default_value' => variable_get('ppauth_members_only', 0),
+    '#description' => t('With this option selected, only non-lapsed member users of the Portal Plus system will be able to login. Lapsed members, non-members, and user that only exist locally, will not be able to log in. (Note: An exception is made for User 1 so that this site can still be administered.)'),
+  );
+
+  // Non-member login failure message
+  $form['ppauth_non_member_msg'] = array(
+    '#type' => 'textarea',
+    '#title' => t('User message due to non-member login attempt'),
+    '#rows' => 2,
+    '#default_value' => variable_get('ppauth_non_member_msg',
+      'You are not an active Portal Plus member and do not have access to this site.'),
+    '#description' => t('The message to give to users, other than active Portal Plus members, who fail to log in to a members-only the site. If blank, the user will receive no information other than normal login failure.'),
+  );
+
+  // Get all roles other than Anonymous and Authenticated
+  $roles = user_roles();
+  unset($roles[1]);
+  unset($roles[2]);
+
+  // Add a NULL option to allow deselection of role.
+  $options = array(NULL => '--' . t('Select') . '--');
+  foreach ($roles as $key => $value) {
+    $options[$key] = $value;
+  }
+
+  // Member role assignment
+  $form['ppauth_members_role'] = array(
+    '#type' => 'select',
+    '#options' => $options,
+    '#title' => t('Role to assign to active Portal Plus members'),
+    '#default_value' => variable_get('ppauth_members_role', 0),
+    '#description' => t('Choose which role to assign to active Portal Plus members on successful login.'),
+  );
+
+  // Non-member role removal
+  $form['ppauth_remove_members_role'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Remove the the members role from non-members'),
+    '#default_value' => variable_get('ppauth_remove_members_role', 0),
+    '#description' => t('With this option selected, any user that successfully logs in, while not being an active Portal Plus member, will have the selected members role removed.'),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implements hook_form_alter()
+ */
+function avectra_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'user_login_block' || $form_id == 'user_login') {
+    $form['#validate'] = array(
+      'user_login_name_validate',
+      'avectra_login_validate',
+      'user_login_final_validate'
+    );
+    $form['#action'] = preg_replace('/\?.*/', '', $form['#action']);
+  }
+}
+
+/**
+ * Login form validation callback.
+ */
+function avectra_login_validate($form, &$form_state) {
+
+  $username = $form_state['values']['name'];
+  $password = $form_state['values']['pass'];
+
+  if ($uid = _avectra_log_in_user_1($username, $password)) {
+    $form_state['uid'] = $uid;
+
+    return;
+  }
+
+  $avectra_result = _avectra_authenticate_against_avectra($username, $password);
+
+  $uid = _avectra_log_in_user($username, $password, is_null($avectra_result) ? FALSE : TRUE, $avectra_result);
+  if ($uid) {
+    $form_state['uid'] = $uid;
+    $_SESSION['avectra_key'] = $avectra_result;
+    //_ppauth_manage_members_role( $uid, $is_active_member );
+  }
+  else {
+    $msg = t("Could not authenticate against the website or Avectra. Please try again.");
+    drupal_set_message(check_plain($msg), 'error');
+    watchdog('ppauth', 'authentication error', array(), WATCHDOG_NOTICE);
+    return;
+  }
+  // Update the user profile.
+  _avectra_update_user_profile($uid, $_SESSION['avectra_key']);
+
+
+  // Update Customer Organization Info
+  // $avectra_result : login user customer key
+  _avectra_update_user_organization($avectra_result);
+
+  // Update user groups
+  get_memberships_for_user($avectra_result);
+
+}
+
+/**
+ * Log in user 1 if possible.
+ *
+ * @param string $username
+ *   Username.
+ * @param string $password
+ *   Password.
+ *
+ * @return bool $uid.
+ *   $uid on successful authentication, else FALSE.
+ */
+function _avectra_log_in_user_1($username, $password) {
+
+  $account = module_invoke('user', 'load_by_name', $username);
+
+  // Is the given login name the name of user 1?
+  //if ( $account  &&  $account->uid == 1 ) {
+  if ($account && ($account->uid == 1 || $account->uid == 1183 || $account->uid == 1181 || $account->uid == 1182 ||
+      $account->uid == 1184 || $account->uid == 1185)
+  ) {
+
+    $uid = module_invoke('user', 'authenticate', $username, $password);
+
+    return $uid;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Authenticate against Avectra.
+ *
+ * @param string $username
+ *   Username.
+ * @param string $password
+ *   Password.
+ *
+ * @return mixed $key
+ *   Customer key if Avectra authentication is successful, NULL otherwise.
+ */
+function _avectra_authenticate_against_avectra($username, $password) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  // Log the user in.
+  $key = $act->loginUser($username, $password, $token);
+
+  if ($key != "0") {
+    return $key;
+  }
+  else {
+    drupal_set_message(t('Avectra login unsuccessful.'), 'error');
+    return NULL;
+  }
+}
+
+
+/**
+ * Log user in to Drupal.
+ *
+ * If authentication succeeded against Avectra, then a local user may
+ * be created or updated in order to facilitate the login.
+ *
+ * @param string $username
+ *   Username.
+ * @param string $password
+ *   Password.
+ * @param $is_avectra_authenticated
+ *   TRUE if user authenticated against Avectra, else FALSE.
+ * @param string $customer_key
+ *   Customer key.
+ *
+ * @return mixed $uid
+ *   The user ID (uid) if the user was logged in, else FALSE.
+ */
+function _avectra_log_in_user($username, $password, $is_avectra_authenticated, $customer_key) {
+
+  $success_message = t('Avectra authentication success');
+
+  // Try a standard login first
+  $uid = module_invoke('user', 'authenticate', $username, $password);
+  if ($uid) {
+    return $uid;
+  }
+
+  // Local login failed. Was user NOT authenticated by Avectra?
+  if (!$is_avectra_authenticated) {
+    return FALSE;
+  }
+
+  $account = NULL;
+  // load by key updated by devendra
+  if (function_exists('getUidByKey')) {
+    $user_id = getUidByKey($customer_key);
+    $account = user_load($user_id);
+  }
+
+  // Does this user already exist on the local Drupal system?
+  if ($account) {
+
+    // Local account must have different password from Avectra account.
+    // Overwrite local password with Avectra password.
+    $user_info = array('pass' => $password);
+    $account = user_save($account, $user_info);
+
+    // Did saving the new password succeed?
+    if ($account) {
+      watchdog('avectra', 'Changed password for user: @name',
+        array('@name' => $username), WATCHDOG_NOTICE);
+      drupal_set_message($success_message);
+
+      return $account->uid;
+    }
+    else {
+      watchdog('avectra', 'Failed to change password for user: @name',
+        array('@name' => $username), WATCHDOG_ERROR);
+
+      return FALSE;
+    }
+  }
+  else {
+
+    // User does not exist locally: Try to create new Drupal user.
+    $user_info = array(
+      'name' => $username,
+      'pass' => $password,
+      'mail' => $username,
+      'init' => $username,
+      'status' => 1
+    );
+
+    $user_info['field_customer_key'][LANGUAGE_NONE][0]['value'] = $customer_key;
+
+    $account = user_save('', $user_info);
+
+    // Was user account creation successful?
+    if ($account) {
+      watchdog('avectra', 'New user @name created from Avectra.',
+        array('@name' => $username), WATCHDOG_NOTICE);
+      drupal_set_message($success_message);
+
+      return $account->uid;
+    }
+    else {
+      watchdog('avectra', 'Failed to create user from details: @info',
+        array('@info' => serialize($user_info)), WATCHDOG_ERROR);
+
+      return FALSE;
+    }
+  }
+}
+
+
+/**
+ * Update user profile.
+ *
+ * @param integer $uid
+ *   User id.
+ * @param string $customer_key
+ *   Customer key.
+ */
+function _avectra_update_user_profile($uid, $customer_key) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+  $profile = $act->getProfileInfo($customer_key);
+  if (!$profile) {
+    return;
+  }
+
+
+  update_user_from_profile($profile, $uid);
+}
+
+
+/**
+ * Updates Drupal's user object based on NetForum's profile.
+ *
+ * @param object $profile
+ *   NetForum's profile.
+ * @param integer $uid
+ *   Drupal's user id.
+ */
+function update_user_from_profile($profile, $uid) {
+  $first_name = $profile->getFirstName();
+  $last_name = $profile->getLastName();
+  $email = $profile->getEmail();
+  $phone = $profile->getPhone();
+  //$company = $profile->getOrganization();
+  $address = check_plain($profile->getAddress1()) . ', ' . check_plain($profile->getAddress2()) . ', ' .
+    check_plain($profile->getCity()) . ', ' . check_plain($profile->getState()) . ', ' .
+    check_plain($profile->getZip()) . ', ' . check_plain($profile->getCountry());
+
+  $account = user_load($uid);
+
+  // updated email address by devendra
+  $account->mail = $profile->getEmail();
+
+  $edit = array();
+  $edit['field_name_first'][LANGUAGE_NONE][0]['value'] = check_plain($first_name);
+  $edit['field_name_last'][LANGUAGE_NONE][0]['value'] = check_plain($last_name);
+  $edit['field_user_contact_email'][LANGUAGE_NONE][0]['value'] = check_plain($email);
+  $edit['field_user_contact_phone'][LANGUAGE_NONE][0]['value'] = check_plain($phone);
+  //$edit['field_company'][LANGUAGE_NONE][0]['value'] = check_plain($company);
+  $edit['field_user_address'][LANGUAGE_NONE][0]['value'] = $address;
+
+  $customer_type = (string) $profile->getCustomerType();
+  avectra_assign_user_role($edit, $customer_type);
+
+  user_save($account, $edit);
+}
+
+
+/**
+ * Assign user role based on customer type.
+ *
+ * @param array $edit
+ *   User edit array.
+ * @param string $customer_type
+ *   Customer type.
+ */
+function avectra_assign_user_role(&$edit, $customer_type) {
+  if (strtolower($customer_type) == 'government') {
+    $edit['roles'][6] = 6;
+  } // 6 : Governement
+  if (strtolower($customer_type) == 'industry') {
+    $edit['roles'][8] = 8;
+  } // 8 : Industry
+  if (strtolower($customer_type) == 'nonmember') {
+    $edit['roles'][9] = 9;
+  } // 9 : Non-Member
+}
+
+
+/**
+ * Update user organization info.
+ */
+function _avectra_update_user_organization($customerKey) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  module_load_include('php', 'avectra', 'includes/Organization');
+
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $profObject = $act->getProfileInfo($customerKey);
+
+  if (!is_object($profObject)) {
+    return;
+  }
+
+  $orgKey = $profObject->getOrganizationKey();
+  if (empty($orgKey)) {
+    return;
+  }
+
+  $orgObject = $act->getOrganizationInfo($orgKey);
+  if (!is_object($orgObject)) {
+    return;
+  }
+
+  $orgTitle = (string) $orgObject->getName();
+  if (trim($orgTitle) == '') {
+    return;
+  }
+
+  // Load the organization if present in Drupal already.
+  $node = get_organization_by_key($orgKey);
+
+  if (empty($node)) {
+    $node = create_default_organization();
+  }
+
+  // Update Drupal's organization node with data from NetForum.
+  update_node_from_netforum_organization($node, $orgObject);
+
+  node_save($node);
+
+  // Update the user's organization.
+  set_organization_for_user_key($profObject->getCustomerKey(), $node->nid);
+}
+
+/**
+ * @return stdClass
+ */
+function create_default_organization() {
+  $node = new stdClass();
+  $node->type = 'organization';
+  $node->status = 1;
+  $node->promote = 1;
+  $node->sticky = 0;
+  $node->language = LANGUAGE_NONE;
+  $node->uid = 1;
+  $node->path['pathauto'] = TRUE;
+  return $node;
+}
+
+
+/**
+ * Gets the organization node based on key.
+ *
+ * @param string $organization_key
+ *   Organization key.
+ * @return mixed $node
+ *   Organization node, if exists. An empty otherwise.
+ */
+function get_organization_by_key($organization_key) {
+  // Load existing node if we already have
+  $query = db_select('node', 'node');
+  $query->join('field_data_field_organization_key', 'orgkey', 'orgkey.entity_id = node.nid');
+  $query->condition('orgkey.field_organization_key_value', $organization_key)
+    ->fields('node', array('nid'));
+  $result = $query->execute()->fetchCol();
+
+  $node = (count($result) > 0) ? node_load($result[0]) : array();
+  return $node;
+}
+
+
+/**
+ * Update organization id of the account loaded based on customer key.
+ *
+ * @param string $customer_key
+ *   Customer key.
+ * @param integer $organization_id
+ *   Organization id
+ */
+function set_organization_for_user_key($customer_key, $organization_id) {
+  $account = NULL;
+  if (function_exists('getUidByKey')) {
+    $getUidByKey = getUidByKey($customer_key);
+    $account = user_load($getUidByKey);
+  }
+
+  if (!is_null($account)) {
+    $edit['field_organization'][LANGUAGE_NONE][0]['target_id'] = $organization_id;
+    user_save($account, $edit);
+  }
+}
+
+/**
+ * Update Drupal's organization node based on organization object from NetForum.
+ *
+ * @param stdClass $node
+ *   Organization node.
+ * @param object $orgObject
+ *   Organization object from NetForum.
+ */
+function update_node_from_netforum_organization(&$node, $orgObject) {
+
+  $node->title = (string) $orgObject->getName();
+  $node->field_organization_key[LANGUAGE_NONE][0]['value'] = $orgObject->getKey();
+  $node->field_org_date_founded[LANGUAGE_NONE][0]['value'] = strtotime($orgObject->getDateFounded());
+  $node->field_organization_type[LANGUAGE_NONE][0]['value'] = $orgObject->getType();
+  $node->field_org_fiscal_year_end[LANGUAGE_NONE][0]['value'] = $orgObject->getFiscalYearEnd();
+  $node->body[LANGUAGE_NONE][0]['value'] = $orgObject->getDescription();
+
+  $node->field_referral[LANGUAGE_NONE][0]['value'] = $orgObject->getReferral();
+  $node->field_comfedstatelocal[LANGUAGE_NONE][0]['value'] = $orgObject->getComFedStateLocal();
+  $node->field_org_address[LANGUAGE_NONE][0]['value'] =
+    str_replace('\n', ',', str_replace('<br>', ', ', $orgObject->getAddress()));
+  $node->field_org_phone[LANGUAGE_NONE][0]['value'] = $orgObject->getPhone();
+
+  $node->field_no_of_employees[LANGUAGE_NONE][0]['value'] = (string) $orgObject->getNumEmployees();
+  $node->field_company_revenue[LANGUAGE_NONE][0]['value'] = (string) $orgObject->getCompanyRevenue();
+  $node->field_government_revenue[LANGUAGE_NONE][0]['value'] = (string) $orgObject->getGovernmentRevenue();
+
+  // If organization's getDeleteFlag() is set, then unpublish the organization.
+  $termination_date = (string) $orgObject->getTerminationDate();
+  $node->status = empty($termination_date);
+
+  // Set the organization's roster.
+  set_organization_roster($node, $orgObject);
+
+  // Set the organization's POC.
+  set_organization_poc($node, $orgObject);
+}
+
+/**
+ * Set organization node's Roster.
+ *
+ * @param stdClass $node
+ *   Organization node.
+ * @param object $orgObject
+ *   Organization object from NetForum.
+ */
+function set_organization_roster(&$node, $orgObject) {
+  $roster = $orgObject->getOrgRoster();
+
+  $node->field_organization_roster = array(); // reset this field so as to get fresh members association else empty
+  if (!empty($roster)) {
+    foreach ($roster as $k => $member) {
+      $ukey = (string) $member->getCustomerKey();
+      $uid = '';
+      if (function_exists('getUidByKey')) {
+        $uid = getUidByKey($ukey);
+      }
+      if ($uid != '') {
+        $node->field_organization_roster[LANGUAGE_NONE][$k]['target_id'] = $uid;
+      }
+    }
+  }
+}
+
+
+/**
+ * Set organization node's POC field.
+ *
+ * @param stdClass $node
+ *   Organization node object.
+ * @param object $orgObject
+ *   Organization object from NetForum.
+ */
+function set_organization_poc(&$node, $orgObject) {
+  // Set organization point of contact reference
+  $poc_key = $orgObject->getContact();
+  if (sizeof($poc_key) > 0) {
+    foreach ($poc_key as $key => $pkey) {
+      $value = xml2array($pkey);
+      $value = $value[0];
+      if ($value != '') {
+        if (function_exists('getUidByKey')) {
+          $poc_uid = getUidByKey($value); // calling from committe_api.module
+        }
+        if (!empty($poc_uid)) {
+          $node->field_organization_poc[LANGUAGE_NONE][$key]['target_id'] = $poc_uid;
+        }
+      }
+    }
+  }
+}
+
+
+/**
+ * Implements hook_user_logout().
+ */
+function avectra_user_logout($account) {
+  unset($_SESSION['avectra_key']);
+}
+
+
+/**
+ * Implements hook_cronapi().
+ * Using ultimate cron
+ */
+function avectra_cronapi($op, $function = NULL) {
+
+  switch ($op) {
+    case 'list':
+      return array(
+        'avectra_update_event' => t('Get recent events'),
+        'avectra_update_user' => t('Get new users'),
+        'avectra_update_user_per_five' => 'Update User every 3 hour',
+        'avectra_update_event_per_five' => 'Update Event every 3 hour',
+        'avectra_update_user_debug' => 'Update User debug',
+      );
+
+    case 'rule':
+      switch ($function) {
+        case 'avectra_update_event':
+          return '60 0-5 * * *';
+        case 'avectra_update_user':
+          return '60 0-5 * * *';
+        case 'avectra_update_user_per_five':
+          return '180 0-5 * * *';
+        case 'avectra_update_event_per_five':
+          return '180 0-5 * * *';
+        case 'avectra_update_user_debug':
+          return '59 0-5 * * *';
+      }
+      break;
+
+    case 'execute':
+      switch ($function) {
+        case 'avectra_update_event':
+          avectra_update_event();
+          break;
+        case 'avectra_update_user':
+          @avectra_update_user();
+          break;
+        case 'avectra_update_user_per_five':
+          @avectra_update_user_per_five();
+          break;
+        case 'avectra_update_event_per_five':
+          avectra_update_event_per_five();
+          break;
+        case 'avectra_update_user_debug':
+          avectra_update_user_debug();
+          break;
+      }
+      break;
+
+    case 'settings':
+      switch ($function) {
+        // 'mymodule_cronjob_3' disabled by default
+        case 'avectra_update_event':
+          return array('enabled' => TRUE);
+      }
+
+    case 'configure':
+      switch ($function) {
+        //case 'mymodule_cronjob_3': return 'admin/configure-modules-settings/xxx';
+      }
+  }
+}
+
+
+/**
+ * Callback function to cron service
+ *
+ * Updates Events info
+ */
+function avectra_update_event() {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $now = time();
+  $createdFromTimestamp = variable_get('avectra_event_update_timestamp', $now - (30 * 365 * 24 * 60 * 60));
+  $createdToTimestamp = min($now, $createdFromTimestamp + ((6 * 30 * 24 * 60 * 60) + 3));
+  $createdTo = date('Y-m-d H:i:s', $createdToTimestamp);
+  $events = get_events_to_be_created($act, $createdFromTimestamp, $createdToTimestamp);
+
+  if (empty($events)) {
+    // Update timestamp
+    variable_set('avectra_event_update_timestamp', strtotime($createdTo));
+    return;
+  }
+
+  foreach ($events as $event) {
+    // If the event start date or end date is empty, then skip this event.
+    $startDate = $event->getStartDate() . ' ' . $event->getStartTime();
+    $endDate = $event->getEndDate() . ' ' . $event->getEndTime();
+    if (trim($startDate) == '' || trim($endDate) == '') {
+      continue;
+    }
+
+    $event_key = (string) $event->getEventKey();
+
+    // Load Drupal's event node by key.
+    $node = get_event_by_key($event_key);
+
+    if (empty($node)) {
+      $node = create_default_event();
+    }
+
+    // Get event details.
+    $event_info = $act->getEventDetails($event_key);
+
+    // Update Drupal's event node based on information from NetForum.
+    update_node_from_netforum_event($node, $event_info, $event, TRUE);
+
+    node_save($node);
+  } // End Foreach
+
+  // Update timestamp
+  variable_set('avectra_event_update_timestamp', strtotime($createdTo));
+}
+
+
+/**
+ * Get events that need creation. Returns events that have been created between createdFrom and createdTo.
+ *
+ * @param object $act
+ *   ACT object.
+ * @param integer $createdFrom
+ *   Unix timestamp to start searching for event.
+ * @param $createdTo
+ *   Unix timestamp when searching should stop.
+ * @return array $events
+ *   An array of events.
+ */
+function get_events_to_be_created($act, $createdFrom, $createdTo) {
+  $createdFrom = date('Y-m-d H:i:s', $createdFrom);
+  $createdTo = date('Y-m-d H:i:s', $createdTo);
+  $events = $act->getEventsCreatedBetween($createdFrom, $createdTo);
+  return $events;
+}
+
+
+/**
+ * Returns default newly initialized event node.
+ *
+ * @return stdClass $node
+ *   Event node.
+ */
+function create_default_event() {
+  $node = new stdClass();
+  $node->type = 'events';
+  $node->status = 1;
+  $node->promote = 1;
+  $node->sticky = 0;
+  $node->language = LANGUAGE_NONE;
+  $node->uid = 1;
+  $node->path['pathauto'] = TRUE;
+  $node->group_access[$node->language][0]['value'] = 1;
+  return $node; // set default to private
+}
+
+/**
+ * Update Drupal's event node from the event object and details obtained from NetForum.
+ *
+ * @param stdClass $node
+ *   Event node.
+ * @param object $event_info
+ *   Event details object.
+ * @param object $event
+ *   Event object.
+ * @param bool $is_new
+ *   Is this event node new or is it being updated?
+ */
+function update_node_from_netforum_event(&$node, $event_info, $event = NULL, $is_new = FALSE) {
+  if (is_object($event_info)) {
+    $deleted = $event_info->EventObject->evt_delete_flag;
+    // If we got deleted flag as 1 then unpublished that event
+    if ($deleted == '1') {
+      $node->status = 0;
+    }
+  }
+
+  // set default group access and roles permission
+  if (empty($node->og_roles_permissions[LANGUAGE_NONE][0]['value'])) {
+    $node->og_roles_permissions[LANGUAGE_NONE][0]['value'] = 0;
+  }
+
+  $node->title = !is_null($event) ? $event->getEventName() : (string) $event_info->evt_code;
+
+  $node->body[LANGUAGE_NONE][0]['value'] = !is_null($event) ? $event->getDescription() :
+    $event_info->evt_short_description;
+
+  if ($is_new) {
+    $node->field_event_key[LANGUAGE_NONE][0]['value'] = (string) $event->getEventKey();
+  }
+
+  $node->field_event_short_title[LANGUAGE_NONE][0]['value'] = !is_null($event->getEventCode()) ? $event->getEventCode
+    () : (string) $event_info->evt_short_description;
+
+
+  $start_date = !is_null($event) ? $event->getStartDate() . ' ' . $event->getStartTime() : (string)
+    $event_info->evt_start_date . ' ' . (string) $event_info->evt_start_time;
+
+  $end_date = !is_null($event) ? $event->getEndDate() . ' ' . $event->getEndTime() : (string) $event_info->evt_end_date
+    . ' ' . (string) $event_info->evt_end_time;
+
+  $node->field_date[LANGUAGE_NONE][0] = array(
+    'value' => format_date(strtotime($start_date), 'custom', 'Y-m-d H:i:s', TIMEZONE),
+    'value2' => format_date(strtotime($end_date), 'custom', 'Y-m-d H:i:s', TIMEZONE)
+  );
+
+
+  $event_start_date = !is_null($event) ? (string) $event->getPostToWeb() : (string) $event_info->evt_post_to_web_date;
+
+  $event_end_date = !is_null($event) ? (string) $event->getRemoveFromWeb() : (string)
+  $event_info->evt_remove_from_web_date;
+
+  if ($event_start_date != '' && $event_end_date != '') {
+    $node->field_events_show_date[LANGUAGE_NONE][0] = array(
+      'value' => strtotime(format_date(strtotime($event_start_date), 'custom', 'Y-m-d H:i:s', TIMEZONE)),
+      'value2' => strtotime(format_date(strtotime($event_end_date), 'custom', 'Y-m-d H:i:s', TIMEZONE))
+    );
+  }
+
+  $node->path['pathauto'] = TRUE;
+
+  // Update event's tracks and session
+  avectra_update_sessions_tracks($node);
+
+  // The event product may already exist.
+  $field_product = field_get_items('node', $node, 'field_product');
+  $pid = !empty($field_product[0]['product_id']) ? $field_product[0]['product_id'] : '';
+
+  if (empty($pid)) {
+    // Create event product based on the event object.
+    $pid = create_event_product($event);
+
+    $node->field_product[LANGUAGE_NONE][0]['product_id'] = $pid;
+  }
+  else {
+    $product = commerce_product_load($pid);
+
+    if (!empty($product)) {
+
+      $output = _avectra_get_fees($event, 'event');
+      $fees = $output['fees'];
+      $price_keys = $output['price_keys'];
+
+      $values = array(
+        'title' => $event->getEventName(),
+        'sku' => $event->getEventCode(),
+        'amount' => $fees['normal'],
+        'govt_amount' => $fees['govt'],
+        'industry_amount' => $fees['industry'],
+        'price_key' => $price_keys['normal'],
+        'govt_price_key' => $price_keys['govt'],
+        'industry_price_key' => $price_keys['industry'],
+        'uid' => 1
+      );
+
+      $govt_price = 'field_govt_price';
+      $industry_price = 'field_industry_price';
+      $price_key = 'field_price_key';
+      $govt_price_key = 'field_govt_price_key';
+      $industry_price_key = 'field_industry_price_key';
+
+      $product->sku = $values['sku'];
+
+      $product->changed = time();
+
+      $product->title = $values['title'];
+      $product->commerce_price[LANGUAGE_NONE][0]['amount'] = $values['amount'];
+      $product->commerce_price[LANGUAGE_NONE][0]['currency_code'] = commerce_default_currency();
+
+      $product->{$govt_price}[LANGUAGE_NONE][0]['amount'] = $values['govt_amount'];
+      $product->{$govt_price}[LANGUAGE_NONE][0]['currency_code'] = commerce_default_currency();
+
+      $product->{$industry_price}[LANGUAGE_NONE][0]['amount'] = $values['industry_amount'];
+      $product->{$industry_price}[LANGUAGE_NONE][0]['currency_code'] = commerce_default_currency();
+
+      $product->{$price_key}[LANGUAGE_NONE][0]['value'] = $values['price_key'];
+      $product->{$govt_price_key}[LANGUAGE_NONE][0]['value'] =
+        $values['govt_price_key'];
+      $product->{$industry_price_key}[LANGUAGE_NONE][0]['value'] =
+        $values['industry_price_key'];
+
+      commerce_product_save($product);
+    }
+  }
+}
+
+
+/**
+ * Returns event node in Drupal based on key.
+ *
+ * @param string $event_key
+ *   Event key.
+ * @return mixed $node
+ *   Event node if it exists. An empty array otherwise.
+ */
+function get_event_by_key($event_key) {
+  // Load existing node if we already have
+  $query = db_select('node', 'node');
+  $query->join('field_data_field_event_key', 'ekey', 'ekey.entity_id = node.nid');
+  $query->condition('ekey.field_event_key_value', $event_key)
+    ->condition('node.type', 'events')
+    ->fields('node', array('nid'));
+  $result = $query->execute()->fetchCol();
+
+  $node = count($result) > 0 ? node_load($result[0]) : array();
+  return $node;
+}
+
+
+/**
+ * Create event product based on NetForum's event object.
+ *
+ * @param object $event
+ *   Event object from NetForum.
+ * @return integer $pid
+ *   Product id of the created event.
+ */
+function create_event_product($event) {
+  $output = _avectra_get_fees($event, 'event');
+  $fees = $output['fees'];
+  $price_keys = $output['price_keys'];
+  // Create Event product
+  $values = array(
+    'title' => $event->getEventName(),
+    'sku' => $event->getEventCode(),
+    'amount' => $fees['normal'],
+    'govt_amount' => $fees['govt'],
+    'industry_amount' => $fees['industry'],
+    'price_key' => $price_keys['normal'],
+    'govt_price_key' => $price_keys['govt'],
+    'industry_price_key' => $price_keys['industry'],
+    'uid' => 1
+  );
+  $pid = avectra_commerce_product_create($values, 'event');
+  return $pid;
+}
+
+
+/**
+ * Function to get fees as per user role.
+ *
+ * @param object $obj
+ *   Event, track or session object.
+ * @param string $type
+ *   Whether $obj is event, track or session.
+ * @param string $eventKey
+ *   Required if type is session or track.
+ *
+ * @return array $output
+ *   An array of fees and price keys for all the different user roles.
+ */
+function _avectra_get_fees($obj, $type, $eventKey = NULL) {
+  if ($type == 'event') {
+    return get_event_fees_price_keys($obj);
+  }
+
+  // SESSION section----------------------------------------------------------
+  if ($type == 'session' && $eventKey != '') {
+    return get_session_fees_price_keys($obj, $eventKey);
+  }
+
+  // TRACKS section----------------------------------------------------------
+  if ($type == 'track' && $eventKey != '') {
+    return get_track_fees_price_keys($obj, $eventKey);
+  }
+}
+
+
+/**
+ * Returns fees and price keys for a track.
+ *
+ * @param object $obj
+ *   Track object.
+ * @param string $eventKey
+ *   Event key.
+ *
+ * @return array $output
+ *   An array of fees and price keys for the input track for all different user roles.
+ */
+function get_track_fees_price_keys($obj, $eventKey) {
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $fees['normal'] = 0;
+  $fees['govt'] = 0;
+  $fees['industry'] = 0;
+  $price_keys['normal'] = '';
+  $price_keys['govt'] = '';
+  $price_keys['industry'] = '';
+
+  // Fetching govt fees
+  $token = '';
+  $customerKey = $act->loginUser('zzgovernmenttest1@gsa.govzz', 'password', $token);
+  if ($customerKey) {
+    list($fees['govt'], $price_keys['govt']) = get_track_fee_price_key_per_user($obj, $act, $eventKey);
+  }
+
+  // Fetching industry fees
+  $token = '';
+  $customerKey = $act->loginUser('zzindustrytest1@ibm.comzz', 'password', $token);
+  if ($customerKey) {
+    list($fees['industry'], $price_keys['industry']) = get_track_fee_price_key_per_user($obj, $act, $eventKey);
+  }
+
+  // Fetching Non-member fees
+  $token = '';
+  $customerKey = $act->loginUser('zznonmembertest1@novics.comzz', 'password', $token);
+  if ($customerKey) {
+    list($fees['normal'], $price_keys['normal']) = get_track_fee_price_key_per_user($obj, $act, $eventKey);
+  }
+
+  return array('fees' => $fees, 'price_keys' => $price_keys);
+}
+
+
+/**
+ * Returns an array of fee and price key for the track for the given user.
+ *
+ * @param object $track
+ *   Track object.
+ * @param object $act
+ *   ACT object.
+ * @param string $eventKey
+ *   Event key.
+ *
+ * @return array $output
+ *   An array of track fee and price key for the given user.
+ */
+function get_track_fee_price_key_per_user($track, $act, $eventKey) {
+  $obk = (string) $track->getTrackKey();
+  $track_list = $act->getEventTracks($eventKey, TRUE);
+  $fee = '';
+  $price_key = '';
+  foreach ($track_list as $tl) {
+    $k = (string) $tl->getTrackKey();
+    if ($k == $obk) {
+      $fee = ((string) $tl->getTrackFee()) * 100;
+      $price_key = ((string) $tl->get_prc_key());
+      break;
+    }
+  }
+  return array($fee, $price_key);
+}
+
+
+/**
+ * Returns fees and price keys for a session.
+ *
+ * @param object $session
+ *   Session object.
+ * @param string $eventKey
+ *   Event key.
+ *
+ * @return array $output
+ *   An array of fees and price keys for the input session for all different user roles.
+ */
+function get_session_fees_price_keys($session, $eventKey) {
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $fees['normal'] = 0;
+  $fees['govt'] = 0;
+  $fees['industry'] = 0;
+  $price_keys['normal'] = '';
+  $price_keys['govt'] = '';
+  $price_keys['industry'] = '';
+
+  // Fetching govt fees
+  $token = '';
+  $customerKey = $act->loginUser('zzgovernmenttest1@gsa.govzz', 'password', $token);
+  if ($customerKey) {
+    list($fees['govt'], $price_keys['govt']) = get_session_fee_price_key_for_user($session, $act, $eventKey);
+  }
+
+  // Fetching industry fees
+  $token = '';
+  $customerKey = $act->loginUser('zzindustrytest1@ibm.comzz', 'password', $token);
+  if ($customerKey) {
+    list($fees['industry'], $price_keys['industry']) = get_session_fee_price_key_for_user($session, $act, $eventKey);
+  }
+
+  // Fetching Non-member fees
+  $token = '';
+  $customerKey = $act->loginUser('zznonmembertest1@novics.comzz', 'password', $token);
+  if ($customerKey) {
+    list($fees['normal'], $price_keys['normal']) = get_session_fee_price_key_for_user($session, $act, $eventKey);
+  }
+
+  return array('fees' => $fees, 'price_keys' => $price_keys);
+}
+
+
+/**
+ * Returns an array of fee and price key for the track for the given user.
+ *
+ * @param object $session
+ *   Track object.
+ * @param object $act
+ *   ACT object.
+ * @param string $eventKey
+ *   Event key.
+ *
+ * @return array $output
+ *   An array of session fee and price key for the given user.
+ */
+function get_session_fee_price_key_for_user($session, $act, $eventKey) {
+  $obk = (string) $session->getSessionKey();
+  $session_list = $act->getEventSessions($eventKey);
+  $fee = '';
+  $price_key = '';
+  foreach ($session_list as $sl) {
+    $k = (string) $sl->getSessionKey();
+    if ($k == $obk) {
+      $fee = ((string) $sl->getFee()) * 100;
+      $price_key = ((string) $sl->get_prc_key());
+      break;
+    }
+  }
+  return array($fee, $price_key);
+}
+
+
+/**
+ * Returns fees and price keys for a session.
+ *
+ * @param object $event
+ *   Event object.
+ *
+ * @return array $output
+ *   An array of fees and price keys for the input event for all different user roles.
+ */
+function get_event_fees_price_keys($event) {
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  // Simple Event object does not have fee value, assign default fee
+  $fees['normal'] = 0;
+  $fees['govt'] = 0;
+  $fees['industry'] = 0;
+  $price_keys['normal'] = '';
+  $price_keys['govt'] = '';
+  $price_keys['industry'] = '';
+
+  // Fetching govt fees
+  $token = '';
+  $customerKey = $act->loginUser('Government@actiac.org', 'password', $token);
+  if ($customerKey) {
+    list($fees_govt, $price_keys_govt) = get_event_fee_price_key_for_user($event, $act, $customerKey);
+    $fees['govt'] = $fees_govt;
+    $price_keys['govt'] = $price_keys_govt;
+  }
+
+  // Fetching Industry Fee
+  //$customerKey = $act->loginUser('zzindustrytest1@ibm.comzz', 'password', $token);
+  $token = '';
+  $customerKey = $act->loginUser('DrupalIndustry@actiac.org', 'password', $token);
+  if ($customerKey) {
+    list($fees_industry, $price_keys_industry) = get_event_fee_price_key_for_user($event, $act, $customerKey);
+    $fees['industry'] = $fees_industry;
+    $price_keys['industry'] = $price_keys_industry;
+  }
+
+  // Fetching Non-member Fee
+  $token = '';
+  $customerKey = $act->loginUser('Nonmember@actiac.org', 'password', $token);
+  if ($customerKey) {
+    list($fees_normal, $price_keys_normal) = get_event_fee_price_key_for_user($event, $act, $customerKey);
+    $fees['normal'] = $fees_normal;
+    $price_keys['normal'] = $price_keys_normal;
+  }
+
+  return array('fees' => $fees, 'price_keys' => $price_keys);
+}
+
+
+/**
+ * Returns an array of fee and price key for the event for the given user.
+ *
+ * @param object $event
+ *   Track object.
+ * @param object $act
+ *   ACT object.
+ * @param string $customerKey
+ *   Customer key.
+ *
+ * @return array $output
+ *   An array of event fee and price key for the given user.
+ */
+function get_event_fee_price_key_for_user($event, $act, $customerKey) {
+  $fee = '10000000';
+  $price_key = 'XXXXXXXX';
+  $event_key = (string) $event->getEventKey();
+  $output = $act->getEventPricing($event_key, $customerKey);
+  if (is_array($output)) {
+    $fee = (string) $output['Price'] * 100;
+    $price_key = (string) $output['prc_Key'];
+  }
+  return array($fee, $price_key);
+}
+
+
+/**
+ * Callback function to cron service
+ *
+ * Updates User info
+ */
+function avectra_update_event_per_five() {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  // Get the events that need to be updated.
+  $event_nodes = get_events_to_be_updated();
+  if (empty($event_nodes)) {
+    return;
+  }
+
+  $nodeToUnpublish = array();
+  foreach ($event_nodes as $nid => $event) {
+    $ekey = $event->field_event_key[LANGUAGE_NONE][0]['value'];
+    if (!empty($ekey)) {
+      $event_info = $act->getEventDetails($ekey);
+
+      if ((string) $event_info['recordReturn'] == '0') {
+        $nodeToUnpublish[] = $event;
+        continue;
+      }
+
+      $start_date = (string) $event_info->evt_start_date . ' ' . (string) $event_info->evt_start_time;
+      $end_date = (string) $event_info->evt_end_date . ' ' . (string) $event_info->evt_end_time;
+      if (trim($start_date) == '' || trim($end_date) == '') {
+        continue;
+      }
+
+      update_node_from_netforum_event($event, $event_info, NULL, FALSE);
+    }
+  }
+
+  // We need to unpublish the events.
+  if (count($nodeToUnpublish) > 0) {
+    foreach ($nodeToUnpublish as $event) {
+      $event->status = 0;
+      node_save($event);
+    }
+  }
+}
+
+
+/**
+ * @return array
+ */
+function get_events_to_be_updated() {
+  // Timestamp for 5 days ago
+  $fromTime = strtotime('-5 day');
+  $event_nodes = array();
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'events')
+    ->propertyCondition('changed', $fromTime, '<')
+    ->range(0, 50);
+
+  $result = $query->execute();
+
+  if (isset($result['node'])) {
+    $event_nodes = entity_load('node', array_keys($result['node']));
+  }
+  return $event_nodes;
+}
+
+
+/**
+ * Convert XML to array.
+ *
+ * @param object $xmlObject
+ *   XML object.
+ *
+ * @return array $out
+ *   Output array.
+ */
+function xml2array($xmlObject) {
+  $out = array();
+  foreach ((array) $xmlObject as $index => $node) {
+    $out[$index] = (is_object($node)) ? xml2array($node) : $node;
+  }
+
+  return $out;
+}
+
+
+/**
+ * Callback function to cron service
+ *
+ * Updates User info
+ */
+function avectra_update_user_debug() {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $skipped = array();
+  $now = time();
+
+  $createdFrom = variable_get('avectra_user_update_timestamp', $now - (30 * 365 * 24 * 60 * 60));
+  $createdTo = min($now, $createdFrom + ((6 * 30 * 24 * 60 * 60) + 3));
+
+  $createdFrom = date('Y-m-d H:i:s', $createdFrom);
+  $createdTo = date('Y-m-d H:i:s', $createdTo);
+
+  $users = $act->getUsersCreatedBetween($createdFrom, $createdTo);
+
+  $hits = 0;
+
+  if (!empty($users) && !empty($users->IndividualObject)) {
+
+    $data = xml2array($users);
+    $data = xml2array($data['IndividualObject']);
+
+    $counter = variable_get('avectra_user_counter', 0);
+
+    foreach ($data as $k => $user) {
+
+      if ($counter > 0 && $k <= $counter) {
+        continue;
+      }
+
+      if ($hits >= 500) {
+        break;
+      }
+
+      $hits = $hits + 1;
+
+      $user_key = (string) $user["ind_cst_key"];
+      if (empty($user_key)) {
+        $skipped['userKeyEmpty'][] = $user;
+        continue;
+      }
+
+      // if($ukey == 'bd7d1a24-7a96-437b-bcd6-001ef407be1b')  continue; // This causing soap fault
+
+      $profile = $act->getProfileInfo($user_key);
+      if (empty($profile)) {
+        continue;
+      }
+
+      // Update and save the Drupal user based on NetForum profile data.
+      update_user_from_netforum_profile($profile);
+
+      $customer_key = $profile->getCustomerKey();
+
+      //drupal_set_message($cKey);
+      // Update Customer Organization Info
+      // $avectra_result : login user customer key     
+      _avectra_update_user_organization($customer_key);
+
+      // Update user group 
+      get_memberships_for_user($customer_key);
+    } // End Foreach
+  }
+
+  // Update timestamp
+  if ($hits == 0) {
+    variable_set('avectra_user_update_timestamp', strtotime($createdTo));
+    $k = 0;
+  }
+
+  variable_set('avectra_user_counter', $k);
+}
+
+
+/**
+ * @param $profile
+ * @return bool $output
+ */
+function update_user_from_netforum_profile($profile) {
+
+  $email = (string) $profile->getEmail();
+  $customer_key = $profile->getCustomerKey();
+
+  $mailAccount = $keyAccount = '';
+
+  // load by key updated by devendra
+  if (trim($customer_key) != '') {
+    $getUidByKey = getUidByKey($customer_key);
+    $mailAccount = user_load($getUidByKey);
+  }
+
+  $keyAccount = get_user_by_key($customer_key);
+
+  if (!empty($mailAccount) && !empty($keyAccount)) {
+    if ($mailAccount->uid == $keyAccount->uid) {
+      $account = $keyAccount;
+    }
+    else {
+      $skipped['uidNotMatched'][] = array(
+        'mailAcc' => $mailAccount->uid,
+        'keyAccount' => $keyAccount->uid
+      );
+      return FALSE;
+    }
+  }
+  else {
+    if (!empty($mailAccount) && empty($keyAccount)) {
+      $account = $mailAccount;
+    }
+    else {
+      if (empty($mailAccount) && !empty($keyAccount)) {
+        $account = $keyAccount;
+
+        if (!empty($email)) {
+          $account->name = $account->mail = $email;
+        }
+      }
+      else {
+
+        if (empty($email)) {
+          $skipped['newUserMailEmpty'][] = $customer_key;
+          return FALSE;
+        }
+
+        $account = new stdClass();
+        $account->is_new = TRUE;
+        $account->pass = user_pass_rehash(time(), time(), $email);
+        $account->init = $email;
+        $account->status = TRUE;
+        $account->name = $email;
+        $account->mail = $email;
+      }
+    }
+  }
+
+  update_user_fields($account, $profile);
+  return TRUE;
+}
+
+/**
+ * @param $account
+ * @param $profile
+ */
+function update_user_fields(&$account, $profile) {
+  $first_name = (string) $profile->getFirstName();
+  $last_name = (string) $profile->getLastName();
+  $email = (string) $profile->getEmail();
+  $phone = (string) $profile->getPhone();
+  $customer_key = $profile->getCustomerKey();
+
+  $edit = array();
+  $edit['field_name_first'][LANGUAGE_NONE][0]['value'] = check_plain($first_name);
+  $edit['field_name_last'][LANGUAGE_NONE][0]['value'] = check_plain($last_name);
+  $edit['field_user_contact_email'][LANGUAGE_NONE][0]['value'] = check_plain($email);
+  $edit['field_user_contact_phone'][LANGUAGE_NONE][0]['value'] = check_plain($phone);
+  //$edit['field_user_address'][LANGUAGE_NONE][0]['value'] = $address;
+  $edit['field_customer_key'][LANGUAGE_NONE][0]['value'] = $customer_key;
+  $edit['field_last_updated'][LANGUAGE_NONE][0]['value'] = REQUEST_TIME;
+
+  $edit['field_customer_number'][LANGUAGE_NONE][0]['value'] = $profile->getCustomerNumber();;
+  $edit['field_customer_title'][LANGUAGE_NONE][0]['value'] = $profile->getTitle();;
+  $edit['field_ind_token'][LANGUAGE_NONE][0]['value'] = $profile->getIndividualToken();;
+
+  // Location info
+  $edit['field_mailing_address_addr1'][LANGUAGE_NONE][0]['value'] = check_plain($profile->getAddress1());
+  $edit['field_mailing_address_addr2'][LANGUAGE_NONE][0]['value'] = check_plain($profile->getAddress2());
+  $edit['field_mailing_address_city'][LANGUAGE_NONE][0]['value'] = check_plain($profile->getCity());
+  $edit['field_mailing_address_state'][LANGUAGE_NONE][0]['value'] = check_plain($profile->getState());
+  $edit['field_mailing_address_zip'][LANGUAGE_NONE][0]['value'] = check_plain($profile->getZip());
+  $edit['field_mailing_address_country'][LANGUAGE_NONE][0]['value'] = check_plain($profile->getCountry());
+
+  $account->name = $account->mail = $profile->getEmail();
+
+  $customer_type = (string) $profile->getCustomerType();
+  avectra_assign_user_role($edit, $customer_type);
+
+  user_save($account, $edit);
+}
+
+/**
+ * @param $user_key
+ * @return array|mixed
+ */
+function get_user_by_key($user_key) {
+  $query = db_select('users', 'user');
+  $query->join('field_data_field_customer_key', 'ckey', 'ckey.entity_id = user.uid');
+  $query->condition('ckey.field_customer_key_value', $user_key)
+    ->fields('user', array('uid'));
+  $result = $query->execute()->fetchCol();
+
+  $keyAccount = count($result) > 0 ? user_load($result[0]) : array();
+  return $keyAccount;
+}
+
+/**
+ * Callback function to cron service
+ *
+ * Updates User info
+ */
+function avectra_update_user() {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $skipped = array();
+
+  $createdFrom = '1985-01-01 00:00'; //variable_get('avectra_user_update_timestamp', $now-(30*365*24*60*60));
+  $createdTo = '2008-12-31 23:59'; //min( $now, $createdFrom + ((6*30*24*60*60) + 3));
+  //$createdFrom = date('Y-m-d H:i:s', $createdFrom );
+  //$createdTo = date('Y-m-d H:i:s', $createdTo );
+
+  $users = $act->getUsersCreatedBetween($createdFrom, $createdTo);
+
+  if (!empty($users) && !empty($users->IndividualObject)) {
+    foreach ($users->IndividualObject as $user) {
+      $cKey = '';
+
+      $user_key = (string) $user->ind_cst_key;
+      if (empty($user_key)) {
+        $skipped['userKeyEmpty'][] = $user;
+        continue;
+      }
+
+      // if($ukey == 'bd7d1a24-7a96-437b-bcd6-001ef407be1b')  continue; // This causing soap fault
+
+      $profile = $act->getProfileInfo($user_key);
+      if (empty($profile)) {
+        continue;
+      }
+
+      // Update and save the Drupal user based on NetForum profile data.
+      update_user_from_netforum_profile($profile);
+
+      //drupal_set_message($cKey);
+      // Update Customer Organization Info
+      // $avectra_result : login user customer key     
+      _avectra_update_user_organization($cKey);
+
+      // Update user group 
+      get_memberships_for_user($cKey);
+
+    } // End Foreach
+  }
+
+  // Update timestamp
+  variable_set('avectra_user_update_timestamp', strtotime($createdTo));
+}
+
+
+/**
+ * Callback function to cron service
+ *
+ * Updates User info
+ */
+function avectra_update_user_per_five() {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $users_to_be_updated = get_users_to_be_updated();
+
+  foreach ($users_to_be_updated as $account) {
+
+    if (empty($account->field_customer_key)) {
+      continue;
+    }
+
+    $field_customer_key = field_get_items('user', $account, 'field_customer_key');
+    $user_key = $field_customer_key[0]['value'];
+    $profile = $act->getProfileInfo($user_key);
+
+    if (!is_object($profile)) {
+      $account->status = 0;
+      user_save($account);
+    }
+    else {
+      update_user_from_netforum_profile($profile);
+    }
+
+    // Update user organization info
+    _avectra_update_user_organization($user_key);
+
+    // Update user group
+    get_memberships_for_user($user_key);
+
+  }
+}
+
+/**
+ * @return mixed
+ */
+function get_users_to_be_updated() {
+  $time = strtotime('-5 day');
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')
+    ->fieldCondition('field_last_updated', 'value', $time, '<=')
+    ->range(0, 50);
+
+  $result = $query->execute();
+
+  $updatedUsers = count($result['user'] > 0) ? array_keys($result['user']) : array(0);
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')
+    ->propertyCondition('uid', $updatedUsers, 'NOT IN')
+    ->range(0, 50);
+
+  $result = $query->execute();
+
+  $result = entity_load('user', array_keys($result['user']));
+  return $result;
+}
+
+/**
+ * Updates session info
+ * @return list of saved node
+ */
+function avectra_update_session($sessions, &$event_node) {
+
+  $list = array();
+  $data = array();
+  $fclist = array();
+
+  $field_event_session = field_get_items('node', $event_node, 'field_event_session');
+  foreach ($field_event_session as $fc) {
+    $fclist[] = $fc['value'];
+  }
+
+  if (sizeof($fclist)) {
+    $sentity = entity_load('field_collection_item', $fclist);
+    foreach ($sentity as $key => $fc_sess) {
+      $data[$key] = $fc_sess->field_session_reference[LANGUAGE_NONE][0]['target_id'];
+    }
+  }
+
+  _avectra_update_sessions($sessions);
+
+  foreach ($data as $k => $v) {
+    if (in_array($v, $list)) {
+      unset($data[$k]);
+      unset($list[$v]);
+    }
+  }
+
+  if (!empty($event_node->field_event_session)) {
+    $field_event_session = field_get_items('node', $event_node, 'field_event_session');
+    foreach ($field_event_session as $k => $sess) {
+      if (isset($data[$sess['value']])) {
+        unset($event_node->field_event_session[LANGUAGE_NONE][$k]);
+        // Unpublished session nodes here
+        $session_nodes = node_load_multiple($data);
+        foreach ($session_nodes as $key => $snode) {
+          $snode->status = 0;
+          node_save($snode);
+        }
+      }
+    }
+  }
+
+  // Remove field collection
+  if (!empty($data)) {
+    entity_delete_multiple('field_collection_item', array_keys($data));
+  }
+
+  if (count($list) > 0) {
+    foreach ($list as $value) {
+      // Add field collection
+      $field_collection_item = entity_create('field_collection_item',
+        array('field_name' => 'field_event_session')); // Create new field collection item.
+      $field_collection_item->setHostEntity('node', $event_node); // Attach it to the node.
+
+      $field_collection_item->field_session_reference[LANGUAGE_NONE][]['target_id'] = $value; // Fill value
+    }
+    $field_collection_item->save(); // Save field-collection item.
+  }
+
+  return TRUE;
+}
+
+/**
+ * @param $session_key
+ * @return bool|mixed|string
+ */
+function get_session_by_key($session_key) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'session')
+    ->fieldCondition('field_session_key', 'value', $session_key, '=');
+
+  $result = $query->execute();
+
+  $node = '';
+  if (!empty($result)) {
+    $session_id = key($result['node']);
+    $node = node_load($session_id);
+    return $node;
+  }
+  return $node;
+}
+
+/**
+ * @return stdClass
+ */
+function create_default_session() {
+  $node = new stdClass();
+  $node->type = 'session';
+  $node->status = 1;
+  $node->promote = 1;
+  $node->sticky = 0;
+  $node->language = LANGUAGE_NONE;
+  $node->uid = 1;
+  $node->path['pathauto'] = TRUE;
+  return $node;
+}
+
+/**
+ * @param $node
+ * @param $session
+ * @internal param $skey
+ */
+function update_node_from_netforum_session(&$node, $session) {
+  $session_key = (string) $session->getSessionKey();
+  $node->title = $session->getSessionTitle();
+  $node->field_session_key[LANGUAGE_NONE][0]['value'] = $session_key;
+  $node->field_session_time[LANGUAGE_NONE][0]['value'] =
+    (strtotime($session->getStartDate()) == '') ? time() : strtotime($session->getStartDate());
+  $node->field_session_time[LANGUAGE_NONE][0]['value2'] =
+    (strtotime($session->getEndDate()) == '') ? time() : strtotime($session->getEndDate());
+}
+
+/**
+ * @param $session
+ * @param $event_key
+ * @internal param $fees_price_keys
+ * @return mixed
+ */
+function create_session_product($session, $event_key = '') {
+  $output = _avectra_get_fees($session, 'session', $event_key);
+  $fees = $output['fees'];
+  $price_keys = $output['price_keys'];
+  // Create Session product
+  $values = array(
+    'title' => $session->getSessionTitle(),
+    'sku' => $session->getSessionTitle(),
+    'amount' => !empty($fees['normal']) ? $fees['normal'] : 0,
+    'govt_amount' => !empty($fees['govt']) ? $fees['govt'] : 0,
+    'industry_amount' => !empty($fees['industry']) ? $fees['industry'] : 0,
+    'price_key' => $price_keys['normal'],
+    'govt_price_key' => $price_keys['govt'],
+    'industry_price_key' => $price_keys['industry'],
+    'uid' => 1
+  );
+  $pid = avectra_commerce_product_create($values, 'session');
+  return $pid;
+}
+
+/**
+ * Function to update sessions
+ * $session must be array containing Session object of type Avectra
+ * @param $sessions
+ * @param $event_key
+ * @return array
+ */
+function _avectra_update_sessions($sessions, $event_key = '') {
+
+  $list = array();
+
+  foreach ($sessions as $session) {
+
+    $session_key = (string) $session->getSessionKey();
+
+    $node = get_session_by_key($session_key);
+    if (empty($node)) {
+      $node = create_default_session();
+    }
+
+    update_node_from_netforum_session($node, $session);
+
+    $pid = create_session_product($session, $event_key);
+    $node->field_session_product_ref[LANGUAGE_NONE][0]['product_id'] = $pid;
+    node_save($node);
+
+    $list[$node->nid] = $node->nid;
+  }
+
+  return $list;
+}
+
+/**
+ * Function to update tracks
+ * $session must be array containing Track object of type Avectra
+ */
+function _avectra_update_tracks($tracks, $event_key, $sessions = array()) {
+
+  $list_tracks = array();
+  $list_sessions = array();
+
+  foreach ($tracks as $track) {
+
+    $track_key = (string) $track->getTrackKey();
+
+    $node = get_track_by_key($track_key);
+
+    if (empty($node)) {
+      $node = create_default_track();
+    }
+
+    update_node_from_netforum_track($node, $track);
+
+    $pid = create_track_product($track, $event_key);
+    $node->field_tracks_product_ref[LANGUAGE_NONE][0]['product_id'] = $pid;
+
+    node_save($node);
+
+    $list_tracks[] = $node->nid;
+
+    $session_id_list = array();
+    if (!empty($sessions)) {
+      $session_id_list = _avectra_update_sessions($sessions);
+    }
+    // Make a list where a track id will point to multiple sessions
+    $list_sessions[$node->nid] = $session_id_list;
+  }
+
+  return array($list_tracks, $list_sessions);
+}
+
+/**
+ * @param $node
+ * @param $track
+ */
+function update_node_from_netforum_track(&$node, $track) {
+  $node->title = (string) $track->getTrackTitle();
+  $node->field_track_key[LANGUAGE_NONE][0]['value'] = (string) $track->getTrackKey();
+  $node->field_track_description[LANGUAGE_NONE][0]['value'] = $track->getTrackDescription();
+}
+
+/**
+ * @param $track_key
+ * @return bool|mixed|string
+ */
+function get_track_by_key($track_key) {
+  $node = '';
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'tracks')
+    ->fieldCondition('field_track_key', 'value', $track_key, '=');
+
+  $result = $query->execute();
+
+  if (!empty($result)) {
+    $track_id = key($result['node']);
+    $node = node_load($track_id);
+    return $node;
+  }
+  return $node;
+}
+
+/**
+ * @return stdClass
+ */
+function create_default_track() {
+  $node = new stdClass();
+  $node->type = 'tracks';
+  $node->status = 1;
+  $node->promote = 1;
+  $node->sticky = 0;
+  $node->language = LANGUAGE_NONE;
+  $node->uid = 1;
+  $node->path['pathauto'] = TRUE;
+  return $node;
+}
+
+/**
+ * @param $track
+ * @param $ekey
+ * @return mixed
+ */
+function create_track_product($track, $ekey) {
+  $output = _avectra_get_fees($track, 'track', $ekey);
+  $fees = $output['fees'];
+  $price_keys = $output['price_keys'];
+  // Create Track product
+  $values = array(
+    'title' => (string) $track->getTrackTitle(),
+    'sku' => (string) $track->getTrackKey(),
+    'amount' => !empty($fees['normal']) ? $fees['normal'] : 0,
+    'govt_amount' => !empty($fees['govt']) ? $fees['govt'] : 0,
+    'industry_amount' => !empty($fees['govt']) ? $fees['govt'] : 0,
+    'price_key' => $price_keys['normal'],
+    'govt_price_key' => $price_keys['govt'],
+    'industry_price_key' => $price_keys['industry'],
+    'uid' => 1,
+  );
+
+  $pid = avectra_commerce_product_create($values, 'track');
+  return $pid;
+}
+
+
+/**
+ * Function to update session and tracks of a event
+ */
+function avectra_update_sessions_tracks(&$event_node) {
+
+  $field_event_key = field_get_items('node', $event_node, 'field_event_key');
+  $event_key = !empty($field_event_key[0]['value']) ? $field_event_key[0]['value'] : '';
+  if (empty($event_key)) {
+    return;
+  }
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $allSessions = $act->getEventSessions($event_key);
+  $allTracks = $act->getEventTracks($event_key);
+
+  // Get the existing data about sessions and tracks
+  $existingData = get_existing_sessions_tracks_data($event_node);
+
+  // Update sessions to database
+  $allSessions = _avectra_update_sessions($allSessions, $event_key);
+
+  // Update tracks to database
+  list($allTracks, $dummySessions) = _avectra_update_tracks($allTracks, $event_key);
+
+  $finalData = get_final_sessions_tracks_data($allSessions, $allTracks);
+
+  update_session_track_field_collection($event_node, $existingData, $finalData);
+
+  return TRUE;
+}
+
+/**
+ * @param $allSessions
+ * @param $allTracks
+ * @return array
+ */
+function get_final_sessions_tracks_data($allSessions, $allTracks) {
+  $finalData = array();
+  $ind = 0;
+  foreach ($allSessions as $session) {
+    $finalData[$ind] = array(
+      'session' => $session,
+      'track' => isset($allTracks[$ind]) ? $allTracks[$ind] : '',
+    );
+    $ind += 1;
+  }
+  return $finalData;
+}
+
+/**
+ * @param $event_node
+ * @return mixed
+ */
+function get_existing_sessions_tracks_data($event_node) {
+  $existing_data = array();
+  // Collecting existing data
+  $field_event_session = field_get_items('node', $event_node, 'field_event_session');
+  $field_collection_list = array();
+  if (!empty($field_event_session) && sizeof($field_event_session)) {
+    foreach ($field_event_session as $fc) {
+      $field_collection_list[] = $fc['value'];
+    }
+  }
+
+  if (sizeof($field_collection_list)) {
+    $fc_data = entity_load('field_collection_item', $field_collection_list);
+    foreach ($fc_data as $fc_key => $fc_entity) {
+      $existing_data[$fc_key]['session'] = @$fc_entity->field_session_reference[LANGUAGE_NONE][0]['target_id'];
+      $existing_data[$fc_key]['track'] = @$fc_entity->field_track_reference[LANGUAGE_NONE][0]['target_id'];
+    }
+  }
+  return $existing_data;
+}
+
+/**
+ * @param $event_node
+ * @param $existingData
+ * @param $finalData
+ */
+function update_session_track_field_collection(&$event_node, $existingData, $finalData) {
+// Remove existing Event Session (Field collection reference)
+  entity_delete_multiple('field_collection_item', array_keys($existingData));
+  $event_node->field_event_session[LANGUAGE_NONE] = array();
+
+  // Add new session and track references.
+  foreach ($finalData as $item) {
+    // Add field collection
+    $field_collection_item = entity_create('field_collection_item',
+      array('field_name' => 'field_event_session')); // Create new field collection item.
+    $field_collection_item->setHostEntity('node', $event_node); // Attach it to the node.
+
+    if ($item['track'] != '') {
+      $field_collection_item->field_track_reference[LANGUAGE_NONE][]['target_id'] = $item['track'];
+    } // Fill value
+
+    if ($item['session'] != '') {
+      $field_collection_item->field_session_reference[LANGUAGE_NONE][]['target_id'] = $item['session'];
+    } // Fill value
+  }
+
+  if (!empty($field_collection_item)) {
+    $field_collection_item->save(); // Save field-collection item.
+  }
+}
+
+/**
+ * Function to update event tracks
+ * @TDOD Need to remove that function
+ */
+function avectra_update_tracks(&$event_node) {
+
+  $event_key = field_get_items('node', $event_node, 'field_event_key');
+  $event_key = !empty($event_key[0]['value']) ? check_plain($event_key[0]['value']) : '';
+  if (empty($event_key)) {
+    return;
+  }
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $data = array();
+
+  $field_event_session = field_get_items('node', $event_node, 'field_event_session');
+  $fclist = array();
+  foreach ($field_event_session as $fc) {
+    $fclist[] = $fc['value'];
+  }
+
+  if (sizeof($fclist)) {
+    $sentity = entity_load('field_collection_item', $fclist);
+    foreach ($sentity as $key => $fc_sess) {
+      if (!empty($fc_sess->field_track_reference[LANGUAGE_NONE][0]['target_id'])) {
+        $data[$key] = @$fc_sess->field_track_reference[LANGUAGE_NONE][0]['target_id'];
+      }
+
+      if (!empty($fc_sess->field_session_reference[LANGUAGE_NONE][0]['target_id'])) {
+        $session_reference[$key] = $key;
+      }
+    }
+  }
+
+  $tracks = $act->getEventTracks($event_key);
+  //@TODO need to modify later when we receive sessions from tracks
+  $sessions = $act->getEventSessions($event_key); //$act->getSessionsForTrack($tkey);
+
+  list($dummy_list_tracks, $list_sessions) = _avectra_update_tracks($tracks, $event_key, $sessions);
+
+  // Remove existing fc reference
+  foreach ($data as $k => $v) {
+    if (isset($list_sessions[$v])) {
+      unset($data[$k]);
+      unset($list_sessions[$v]);
+    }
+  }
+  // Update track nodes
+  $field_event_session = field_get_items('node', $event_node, 'field_event_session');
+  foreach ($field_event_session as $k => $sess) {
+    if (isset($data[$sess['value']])) {
+      if (!isset($session_reference[$sess['value']])) {
+        unset($event_node->field_event_session[LANGUAGE_NONE][$k]);
+      }
+
+      // Unpublished tracks nodes here
+      $track_nodes = node_load_multiple($data);
+      foreach ($track_nodes as $key => $track_node) {
+        $track_node->status = 0;
+        node_save($track_node);
+      }
+    }
+  }
+
+  // Remove field collection
+  if (!empty($data)) {
+
+    // if event_session have both track and session then no reason to remove that field collection
+    foreach ($data as $key => $value) {
+
+      if (isset($session_reference[$key])) {
+        unset($data[$key]);
+        $fc = entity_load('field_collection_item', array($key));
+        $fc = $fc[$key];
+        $fc->field_track_reference['und'] = array();
+        $fc->save();
+      }
+      else {
+        unset($event_node->field_event_session[LANGUAGE_NONE][$key]);
+      }
+
+    }
+
+    entity_delete_multiple('field_collection_item', array_keys($data));
+  }
+
+  if (count($list_sessions) > 0) {
+    foreach ($list_sessions as $track => $sessions) {
+      foreach ($sessions as $session) {
+        // Add field collection
+        $field_collection_item = entity_create('field_collection_item',
+          array('field_name' => 'field_event_session')); // Create new field collection item.
+        $field_collection_item->setHostEntity('node', $event_node); // Attach it to the node.
+
+        $field_collection_item->field_track_reference[LANGUAGE_NONE][]['target_id'] = $track; // Fill value
+        $field_collection_item->field_session_reference[LANGUAGE_NONE][]['target_id'] = $session; // Fill value
+      }
+    }
+    if (!empty($field_collection_item)) {
+      $field_collection_item->save(); // Save field-collection item.
+    }
+  }
+
+  return TRUE;
+}
+
+
+/**
+ * Function to create products
+ */
+function avectra_commerce_product_create($values, $type = '') {
+
+  $product = commerce_product_load_by_sku($values['sku']);
+  $govt_price = 'field_govt_price';
+  $industry_price = 'field_industry_price';
+  $price_key = 'field_price_key';
+  $govt_price_key = 'field_govt_price_key';
+  $industry_price_key = 'field_industry_price_key';
+
+  if (empty($product)) {
+
+    switch ($type) {
+
+      case 'event':
+        $product = commerce_product_new('product');
+        break;
+
+      case 'session':
+        $product = commerce_product_new('session_product');
+        $govt_price = 'field_session_govt_price';
+        $industry_price = 'field_sess_industry_price';
+        break;
+
+      case 'track':
+        $product = commerce_product_new('tracks_product');
+        $govt_price = 'field_track_govt_price';
+        $industry_price = 'field_track_industry_price';
+        break;
+
+      default:
+        break;
+    }
+
+    $product->uid = $values['uid'];
+    $product->sku = $values['sku'];
+    $product->created = time();
+  }
+
+  $product->changed = time();
+
+  $product->title = $values['title'];
+  $product->commerce_price[LANGUAGE_NONE][0]['amount'] = $values['amount'];
+  $product->commerce_price[LANGUAGE_NONE][0]['currency_code'] = commerce_default_currency();
+
+  $product->{$govt_price}[LANGUAGE_NONE][0]['amount'] = $values['govt_amount'];
+  $product->{$govt_price}[LANGUAGE_NONE][0]['currency_code'] = commerce_default_currency();
+
+  $product->{$industry_price}[LANGUAGE_NONE][0]['amount'] = $values['industry_amount'];
+  $product->{$industry_price}[LANGUAGE_NONE][0]['currency_code'] = commerce_default_currency();
+
+  $product->{$price_key}[LANGUAGE_NONE][0]['value'] = $values['price_key'];
+  $product->{$govt_price_key}[LANGUAGE_NONE][0]['value'] =
+    $values['govt_price_key'];
+  $product->{$industry_price_key}[LANGUAGE_NONE][0]['value'] =
+    $values['industry_price_key'];
+
+  commerce_product_save($product);
+
+  return $product->product_id;
+}
+
+/**
+ * Implements hook_user_update()
+ */
+function avectra_user_update(&$edit, $account, $category) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  if (!empty($edit['field_customer_key'][LANGUAGE_NONE][0]['value']) && arg(0) == 'user' && is_numeric(arg(1))) {
+    $profile = $act->getProfileInfo($edit['field_customer_key'][LANGUAGE_NONE][0]['value']);
+    update_user_profile($edit, $account, $profile);
+    $status = $act->updateUserInfo($profile);
+    if (!$status) {
+      drupal_set_message(t('There is problem in updating user profile at Avectra.'), 'warning');
+    }
+  }
+}
+
+
+/**
+ * Implements hook_user_presave()
+ */
+function avectra_user_presave(&$edit, $account, $category) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  if ($account->is_new && empty($edit['field_customer_key'][LANGUAGE_NONE][0]['value']) &&
+    ((arg(0) == 'admin' && arg(2) == 'create') || (arg(0) == 'user' && arg(1) == 'register'))
+  ) {
+    $profile = new Profile();
+
+    update_user_profile($edit, $account, $profile);
+
+    $customer_key = $act->insertUser($profile);
+
+    if ($customer_key) {
+      //$changeUserPasswordForce = $act->changeUserPasswordForce($customer_key, $password);
+      $edit['field_customer_key'][LANGUAGE_NONE][0]['value'] = $customer_key;
+    }
+    if (!$customer_key) {
+      drupal_set_message(t('There is problem in inserting user profile at Avectra.'), 'warning');
+    }
+  }
+
+}
+
+/**
+ * @param $edit
+ * @param $account
+ * @param $profile
+ * @return mixed
+ */
+function update_user_profile(&$edit, $account, &$profile) {
+  $customer_number = empty($edit['field_customer_number'][LANGUAGE_NONE][0]['value']) ? '' :
+    $edit['field_customer_number'][LANGUAGE_NONE][0]['value'];
+  $ind_token = empty($edit['field_ind_token'][LANGUAGE_NONE][0]['value']) ? '' :
+    $edit['field_ind_token'][LANGUAGE_NONE][0]['value'];
+  $customer_type = isset($account->roles[6]) ? 'Government' : 'Industry';
+  $first_name = empty($edit['field_name_first'][LANGUAGE_NONE][0]['value']) ? '' :
+    $edit['field_name_first'][LANGUAGE_NONE][0]['value'];
+  $last_name = empty($edit['field_name_last'][LANGUAGE_NONE][0]['value']) ? '' :
+    $edit['field_name_last'][LANGUAGE_NONE][0]['value'];
+  $customer_title = empty($edit['field_customer_title'][LANGUAGE_NONE][0]['value']) ? '' :
+    $edit['field_customer_title'][LANGUAGE_NONE][0]['value'];
+  $org = isset($edit['field_organization'][LANGUAGE_NONE][0]['target_id']) ?
+    $edit['field_organization'][LANGUAGE_NONE][0]['target_id'] : '';
+
+  // Location Info
+  $address1 = !empty($edit['field_mailing_address_addr1'][LANGUAGE_NONE][0]['value']) ?
+    $edit['field_mailing_address_addr1'][LANGUAGE_NONE][0]['value'] : '';
+  $address2 = !empty($edit['field_mailing_address_addr2'][LANGUAGE_NONE][0]['value']) ?
+    $edit['field_mailing_address_addr2'][LANGUAGE_NONE][0]['value'] : '';
+  $city = !empty($edit['field_mailing_address_city'][LANGUAGE_NONE][0]['value']) ?
+    $edit['field_mailing_address_city'][LANGUAGE_NONE][0]['value'] : '';
+  $state = !empty($edit['field_mailing_address_state'][LANGUAGE_NONE][0]['value']) ?
+    $edit['field_mailing_address_state'][LANGUAGE_NONE][0]['value'] : '';
+  $country = !empty($edit['field_mailing_address_country'][LANGUAGE_NONE][0]['value']) ?
+    $edit['field_mailing_address_country'][LANGUAGE_NONE][0]['value'] : '';
+  $zipcode = !empty($edit['field_mailing_address_zip'][LANGUAGE_NONE][0]['value']) ?
+    $edit['field_mailing_address_zip'][LANGUAGE_NONE][0]['value'] : '';
+  $phone = !empty($edit['field_user_primary_phone'][LANGUAGE_NONE][0]['value']) ?
+    $edit['field_user_primary_phone'][LANGUAGE_NONE][0]['value'] : '';
+  $email = !empty($edit['field_user_contact_email'][LANGUAGE_NONE][0]['value']) ?
+    $edit['field_user_contact_email'][LANGUAGE_NONE][0]['value'] : '';
+
+  $email = isset($account->mail) ? $account->mail : '';
+  $password = isset($account->pass) ? $account->pass : '';
+
+  // Process org ref
+  if (!empty($org)) {
+    $orgObj = node_load($org);
+    $org_title = $orgObj->title;
+    $field_organization_key = field_get_items('node', $orgObj, 'field_organization_key');
+    $org_key = $field_organization_key[0]['value'];
+    $profile->setOrganization($org_title);
+    $profile->setOrganizationKey($org_key);
+  }
+
+  if (is_object($profile)) {
+    $profile->setCustomerNumber($customer_number);
+    $profile->setIndividualToken($ind_token);
+    $profile->setCustomerType($customer_type, '');
+    $profile->setFirstName($first_name);
+    $profile->setLastName($last_name);
+    $profile->setTitle($customer_title);
+    $profile->setAddress1($address1);
+    $profile->setAddress2($address2);
+    $profile->setCity($city);
+    $profile->setState($state);
+    $profile->setCountry($country);
+    $profile->setPhone($phone);
+    $profile->setEmail($email);
+  }
+}
+
+/**
+ * Function to change user password
+ */
+function avectra_set_new_password($account, $newpass, $oldpass) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $field_customer_key = field_get_items('user', $account, 'field_customer_key');
+  $customer_key = !empty($field_customer_key[0]['value']) ? $field_customer_key[0]['value'] : '';
+
+  if (empty($customer_key)) {
+    return FALSE;
+  }
+
+  $status = $act->changeUserPassword($customer_key, $oldpass, $newpass);
+
+  // If pass changed successfully at Avectra then update Drupal pass too
+  if ($status) {
+
+    require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
+
+    $account->pass = user_hash_password($newpass);
+    user_save($account);
+  }
+
+  return $status;
+}
+
+/**
+ * Implements hook_node_presave().
+ *
+ * Function to save organization to avectra netForum before saving to drupal
+ */
+function avectra_node_presave($node) {
+  if (is_object($node) && $node->is_new) {
+    module_load_include('php', 'avectra', 'includes/ACT');
+    $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+    switch ($node->type) {
+      case 'organization':
+
+        $field_organization_key = field_get_items('node', $node, 'field_organization_key');
+        if (!empty($field_organization_key[0]['value'])) {
+          return;
+        }
+
+        $org = create_organization_object($node);
+        $org_key = $act->insertOrganization($org);
+
+        // If organization does not return any key then don't save node and redirect to front
+        if (empty($org_key)) {
+          drupal_set_message(t('Organization could not be created at Avectra.'), 'error');
+          drupal_goto('<front>');
+        }
+
+        $node->field_organization_key[LANGUAGE_NONE][0]['value'] = $org_key;
+        break;
+    }
+  }
+}
+
+/**
+ * @param $node
+ * @return Organization
+ */
+function create_organization_object($node) {
+  $org = new Organization();
+
+  $org->setName(check_plain($node->title));
+
+  $description = field_get_items('node', $node, 'body');
+  $description = !empty($description[0]['value']) ? check_plain($description[0]['value']) : '';
+  $org->setDescription($description);
+
+  $date_founded = field_get_items('node', $node, 'field_field_org_date_founded');
+  $date_founded = !empty($date_founded[0]['value']) ? date('Y-m-d H:i:s', check_plain($date_founded[0]['value'])) : '';
+  $org->setDateFounded($date_founded);
+
+  $fiscal_year_end = field_get_items('node', $node, 'field_org_fiscal_year_end');
+  $fiscal_year_end = !empty($fiscal_year_end[0]['value']) ? check_plain($fiscal_year_end[0]['value']) : '';
+  $org->setFiscalYearEnd($fiscal_year_end);
+
+  $org_type = field_get_items('node', $node, 'field_organization_type');
+  $org_type = !empty($org_type[0]['value']) ? check_plain($org_type[0]['value']) : '';
+  $org->setType($org_type);
+
+  $no_of_employees = field_get_items('node', $node, 'field_no_of_employees');
+  $no_of_employees = !empty($no_of_employees[0]['value']) ? check_plain($no_of_employees[0]['values']) : '';
+  $org->setNumEmployees($no_of_employees);
+
+  $revenue = field_get_items('node', $node, 'field_company_revenue');
+  $revenue = !empty($revenue[0]['value']) ? check_plain($revenue[0]['value']) : '';
+  $org->setCompanyRevenue($revenue);
+
+  $govt_revenue = field_get_items('node', $node, 'field_government_revenue');
+  $govt_revenue = !empty($govt_revenue[0]['value']) ? check_plain($govt_revenue[0]['value']) : '';
+  $org->setGovernmentRevenue($govt_revenue);
+
+  $referral = field_get_items('node', $node, 'field_referral');
+  $referral = !empty($referral[0]['value']) ? check_plain($referral[0]['value']) : '';
+  $org->setReferral($referral);
+
+  $com_fed_state_local = field_get_items('node', $node, 'field_comfedstatelocal');
+  $com_fed_state_local = !empty($com_fed_state_local[0]['value']) ? check_plain($com_fed_state_local[0]['value']) : '';
+  $org->setComFedStateLocal($com_fed_state_local);
+
+  $address = field_get_items('node', $node, 'field_org_address');
+  $address = !empty($address[0]['value']) ? check_plain($address[0]['value']) : '';
+  $org->setAddress($address);
+
+  $phone = field_get_items('node', $node, 'field_org_phone');
+  $phone = !empty($phone[0]['value']) ? check_plain($phone[0]['value']) : '';
+  $org->setPhone($phone);
+
+  $key = field_get_items('node', $node, 'field_organization_key');
+  $key = check_plain($key[0]['value']);
+  $org->setKey($key);
+
+  return $org;
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function avectra_node_update($node) {
+
+  // Verify that we going to process organization node from UI interface
+  if ($node->type == 'organization' && is_numeric(arg(1)) && arg(0) == 'node') {
+
+    module_load_include('php', 'avectra', 'includes/ACT');
+    $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+    $org = create_organization_object($node);
+
+    $poc_uid_arr = set_organization_object_poc($org, $node);
+
+    set_organization_object_roster($node, $poc_uid_arr, $org);
+
+    $status = $act->updateOrganization($org);
+  }
+}
+
+/**
+ * @param $node
+ * @param $poc_uid_arr
+ * @param $org
+ * @internal param $roster_uids
+ */
+function set_organization_object_roster($node, $poc_uid_arr, &$org) {
+  $roster_uids = array();
+  $field_organization_roster = field_get_items('node', $node, 'field_organization_roster');
+  if (!empty($field_organization_roster)) {
+    $rosters = $field_organization_roster;
+    foreach ($rosters as $roster) {
+      $roster_uids[] = $roster['target_id'];
+    }
+
+    $rosters = user_load_multiple($roster_uids);
+    $members = array();
+
+    foreach ($rosters as $roster) {
+
+      $relationship = in_array($roster->uid, $poc_uid_arr) ? 'POC' : 'Employee';
+
+      $field_customer_key = field_get_items('user', $roster, 'field_customer_key');
+      if (!empty($field_customer_key[0]['value'])) {
+
+        $field_name_first = field_get_items('user', $roster, 'field_name_first');
+        $field_name_last = field_get_items('user', $roster, 'field_name_last');
+
+        $members[] = new Member($field_customer_key[0]['value'],
+          $field_name_first[0]['value'],
+          $field_name_last[0]['value'],
+          $roster->mail,
+          $relationship
+        );
+      }
+    }
+
+    $org->setOrgRoster($members);
+  }
+}
+
+/**
+ * @param $org
+ * @param $node
+ * @return array
+ */
+function set_organization_object_poc(&$org, $node) {
+  //$poc_uid = @$node->field_organization_poc['und'][0]['target_id'];
+  // POC updated by devendra
+  $poc_uid_arr = array();
+  $field_organization_poc = field_get_items('node', $node, 'field_organization_poc');
+  if (sizeof($field_organization_poc) > 0) {
+    foreach ($field_organization_poc as $key => $val) {
+      $poc_uid = $val['target_id'];
+      $poc_uid_arr[] = $val['target_id'];
+      if ($poc_uid != '') {
+        $poc_acc = user_load($poc_uid);
+        $field_customer_key = field_get_items('user', $poc_acc, 'field_customer_key');
+        $user_key = !empty($field_customer_key[0]['value']) ? $field_customer_key[0]['value'] : '';
+        if ($user_key != '') {
+          $org->setContact($user_key);
+        }
+      }
+    }
+  }
+  return $poc_uid_arr;
+}
+
+
+/**
+ * Function to update particular event, communtiy, user from Avectra
+ */
+function avectra_update_from_avectra($type, $id) {
+
+  if ($type == '' || $id == '') {
+    return;
+  }
+
+  switch ($type) {
+    case 'event':
+      _avectra_update_event_from_avectra($id);
+      break;
+    case 'community':
+      _avectra_update_community_from_avectra($id);
+      break;
+    case 'user':
+      _avectra_update_user_from_avectra($id);
+      break;
+
+    default:
+      break;
+  }
+
+}
+
+/**
+ * Function to update particular event
+ */
+function _avectra_update_event_from_avectra($nid) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $node = node_load($nid);
+  $field_event_key = field_get_items('node', $node, 'field_event_key');
+  $event_key = !empty($field_event_key[0]['value']) ? $field_event_key[0]['value'] : '';
+  $event_info = $act->getEventDetails($event_key);
+
+  foreach ($event_info->EventObject as $obj) {
+    $event =
+      new Event($obj->evt_key, $obj->evt_code, $obj->evt_title, $obj->evt_short_description, $obj->evt_start_date, $obj->evt_end_date, $obj->evt_start_time, $obj->evt_end_time);
+  }
+
+  if (!empty($event)) {
+    update_node_from_netforum_event($node, $event_info, $event, FALSE);
+    node_save($node);
+    drupal_set_message(t('Sucessfully updated from Avectra.'));
+  }
+  else {
+    drupal_set_message(t('Could not be updated from Avectra'), 'error');
+  }
+
+  $path = drupal_lookup_path('alias', 'node/' . $node->nid);
+  $path = empty($path) ? 'node/' . $node->nid : $path;
+  drupal_goto($path);
+}
+
+/**
+ * Function to update particular community
+ */
+function _avectra_update_community_from_avectra($nid) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $node = node_load($nid);
+  $field_community_key = field_get_items('node', $node, 'field_community_key');
+  $committee_key = !empty($field_community_key[0]['value']) ? $field_community_key[0]['value'] : '';
+  $committee = $act->getCommitteeDetails($committee_key);
+
+  if (is_object($committee)) {
+
+    $key = (string) $committee->getKey();
+
+    // Get the Drupal committee object based on the key.
+    $node = get_committee_from_key($key);
+
+    if (is_null($node)) {
+      $node = create_default_committee();
+    }
+
+    // Update Drupal's committee fields from Netforum's committee object.
+    update_node_from_netforum_committee($node, $committee);
+
+    $committee_position = $act->getCommitteeMembers($key);
+
+    $only_members = $members = array();
+    // Collect all members of that committee before updating
+    $old_members = _get_users_in_group($node->nid);
+
+    // Removing existing leadership references, first delete entities then
+    // remove references
+    remove_committee_leadership($node);
+
+    // Create new leadership references.
+    list($members, $only_members) =
+      get_committee_members_non_leaders($committee_position, $node);
+
+    node_save($node);
+
+    // Associate members to that committee
+    add_members_to_committee_node($node, $members);
+
+    // Update memberships of old members.
+    update_old_members_membership($old_members, $only_members, $node->nid, $members);
+
+    //Added by Anil
+    $yourGroupID = $nid;
+    $query = new EntityFieldQuery();
+    $query
+      ->entityCondition('entity_type', 'node', '=')
+      ->propertyCondition('type', 'sub_community', '=')
+      ->fieldCondition('og_group_ref', 'target_id', $nid, '=');
+
+    $entities = $query->execute();
+    foreach ($entities['node'] as $data) {
+      $node = node_load($data->nid);
+      node_save($node);
+    }
+
+    drupal_set_message(t('Successfully updated from Avectra.'));
+  }
+  else {
+    drupal_set_message(t('Could not be updated from Avectra'), 'error');
+  }
+  $path = drupal_lookup_path('alias', 'node/' . $node->nid);
+  $path = empty($path) ? 'node/' . $node->nid : $path;
+  drupal_goto($path);
+}
+
+/**
+ * @return stdClass
+ */
+function create_default_committee() {
+  $node = new stdClass();
+  $node->type = 'group';
+  $node->promote = 1;
+  $node->sticky = 0;
+  $node->language = LANGUAGE_NONE;
+  $node->uid = 1;
+  $node->created = REQUEST_TIME;
+  $node->path['pathauto'] = TRUE;
+  $node->og_roles_permissions[$node->language][0]['value'] = 0;
+  $node->group_access[$node->language][0]['value'] = 1;
+  return $node;
+}
+
+/**
+ * Returns members and non-leaders. Also creates leadership references in committee node.
+ *
+ * @param array $committee_position
+ *   An array of committee positions.
+ * @param stdClass $node
+ *   Committee node.
+ *
+ * @return array $output
+ *   An array of all members and an array of members without leadership role.
+ */
+function get_committee_members_non_leaders($committee_position, $node) {
+  $members = array();
+  $only_members = array();
+  if (!empty($committee_position) && sizeof($committee_position)) {
+    foreach ($committee_position as $commpos) {
+
+      $ukey = (string) $commpos->cmc_cst_key;
+      $uid = getUidByKey($ukey);
+      $pos = (string) $commpos->cpo_code;
+
+      if ($uid == '' || $pos == '') {
+        continue;
+      }
+
+      $members[$uid] = $uid;
+
+      if (strtolower($pos) == 'member') {
+        $only_members[$uid] = $uid;
+        continue;
+      }
+
+      // Add field collection
+      $field_collection_item = entity_create('field_collection_item',
+        array('field_name' => 'field_leadership')); // Create new field collection item.
+      $field_collection_item->setHostEntity('node', $node); // Attach it to the node.
+
+      $field_collection_item->field_position[LANGUAGE_NONE][]['value'] = $pos;
+      $field_collection_item->field_leader[LANGUAGE_NONE][]['target_id'] = $uid;
+      //$field_collection_item->save();
+    }
+  }
+  $output = array($members, $only_members);
+  return $output;
+}
+
+
+/**
+ * Removes existing leadership from Committee node.
+ *
+ * @param stdClass $node
+ *   Committee node.
+ */
+function remove_committee_leadership(&$node) {
+  if (!empty($node->field_leadership)) {
+    $reflink = array();
+    $field_leadership = field_get_items('node', $node, 'field_leadership');
+    foreach ($field_leadership as $value) {
+      $reflink[] = $value['value'];
+    }
+    if (sizeof($reflink)) {
+      entity_delete_multiple('field_collection_item', $reflink);
+    }
+    $node->field_leadership[LANGUAGE_NONE] = array();
+  }
+}
+
+
+/**
+ * Updates membership of old members. If the old member uid is not in $members array,
+ * then he is removed from the group. If the user is still a member but is not in leadership position,
+ * then revoke his administrator role.
+ *
+ * @param array $old_members
+ *   An array of old members.
+ * @param array $only_member
+ *   An array of members who do not have administrative role.
+ * @param integer $nid
+ *   Committee id.
+ * @param array $members
+ *   An array of new members of the group.
+ */
+function update_old_members_membership($old_members, $only_member, $nid, $members) {
+  if (!empty($old_members)) {
+    foreach ($old_members as $uid) {
+      // If old leadership uid still exist in only member role then change their role to member only
+      if (isset($only_member[$uid])) {
+        og_role_revoke('node', $nid, $uid, 3);
+        og_role_revoke('node', $nid, $uid, 48);
+      }
+      elseif (!isset ($members[$uid])) {
+        // If old leadership uid not coming now then remove them from drupal membership
+        og_ungroup('node', $nid, 'user', $uid);
+      }
+    }
+  }
+}
+
+
+/**
+ * Adds members's to Drupal's committee node.
+ *
+ * @param array $members
+ *   Members to be added.
+ * @param stdClass $node
+ *   Committee node.
+ */
+function add_members_to_committee_node($node, $members) {
+  if (!empty($members)) {
+    $gid = $node->nid;
+    foreach ($members as $uid) {
+      $account = user_load($uid);
+      if ($gid && !og_is_member('node', $gid, 'user', $account, array(OG_STATE_ACTIVE))) { // added by devendra
+        $status = _avectra_user_membership_status($account, $gid);
+        if ($status) {
+          og_group('node', $gid, array(
+            'entity type' => 'user',
+            'entity' => $account,
+            'membership type' => OG_MEMBERSHIP_TYPE_DEFAULT,
+          ));
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Updates Drupal's committee node from NetForum's committee object. Node is not saved yet.
+ *
+ * @param stdClass $node
+ *   Committee node object.
+ * @param object $committee
+ *   NetForum's committee object.
+ */
+function update_node_from_netforum_committee(&$node, $committee) {
+  $end_date = (string) $committee->getEndDate();
+  $end_date_db = '';
+  if (!empty($end_date)) {
+    $end_date = strtotime($end_date);
+    $end_date_db = date('Y-m-d h:i:s', $end_date); //2013-07-15 08:30:00
+  }
+
+  $current = time();
+  $node->status = ($end_date && $current > $end_date) ? 0 : 1;
+  $node->path['pathauto'] = FALSE;
+  $node->title = (string) $committee->getName();
+  $node->body[$node->language][0]['value'] = (string) $committee->getDescription();
+  $node->field_community_key[$node->language][0]['value'] = (string) $committee->getKey();
+  $node->field_asncode[$node->language][0]['value'] = (string) $committee->getASNCode();
+  $node->field_committee_code[$node->language][0]['value'] = (string) $committee->getCode();
+  $node->field_committee_ctpcode[$node->language][0]['value'] = (string) $committee->getCTPCode();
+  if ($end_date) {
+    $node->field_committee_end_date[$node->language][0]['value'] = $end_date_db;
+  }
+  //$node->field_committee_end_date[$node->language][0]['value2'] = (string) $committee->getEndDate();
+
+
+  /*       * ******** Default and required fields ****** */
+  /*$node->og_roles_permissions[$node->language][0]['value'] = 0;
+  $node->field_my_interests[$node->language][0]['tid'] = 19;
+  $node->group_access[$node->language][0]['value'] = 0;
+  */
+}
+
+/**
+ * Returns the committee node from the key.
+ *
+ * @param string $key
+ *   Get the committee node from the key.
+ * @return stdClass $node
+ *   Committee node.
+ */
+function get_committee_from_key($key) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'group')
+    //->propertyCondition('status', 1)
+    ->fieldCondition('field_community_key', 'value', $key, '=');
+  $result = $query->execute();
+  if (isset($result['node'])) {
+    $nid = array_keys($result['node']);
+    $node = node_load($nid[0]);
+    return $node;
+  }
+  return NULL;
+}
+
+/**
+ * Function to update particular user
+ */
+function _avectra_update_user_from_avectra($uid) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $account = user_load($uid);
+
+  if (empty($account)) {
+    return;
+  }
+
+  $field_customer_key = field_get_items('user', $account, 'field_customer_key');
+  $user_key = !empty($field_customer_key[0]['value']) ? $field_customer_key[0]['value'] : '';
+
+  $profile = $act->getProfileInfo($user_key);
+
+  if (is_object($profile)) {
+
+    $user_email = (string) $profile->getEmail();
+    if (trim($user_email) == '') {
+      return;
+    }
+
+    update_user_fields($account, $profile);
+
+    $customer_key = $profile->getCustomerKey();
+
+    //drupal_set_message($cKey);
+    // Update Customer Organization Info
+    // $avectra_result : login user customer key
+    _avectra_update_user_organization($customer_key);
+
+    // Update user group 
+    get_memberships_for_user($customer_key);
+
+    drupal_set_message(t('Successfully updated from Avectra.'));
+  }
+  else {
+    drupal_set_message(t('Could not be updated from Avectra'), 'error');
+  }
+
+  drupal_goto('user');
+}
+
+/**
+ * Function to get invoices of a user from NetForum
+ */
+function avectra_get_user_invoice($acc = '') {
+  global $user;
+  if (empty($acc)) {
+    $acc = $user;
+  }
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $field_customer_key = field_get_items('user', $acc, 'field_customer_key');
+  $customer_key = !empty($field_customer_key[0]['value']) ? $field_customer_key[0]['value'] : '';
+  if (empty($customer_key)) {
+    return FALSE;
+  }
+
+  $invoices = $act->getInvoicesForUser($customer_key);
+
+  return $invoices;
+}
+
+/**
+ * Function to get invoices of a user from NetForum
+ */
+function avectra_get_user_events($acc = '') {
+  global $user;
+  if (empty($acc)) {
+    $acc = $user;
+  }
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $field_customer_key = field_get_items('user', $acc, 'field_customer_key');
+  $customer_key = !empty($field_customer_key[0]['value']) ? $field_customer_key[0]['value'] : '';
+  if (empty($customer_key)) {
+    return FALSE;
+  }
+
+  $events = $act->getEventsForUser($customer_key);
+
+  return $events;
+}
+
+/**
+ * Function to get invoices of a user from NetForum
+ */
+function avectra_get_user_membership($acc = '') {
+  global $user;
+  if (empty($acc)) {
+    $acc = $user;
+  }
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $field_customer_key = field_get_items('user', $acc, 'field_customer_key');
+  $customer_key = !empty($field_customer_key[0]['value']) ? $field_customer_key[0]['value'] : '';
+  if (empty($customer_key)) {
+    return FALSE;
+  }
+
+  $membership = $act->getMembershipsForUser($customer_key);
+
+  return $membership;
+}
+
+/**
+ * Function to get chapters of a user from NetForum
+ */
+function avectra_get_user_chapters($acc = '') {
+  global $user;
+  if (empty($acc)) {
+    $acc = $user;
+  }
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $field_customer_key = field_get_items('user', $acc, 'field_customer_key');
+  $customer_key = !empty($field_customer_key[0]['value']) ? $field_customer_key[0]['value'] : '';
+  if (empty($customer_key)) {
+    return FALSE;
+  }
+
+  $chapters = $act->getChaptersForUser($customer_key);
+
+  return $chapters;
+}
+
+/**
+ * Function to return nominating status of a user
+ */
+function _avectra_user_membership_status($account, $cmt_nid) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $committee = node_load($cmt_nid);
+
+  $field_community_key = field_get_items('node', $committee, 'field_community_key');
+  $committee_key = !empty($field_community_key[0]['value']) ? $field_community_key[0]['value'] : '';
+
+  $field_customer_key = field_get_items('user', $account, 'field_customer_key');
+  $customer_key = !empty($field_customer_key[0]['value']) ? $field_customer_key[0]['value'] : '';
+
+  if ($committee_key == '' || $customer_key == '') {
+    return FALSE;
+  }
+
+  $membership_status = $act->isUserInCommittee($customer_key, $committee_key);
+  if ($membership_status) {
+    return TRUE;
+  }
+
+  $status = $act->isUserNominatedForCommittee($customer_key, $committee_key);
+  if ($status) {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Function to return subscriber_link status of a user whether user should see subscribing link
+ */
+function _avectra_user_subscriber_link_visibility($uid, $committee_nid) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $account = user_load($uid);
+  $committee = node_load($committee_nid);
+
+  $field_community_key = field_get_items('node', $committee, 'field_community_key');
+  $committee_key = !empty($field_community_key[0]['value']) ? $field_community_key[0]['value'] : '';
+
+  $field_customer_key = field_get_items('user', $account, 'field_customer_key');
+  $customer_key = !empty($field_customer_key[0]['value']) ? $field_customer_key[0]['value'] : '';
+
+  if ($committee_key == '' || $customer_key == '') {
+    return FALSE;
+  }
+
+  $drupal_group_status = og_is_member('node', $committee_nid, 'user', $account, array(OG_STATE_ACTIVE));
+
+  $membership_status = $act->isUserInCommittee($customer_key, $committee_key);
+  if ($membership_status) {
+    return $drupal_group_status ? TRUE : FALSE;
+  }
+
+  $status = $act->isUserNominatedForCommittee($customer_key, $committee_key);
+  if ($status) {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Function to get registrant user of a event
+ */
+function avectra_get_event_registered_user($event_node, $username = '', $count = FALSE) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $userArray = array();
+
+  $field_event_key = field_get_items('node', $event_node, 'field_event_key');
+  if (!empty($field_event_key[0]['value'])) {
+
+    $event_key = $field_event_key[0]['value'];
+
+    if (trim($event_key) == '') {
+      return FALSE;
+    }
+
+    $response = $act->getUsersForEvent($event_key);
+
+    foreach ($response->EventsRegistrantObject as $registrant) {
+      $customer_key = (string) $registrant->reg_cst_key;
+      $userArray[$customer_key] = $customer_key;
+    }
+
+    if (!empty($userArray)) {
+
+      $query = new EntityFieldQuery();
+      $query->entityCondition('entity_type', 'user')
+        ->fieldCondition('field_customer_key', 'value', $userArray, 'IN');
+
+      if ($username != '') {
+        $query->fieldCondition('field_name_first', 'value', '%' . db_like($username) . '%', 'LIKE');
+      }
+
+
+      if ($count) {
+        $query->count();
+      }
+
+      $result = $query->execute();
+
+      if ($count) {
+        return $result;
+      }
+
+      if (isset($result['user'])) {
+        $uids = array_keys($result['user']);
+        $users = user_load_multiple($uids);
+
+        return $users;
+      } // end if
+    }
+  }
+
+  return FALSE;
+}

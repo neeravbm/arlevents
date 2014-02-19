@@ -1,0 +1,3 @@
+name = Barcoded Event Badge Scanning And Printing
+description = A custom library module for creating and scanning barcoded event badges
+core = 7.x

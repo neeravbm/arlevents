@@ -1,0 +1,24 @@
+
+.page-user #block-block-2 {
+    margin-bottom: 0px;
+}
+
+/********Calendar (dashboard) *****/
+#actics_addtocal {
+    padding-left: 7%;
+    font-size: 0.9em;
+}
+
+
+
+.pretty-calendar-month {
+    margin-top: 30px;
+    font-size: 0.9em;
+}
+/*** All-members ***/
+.page-all-members .view-display-id-page_2 td div {
+  width: 28%;
+}
+.page-all-members .view-display-id-page_2 .view-header td {
+	max-width: 68px;
+}

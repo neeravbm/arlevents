@@ -1,0 +1,1375 @@
+/* This file will hold styles for the mobile version of your website (mobile first). */
+/* This also can include ANY global CSS that applies site-wide. Unless overwritten by a more specific style rule, CSS declarations in global.css will apply site-wide. */
+
+.events-custom #block-system-main .content{
+  margin:0 10px;
+}
+
+#zone-gmenu-wrapper {
+  /*margin:10px 0;*/
+}
+
+body.node-type-innerpage, body.page-cart, body.page-checkout  {
+  background-color: #FFFFFF;
+}
+
+body.node-type-innerpage .region, body.page-cart .region, body.page-checkout .region {
+  background-color: #FFFFFF;
+}
+
+
+/****************** Inner Pages **************/
+
+.node-type-innerpage .bodysummary{
+  font-size:1.4em;
+  border-bottom:1px solid #CCCCCC;
+}
+
+.node-type-innerpage .innerpage {
+  float: left;
+  font-size: 1em;
+  padding: 30px 10px;
+  width: 98%;
+  border-bottom:1px solid #CCCCCC;
+}
+
+
+.node-type-innerpage .innerpage .field-label {
+  display:none;
+}
+
+.node-type-innerpage .innerpage .left{
+    float: left;
+    width: auto;
+}
+
+.node-type-innerpage .innerpage .left .image img{
+  border: 1px solid gray;
+  height: auto;
+  padding: 3px;
+  width: 100%;
+}
+
+.node-type-innerpage .innerpage .right {
+  float: right;
+  width: 100%;
+  text-align:justify;
+}
+
+.node-type-innerpage .innerpage-standard .field-label {
+  display:none;
+}
+
+.node-type-innerpage .innerpage .readmore a{
+  font-size: 1.2em;
+  text-decoration:underline !important;
+  font-style:italic;
+}
+
+/****************** Two Col Layout in Inner Page **************/
+
+.page-node .innerpage-standard {
+  float: left;
+  font-size: 1em;
+  width: 100%;
+
+}
+
+.page-node .innerpage-standard .col {
+  float: left;
+  margin: 10px 0;
+  text-align: center;
+  width: 100%;
+  border:0;
+  border-bottom:1px solid #CCCCCC;
+}
+
+.page-node .innerpage-standard .last {
+   border-bottom:0;
+}
+
+.page-node .innerpage-standard .col img{
+  border: 1px solid gray;
+  height: auto;
+  padding: 3px;
+  /*width:100%;*/
+}
+
+.page-node .innerpage-standard .col .innerdata{
+  margin: 0 auto;
+  /* padding: 0 30%;*/
+}
+
+.page-node .innerpage-standard .col .summary{
+  margin: 30px 0;
+  padding: 0 5%;
+}
+
+.page-node .innerpage-standard .col .name-designation{
+  font-size: 1.4em;
+  padding-bottom:20px;
+}
+
+.page-node .innerpage-standard .col .readmore a{
+  font-size: 1.4em;
+  text-decoration:underline !important;
+  font-style:italic;
+}
+
+.page-node .innerpage-standard .col .biodata{
+   text-align: justify;
+   padding: 0 10px 20px;
+}
+
+/**************** End ***************/
+
+/********** Cart Page **************/
+
+.page-checkout #region-content .block .content {
+  padding:10px 0;
+}
+
+.page-checkout #block-system-main .content {
+  margin:10px 0;
+}
+
+.page-cart .line-item-summary{
+  margin-right:6%;
+}
+/************* End *****************/
+
+
+/************ Home Page Strategic Initiatives block **********/
+
+#tabs-titles{
+  float:left;
+  margin-right:40px;
+  background: #203B6A;
+  width: 17%;
+}
+
+.front #tabs-titles{
+  float:left;
+  margin-right:40px;
+  background: #203B6A;
+  width: 19%;
+}
+
+#tabs-titles div{
+  cursor:pointer;
+  color:#fff;
+  height: 40px;
+  padding: 10px;
+  border-bottom: 1px solid #FFFFFF;
+  font-weight:bolder;
+  background:#4D7BBA;
+}
+
+#tabs-titles div.current{
+  background:url('../images/leftblueselectd_arrow.png')  no-repeat right center;
+  margin: 0 0 0 5%;
+  width: 85%;
+}
+
+
+#tabs-titles div a {
+  color:#fff;
+  text-decoration:none;
+}
+
+
+#tabs-contents{
+    background:#F2F2F2;
+    margin-left:100px;
+    padding:5px;
+}
+
+.front #tabs-contents{
+    background:#FFFFFF;
+    margin-left:100px;
+    padding:5px;
+}
+
+#tabs-contents div{
+    display:none;
+}
+#tabs-contents div:first-child{
+    display:block;
+}
+#tabs-contents table {
+    border: none;
+    width: 89%;
+}
+#tabs-contents .block_title {
+    font-size: 1.250em;
+    font-weight: normal;
+    margin-bottom: 0;
+    padding: 10px 0;
+    color:#3B3B3B;
+}
+
+#tabs-contents table tr td{
+    color:#3D3D3D;
+}
+
+#tabs-contents table tr.even td {
+    background:#F2F2F2;
+}
+
+#tabs-contents table tr.even, #tabs-contents table tr.odd {
+    border-bottom:none;
+}
+
+.front .homeaccordion{
+  display:block;
+}
+
+.front .tabonhome{
+  display:none;
+}
+/*
+.front .ui-accordion-content-active {
+  height:auto;
+}*/
+
+.front .ui-state-active .ui-icon {
+  background-image:none!important;
+}
+
+.front .ui-corner-all {
+  border-radius:0px!important;
+}
+
+.front.ui-state-default,
+.front .ui-widget-content .ui-state-default,
+.front .ui-widget-header .ui-state-default {
+ background: #203B6A!important;
+}
+
+/************* Home Slider Top *********/
+
+#zone-eventslider-wrapper {
+  background:url("../images/bluelinefull_bg.png") repeat-x scroll 0 0 transparent;
+  margin-top:0px;
+}
+
+#zone-eventslider-wrapper #block-block-48 .upcoming-events-header{
+  background:url("../images/bluelinetrans.png") no-repeat scroll 0 0 transparent;
+  color: #FFFFFF;
+  font-family: 'AvenirNextRegular';
+  font-size: 1.125em;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  padding: 12px 30px 27px 15px;
+  text-align: center;
+  width: 105px;
+}
+
+ /* Safari */
+@media screen and (-webkit-min-device-pixel-ratio:0)
+{
+  #zone-eventslider-wrapper #block-block-48 .upcoming-events-header{
+   letter-spacing: 1.5px;
+  }
+}
+
+#region-eventslider-third #block-block-49 .event-slider-right a {
+  background: url("../images/calender_bt.png") no-repeat scroll right center transparent;
+  display: block;
+  float: right;
+  margin: 18px -20px 0;
+  padding: 10px 0;
+  text-indent: -9999px;
+  width: 100px;
+}
+
+#region-eventslider-second, #region-eventslider-first, #region-eventslider-third{
+  background:none;
+}
+
+#region-eventslider-second .view-events-slide-show .flexslider{
+  background:none;
+  border:0;
+  box-shadow:none;
+  margin:0;
+  border-radius:0;
+}
+
+#region-eventslider-second .view-events-slide-show .flexslider ul li{
+  color:#ffffff;
+  line-height:1em;
+}
+
+#region-eventslider-second .view-events-slide-show .flexslider .slides img {
+  width: auto;
+}
+
+.views-field-field-events-banner{
+  float:none;
+  margin:3px 10px 0 0;
+}
+
+.view-events-slide-show .views-field-title {
+  overflow:hidden;
+  height:1.0em;
+}
+
+.view-events-slide-show .views-field-title a {
+  color:#ffffff;
+  text-decoration:none;
+}
+
+.view-events-slide-show .views-field-field-event-date{
+  font-size: 0.828em;
+}
+
+.view-events-slide-show .views-field-body {
+  font-size: 0.828em;
+}
+
+.view-events-slide-show .views-field-body a {
+  color: #FFFFFF;
+  text-decoration:none;
+  font-style:italic;
+}
+
+.view-events-slide-show .views-field-view-node a{
+  color:#ffffff;
+  text-decoration:none;
+  font-style:italic;
+}
+
+#region-eventslider-first, #region-eventslider-third{
+  display:none;
+}
+
+#region-eventslider-first {
+  margin-left:0;
+}
+
+/*********** Home page Accordian *********/
+
+#accordion .column {
+  width:100%;
+  display:inline-block;
+}
+
+#accordion .column img{
+  border: 1px solid #CCCCCC;
+  padding: 3px;
+  width: 100%;
+}
+
+.ui-accordion .ui-accordion-content{
+   height:auto!important;
+}
+
+
+/*********** Latest event listing *******/
+.page-latest-events #region-sidebar-first section .content {
+  border:1px solid #cccccc;
+}
+
+.page-latest-events #region-sidebar-first section h2.block-title {
+  background:#4677B9;
+  font-weight:normal;
+}
+
+.events-custom #region-sidebar-first section h2.block-title {
+  background:#4677B9;
+  font-weight:normal;
+  color:#FFFFFF;
+}
+
+.page-latest-events #region-sidebar-first .block-inner ul li{
+  list-style:none;
+  color:#3E3D3D;
+  border-bottom:1px solid #cccccc;
+  padding:5px 0;
+}
+
+.events-custom #region-sidebar-first .block-inner ul li{
+  list-style:none;
+  color:#3E3D3D;
+  border-bottom:1px solid #cccccc;
+  padding:5px 0;
+}
+
+
+.page-latest-events .view-event-category-listing .views-row{
+  margin-bottom:30px;
+  /*padding-bottom: 2%;*/
+  position: relative;
+}
+
+.page-latest-events .view-event-category-listing .views-row .views-field-field-logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.page-latest-events .view-event-category-listing .views-field-field-tax-event-banner ,
+.page-latest-events .view-future-events-by-term .views-field-field-events-banner{
+  margin:0px 0 15px 0;
+  float: left;
+  width: 100%;
+}
+
+.page-latest-events .view-event-category-listing .views-field-field-tax-event-banner img,
+.page-latest-events .view-future-events-by-term .views-field-field-events-banner img{
+  width:100%;
+  padding:0px;
+  border:0px solid #cccccc;
+  height: auto;
+}
+
+.page-latest-events .view-event-category-listing .views-field-field-event-date,
+.page-latest-events .view-future-events-by-term .views-field-field-event-date,
+.page-latest-events .view-event-category-listing .views-field-field-venue-address,
+.page-latest-events .view-future-events-by-term .views-field-field-venue-address{
+  float:left;
+  width:50%;
+  margin-left: 2%;
+  min-height: 25px;
+  background: url("../images/calender.png") no-repeat scroll left top transparent;
+  margin-bottom: 2%;
+}
+
+.page-latest-events .view-event-category-listing .views-field-field-venue-address,
+.page-latest-events .view-future-events-by-term .views-field-field-venue-address{
+  background: url("../images/location_icon.png") no-repeat scroll left top transparent;
+}
+
+.page-latest-events .view-event-category-listing .views-field-field-venue-address .field-content,
+.page-latest-events .view-future-events-by-term .views-field-field-venue-address .field-content{
+  margin-left:35px;
+}
+
+.view-id-event_profile .item-list .views-row{
+  border: 0;
+  -webkit-box-shadow:none;
+  -moz-box-shadow:none;
+  -ms-box-shadow: none;
+  box-shadow: none;
+  margin:0;
+}
+
+.events-addtocart .form-submit {
+  background: none repeat scroll 0 0 #4D7BBA;
+  border-radius: 8px 8px 8px 8px;
+  color: #FFFFFF;
+  font-weight: bold;
+  padding: 10px 27%;
+  text-shadow: none;
+}
+
+.page-latest-events .events-addtocart{
+  float:left;
+  margin:0 0 0 15%;
+  display:none;
+}
+
+
+.page-latest-events .events-date {
+  float:left;
+  margin:0 0 0 14%;
+  width: 100%;
+}
+
+/************** Webform ***********/
+#node-webform-49 .user-picture,
+#node-webform-49 header,
+#node-webform-49 footer  {
+  display:none;
+}
+
+/************ Track Listing ***********/
+
+
+body.page-track-listing,
+body.page-session-listing,
+body.page-latest-events ,
+body.page-latest-events-,
+body.events-custom,
+body.page-knowledge-bank,
+body.page-doc-knowledge-bank,
+body.page-calendar-month {
+  background-color:#FFFFFF;
+}
+
+body.page-track-listing h1#page-title,
+body.page-session-listing h1#page-title,
+body.events-custom h1#page-title,
+body.page-calendar-month h1#page-title{
+  font-weight:normal;
+  background: none repeat scroll 0 0 #7F7F7F;
+  color: white;
+  font-size: 1.188em;
+  padding: 18px;
+  letter-spacing:0px;
+}
+
+body.page-latest-events h1#page-title,
+body.page-latest-events- h1#page-title {
+  font-weight:normal;
+  background: none repeat scroll 0 0 #7F7F7F;
+  color: white;
+  font-size: 1.188em;
+  padding: 18px;
+  letter-spacing:0px;
+  margin-top:20px;
+}
+
+body.page-track-listing #breadcrumb,
+body.page-session-listing #breadcrumb,
+body.page-latest-events #breadcrumb,
+body.page-latest-events- #breadcrumb,
+body.events-custom #breadcrumb,
+body.page-knowledge-bank #breadcrumb,
+body.page-doc-knowledge-bank #breadcrumb,
+body.page-cart #breadcrumb,
+body.page-checkout #breadcrumb{
+  display:none;
+}
+
+body.page-track-listing #region-content .block .content,
+body.page-session-listing #region-content .block .content,
+body.page-latest-events #region-content .block .content,
+body.page-latest-events- #region-content .block .content,
+body.events-custom #region-content .block .content,
+body.page-knowledge-bank #region-content .block .content,
+body.page-calendar-month #region-content .block .content{
+  padding:0;
+  margin:0;
+}
+
+#block-block-50 {
+  margin-top:20px;
+}
+
+#region-sidebar-first #block-menu-menu-footer-fourth h2.block-title{
+  color:#FFFFFF;
+}
+
+.view-event-session-track .view-content ul{
+  list-style:none;
+}
+
+.not-logged-in .view-event-session-track .view-content ul li{
+  border-top:2px dotted #E2E2E2;
+  padding:2.5em 0;
+  margin:0;
+}
+
+.view-event-session-track .view-content ul li{
+  border-top:2px dotted #E2E2E2;
+  padding:1em 0;
+  margin:0;
+}
+
+.view-event-session-track .view-content ul li a{
+  font-size:1.4em;
+}
+.view-event-session-track .view-content ul li .anonymousaddtocart a {
+font-size: 1em;
+}
+.view-event-session-track .view-content ul li .views-field-field-track-description, .view-event-session-track .view-content ul li .views-field-body {
+  text-align:justify;
+}
+
+.view-event-session-track .view-content ul li .views-field-add-to-cart-form input{
+  border-radius:0;
+  padding:10px 50px;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:bold;
+  text-shadow:none;
+  background:#4D7BBA;
+  border-radius:8px;
+}
+
+/************ Knowledge Bank *********/
+
+.page-knowledge-bank h1#page-title,
+.page-doc-knowledge-bank h1#page-title  {
+  background: url("../images/act-iac-icon-book-light.png") no-repeat scroll 22px 13px #4677B9;
+  color: #FFFFFF;
+  font-size: 1.188em;
+  font-weight: normal;
+  margin-top: 2%;
+  padding: 1% 5%;
+}
+
+.page-knowledge-bank #region-content .block .content,
+.page-doc-knowledge-bank #region-content .block .content {
+  padding-left:0px;
+  margin-left:0px;
+}
+
+/*************** My account and logout header links ********/
+#block-act-userprofile-userlogout {
+  float:left;
+  width:100%;
+  font-size:14px;
+}
+
+
+.user-logout {
+  float:left;
+}
+
+.logged-in .user-logout {
+  float:right;
+}
+
+.user-logout a {
+  text-decoration:none;
+}
+
+.user-logout .welcome{
+  float:left;
+  margin:10px;
+}
+
+.user-logout .myaccount{
+  float:left;
+  margin:10px;
+}
+
+.user-logout .userlogout{
+  float:right;
+  margin:10px;
+}
+
+/************ Share This *********/
+
+#zone-content #block-sharethis-sharethis-block .sharethis-wrapper, #block-sharethis-sharethis-block .sharethis-wrapper {
+  background: none repeat scroll 0 0 #FFFFFF;
+  box-shadow: 1px 2px 6px #CDCDCD;
+  left: 0;
+  position: fixed;
+  top: 36%;
+  z-index: 999;
+}
+
+#zone-content #block-sharethis-sharethis-block, #block-sharethis-sharethis-block {
+  position: relative;
+  float:left;
+}
+
+#zone-content #block-sharethis-sharethis-block .sharethis-wrapper span, #block-sharethis-sharethis-block .sharethis-wrapper span {
+  display:block;
+}
+
+
+
+/*********** Event Links ********/
+#block-act-event-eventlinks{
+  clear:both;
+}
+
+.events-custom #zone-gmenu-wrapper{
+  margin-bottom:20px;
+}
+
+/************* On Cart Page Session and Track ******/
+
+.view-event-session-track-cart .view-content ul li .views-field-add-to-cart-form input{
+  border-radius:0;
+  padding:10px 50px;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:bold;
+  text-shadow:none;
+  background:#4D7BBA;
+  border-radius:8px;
+}
+
+.view-event-session-track-cart .view-content ul li {
+  border-top: 2px dotted #E2E2E2;
+  margin: 0;
+  padding: 1em 0;
+}
+
+.page-cart .view-commerce-cart-form{
+  margin-bottom:20px;
+}
+
+.page-cart section h2.block-title {
+  letter-spacing: 1px;
+}
+
+
+
+/************ Cart Page Style *********/
+.page-cart h1#page-title {
+  background:#4D7BBA url("../images/cart.png") no-repeat scroll 5px 18px;
+  color: #FFFFFF;
+  font-size: 2em;
+  font-weight: normal;
+  /*padding: 10px 10px 10px 5%;
+  margin:20px 20px 0;*/
+  padding-left: 45px;
+}
+
+.page-cart #edit-actions #edit-continue-shopping{
+  border-radius:0;
+  padding:10px 50px;
+  background:#6F6F6F;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  background:#6F6F6F url("../images/cart.png") no-repeat scroll 5px 0;
+}
+
+.page-cart #zone-content #edit-actions input#edit-submit{
+  border-radius:0;
+  padding:10px 50px;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  background:#4D7BBA url("../images/cart.png") no-repeat scroll 5px 0;
+}
+
+.page-cart #edit-actions input#edit-checkout{
+  border-radius:0;
+  padding:10px 50px;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  background:#4D7BBA url("../images/pencil.png") no-repeat scroll 10px 5px;
+}
+
+.view-commerce-cart-form {
+  border:1px solid #D9D2D2;
+}
+
+.page-cart #region-content .block .content {
+  padding-top:0px;
+  margin-top:0px;
+}
+
+.page-cart .commerce-line-item-views-form table tr td {
+  color:#9B9999;
+}
+
+.page-cart .commerce-line-item-views-form table tr td a,
+.page-cart .commerce-line-item-views-form table tr td a:hover {
+  color:#777575;
+}
+
+#block-views-e5942cab202ff4d270ddc7209188b73d {
+  margin-top:20px;
+}
+
+/************ checkout Page Style *********/
+.page-checkout #commerce-checkout-form-checkout fieldset label,
+.page-checkout #commerce-checkout-form-review fieldset label {
+  text-align:left;
+}
+
+#edit-act-event-registration-badge-account {
+  display:none;
+}
+
+.page-checkout h1#page-title,
+.page-checkout-complete h1#page-title {
+  display:none;
+}
+
+#commerce-checkout-form-checkout fieldset,
+#commerce-checkout-form-checkout fieldset legend{
+  width:98%;
+}
+
+.page-checkout #commerce-checkout-form-checkout legend {
+  background:#6F6F6F;
+  color: #FFFFFF;
+  font-weight: normal;
+  padding: 10px;
+  width: 98%;
+  margin:0 0 10px 0;
+
+}
+.page-checkout #commerce-checkout-form-checkout legend span {
+    font-size: 1.3em;
+}
+.page-checkout .commerce_coupon .form-submit{
+  border-radius:0;
+  padding:10px 50px;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  margin:20px 0;
+}
+
+
+.page-checkout .checkout-buttons .checkout-continue{
+  border-radius:0;
+  padding:10px 50px;
+  background:#6F6F6F;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+}
+
+
+.page-checkout #commerce-checkout-form-checkout fieldset label,
+.page-checkout #commerce-checkout-form-review fieldset label {
+  float: left;
+  width: 20%;
+  color:#817E7A;
+}
+
+.page-checkout #addressfield-wrapper input {
+   max-width: 50%;
+   padding: 0 5px;
+}
+
+.page-checkout #addressfield-wrapper .addressfield-container-inline > div.form-item {
+  float:none;
+}
+
+.page-checkout #addressfield-wrapper .locality-block > div.form-item{
+  margin-bottom:0;
+  margin-top:0;
+}
+
+.page-checkout #addressfield-wrapper > div.form-item{
+  margin-right:0px;
+}
+
+
+.page-checkout textarea, .page-checkout select , .page-checkout input[type="text"]{
+  height:30px;
+  border-color:#E1E1E1 #C1C1C1 #E1E1E1;
+  max-width: 50%;
+  /*font-size: 0.928em;*/
+  color:#817E7A;
+}
+
+.page-checkout .commerce_coupon .form-submit{
+  border-radius:0;
+  padding:1% 2%;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  margin:20px 0;
+  font-size:1.2em;
+}
+
+
+.page-checkout #edit-act-event-registration-badge-submit{
+  border-radius:0;
+  padding:1% 2%;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  margin:20px 0;
+  margin: 0 21%;
+  font-size:1.2em;
+}
+
+
+.page-checkout .checkout-buttons .checkout-continue{
+  border-radius:0;
+  padding:1% 2%;
+  background:#6F6F6F;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  font-size:1.2em;
+  margin-right:10px;
+}
+
+.page-checkout .checkout-buttons .checkout-cancel{
+  border-radius:0;
+  padding:1% 2%;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  font-size:1.2em;
+  margin-left:10px;
+}
+
+
+.page-checkout .street-block .form-item-customer-profile-billing-commerce-customer-address-und-0-thoroughfare,
+.page-checkout .street-block .form-item-customer-profile-billing-commerce-customer-address-und-0-premise {
+  float:left;
+  width:100%;
+}
+
+/************** Compelition Page ********/
+#commerce-checkout-form-complete{
+  width:100%;
+  float:left;
+  border:1px solid #D9D2D2;
+}
+
+#commerce-checkout-form-complete fieldset,
+#commerce-checkout-form-complete fieldset legend{
+  width:100%;
+}
+
+.page-checkout #commerce-checkout-form-complete legend span {
+  background:#4D7BBA;
+  color: #FFFFFF;
+  font-size: 1.5em;
+  font-weight: normal;
+  float:left;
+  padding: 10px;
+  width:98%;
+  margin:0 0 10px 0;
+}
+
+.page-checkout .checkout-completion-message {
+  padding: 40px;
+  text-align: center;
+}
+
+.page-checkout .checkout-completion-message a{
+  background:#4D7BBA;
+  color: #FFFFFF;
+  font-size: 1.5em;
+  font-weight: normal;
+  padding:10px 50px;
+  text-decoration:none;
+}
+
+/************** Follow On *************/
+aside section#block-menu-menu-follow-on .content { padding-top:0px;}
+#block-menu-menu-follow-on ul {text-align:center;}
+#block-menu-menu-follow-on ul li{display:inline-block;  margin: 0;  padding: 0; border-bottom:0 !important;}
+#block-menu-menu-follow-on li a#facebook{background: url('../images/fb-bt.png') no-repeat; display:inline-block;  font-size:0;  padding:15px; text-indent:-9999px;}
+#block-menu-menu-follow-on li a#twitter{background: url('../images/twitter-bt.png') no-repeat; display:inline-block;  font-size:0;  padding:15px; text-indent:-9999px;}
+#block-menu-menu-follow-on li a#linkedin{background: url('../images/in-bt.png') no-repeat; display:inline-block;  font-size:0;  padding:15px; text-indent:-9999px;}
+#block-menu-menu-follow-on li a#vimeo{background: url('../images/gplus-bt.png') no-repeat; display:inline-block;  font-size:0;  padding:15px; text-indent:-9999px;}
+#block-menu-menu-follow-on li a#menu-feed{background: url('../images/rss-bt.png') no-repeat; display:inline-block;  font-size:0;  padding:15px; text-indent:-9999px;}
+#block-menu-menu-follow-on li a#youtube { background: url('../images/youtube.png') no-repeat;display:inline-block;  font-size:0;  padding:15px; text-indent:-9999px;}
+#block-menu-menu-follow-on li a#blogger { background: url('../images/blogger.png') no-repeat;display:inline-block;  font-size:0;  padding:15px; text-indent:-9999px;}
+#block-menu-menu-follow-on li a#flickr { background: url('../images/flickr.png') no-repeat;display:inline-block;  font-size:0;  padding:15px; text-indent:-9999px;}
+
+#views-exposed-form-what-i-want-to-do-block .views-submit-button {
+  float:right;
+}
+
+
+/******* Group Menu ********/
+#zone-gmenu-wrapper {
+    line-height: 0.4em;
+    margin-top: 10px;
+}
+
+/************ Calender Month Listing Page *********/
+
+.page-calendar-month-listing .view-display-id-page_1 .content {
+  margin:0px;
+}
+
+.page-calendar-month-listing .view-display-id-page_1 ul li {
+  border-bottom:1px solid #ccc;
+  padding-bottom:10px;
+  margin:0px;
+  width: 100%;
+  float: left;
+}
+
+.page-calendar-month-listing .view-display-id-page_1 ul li .views-field-add-to-cart-form{
+  margin-top:5px;
+}
+
+.page-calendar-month-listing .views-field-title h3 {
+  margin-bottom:0px;
+  font-size:18px;
+}
+
+.page-calendar-month-listing .views-field-add-to-cart-form input.form-submit {
+  background: none repeat scroll 0 0 #4D7BBA;
+  border-radius: 8px 8px 8px 8px;
+  color: #FFFFFF;
+  font-weight: bold;
+  padding: 10px 4%;
+  text-shadow: none;
+}
+
+.view-event-full-calender .view-header a,
+.view-calendar-listing .view-header a{
+  float:right;
+}
+
+/************* Silver Sponsor *********/
+#zone-preface .region .view-events-silver-sponsors .flexslider{
+  border:0 none;
+  border-radius:0;
+  box-shadow:none;
+  margin:0;
+}
+
+#zone-preface .region #block-views-events-silver-sponsors-block,
+#zone-preface .region #block-views-events-silver-sponsors-block-2 {
+  padding-bottom:20px;
+  padding-top:0px;
+}
+
+#block-views-events-silver-sponsors-block .views-row,
+#block-views-events-silver-sponsors-block-2 .views-row {
+  float: left;
+  border: 1px solid #CCCCCC;
+  margin-left: 10px;
+  margin-bottom: 10px;
+  height: 125px;
+  vertical-align: top;
+  box-shadow: 1px 3px 1px #ccc;
+}
+#block-views-events-silver-sponsors-block  h2.block-title,
+#block-views-events-silver-sponsors-block-2  h2.block-title {
+  background: none;
+  color: #000;
+  font-size: 0.875em;
+  font-weight: lighter;
+}
+
+#block-views-events-silver-sponsors-block img,
+#block-views-events-silver-sponsors-block-2 img{
+    width:auto;
+    box-shadow:1px 3px 1px #CCCCCC;
+    padding:14px;
+    border:1px solid #CCCCCC;
+    margin:0 6px 8px 0;
+}
+
+#block-views-events-silver-sponsors-block .views-row .views-field-field-siver-sponsor-image,
+#block-views-events-silver-sponsors-block-2 .views-row .views-field-field-sponsor-image {
+  margin: 0 1em;
+}
+
+
+#block-views-events-silver-sponsors-block-1 h2.block-title {
+  background: none repeat scroll 0 0 transparent;
+  color: #333333;
+  font-weight: lighter;
+  padding: 5px 20px;
+}
+
+#block-views-events-silver-sponsors-block-1 .views-row{
+  float: left;
+  border: 1px solid #CCCCCC;
+  box-shadow: 1px 3px 1px #CCCCCC;
+  height: 125px;
+  margin: 0 6px 10px 0;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+  width: 130px;
+}
+
+body.page-conference-sponsors #block-views-events-silver-sponsors-block-1 {
+  display:none;
+}
+
+#block-views-events-silver-sponsors-block-1 .block-inner .content {
+  padding: 0 20px;
+}
+
+
+/********** Private Messages ********/
+ul.action-links li {
+  list-style:none;
+}
+
+
+ul.action-links li a {
+  background: none no-repeat scroll 10px 5px #4D7BBA;
+  border-radius: 0 0 0 0;
+  color: #FFFFFF;
+  font-weight: normal;
+  margin: 5px;
+  padding: 6px 50px;
+  text-shadow: none;
+  text-decoration:none;
+ }
+
+/*********** Group Event Calendar *************/
+.view-group-events .view-header {
+  text-align:right;
+  margin:10px 0;
+}
+
+#block-views-group-events-block-1 .content{
+  padding-top:0!important;
+}
+
+/************* Group Page like button ********/
+ body.node-type-group .node-links ul li.flag-like a,
+ body.node-type-group .node-links ul li.flag-commons_follow_group a,
+ body.node-type-group .node-links ul li.my_message_link a,
+ body.node-type-group .node-links ul li.update_avectra_community_link a,
+ body.node-type-sub-community .node-links ul li.update_avectra_community_link a,
+.node-sub-community .node-links ul li.flag-like a ,
+.node-sub-community .node-links ul li.flag-commons_follow_group a,
+.node-sub-community .node-links ul li.my_message_link a,
+.page-calendar-month .view-event-full-calender .view-header a,
+.page-calendar-month .view-calendar-listing .view-header a,
+.node-type-group .view-group-events .view-header a {
+   background: none no-repeat scroll 10px 5px #4D7BBA;
+   border-radius: 0 0 0 0;
+   color: #FFFFFF;
+   font-weight: normal;
+   margin: 5px;
+   padding: 6px 20px;
+   text-shadow: none;
+   text-decoration:none;
+   text-transform:capitalize;
+ }
+ 
+.page-calendar-month .view-event-full-calender .view-header a,
+.page-calendar-month .view-calendar-listing .view-header a,
+.node-type-group .view-group-events .view-header a{
+  padding: 6px 20px;
+}
+
+.view-og-members table tr td .friend_block .frnd_info{
+  float:left;
+  margin-left:0.5em;
+}
+/************* Disble Register *********/
+.anonymousaddtocart {
+  float:left;
+  margin:10px 0%;
+}
+
+.page-latest-events .view-event-category-listing .views-field-field-event-date .anonymousaddtocart {
+  margin:10px 15%;
+}
+
+/******** Hide block foe anonymous user ********/
+.not-logged-in #zone-headercontent-wrapper {
+  display:none;
+}
+
+/************ strategic initiatives template *********/
+.field-name-field-strategic-image {
+  border: 1px solid #CCCCCC;
+  margin: 10px 0;
+  padding: 5px;
+  float:none;
+ }
+
+.field-name-field-strategic-image img{
+  width:100%;
+  height:auto;
+}
+
+.context-strategic-initiatives .node-project{
+  display:none;
+}
+
+.context-strategic-initiatives #region-content .block .content {
+  margin:10px;
+  padding:0;
+}
+
+/********* Calendar Month & listing page filter style *****/
+.page-calendar-month-listing .view-calendar-listing .view-content .views-row {
+  border-bottom: 1px solid #cccccc;
+  margin: 10px 0;
+  padding: 10px 0;
+}
+
+.view-event-full-calender .views-exposed-form .views-exposed-widget,
+.view-calendar-listing .views-exposed-form .views-exposed-widget {
+  width:200px;
+}
+
+.view-event-full-calender .views-exposed-form label,
+.view-calendar-listing .views-exposed-form .views-exposed-widget {
+  display: inline-block;
+  float: left;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.descriptions .data ul li{
+  /*font-size: 0.813em;*/
+  letter-spacing: 0.2px;
+  list-style: square outside none;
+  padding: 0;
+}
+
+
+/******** Events Body Details ********/
+.node-type-events .events-details {
+  float:left;
+  width:100%;
+  margin-top:20px;
+}
+
+#block-cck-blocks-field-events-banner .field-name-field-events-banner .field-items img{
+  width:100%;
+}
+
+/*********** Group Leadership ******/
+.view-group-leadership .item-list ul li{
+  padding: 5px 0;
+  border-bottom: 1px solid #CCCCCC;
+  margin:0;
+} 
+
+.create-badges a{
+  color:#FFF;
+}
+
+.create-badges{
+  background: none repeat scroll 0 0 #4677B9;
+  float: left;
+  margin-top: 20px;
+  margin-left:10px;
+  padding: 15px 35px;
+}
+
+.fc-event-time, .fc-event-title {
+  padding:0 10px;
+  float:left;
+}
+
+.view-advance-search .view-header a {
+  float:right;
+  text-decoration:underline;
+}
+
+.node-type-page .gContent img{
+  /*width:100%;*/
+}
+
+.node-type-page .gContent .gInner img {
+  width: auto;
+}
+
+.front #zone-preface-wrapper #zone-preface {
+  /*background: none;*/
+  background: none repeat scroll 0 0 #DDDDDD; /*#EEEBEB;*/
+  margin-top: 20px;
+  background-size: 100%;
+}
+
+
+
+.node-type-group #block-system-main ul.inline li {
+  float:left;
+  padding:0;
+}
+
+.field-collection-container .field-items .field-item {
+  float:left;
+  width:100%;
+}
+
+#block-block-19, #block-block-21 {
+  width:100%;
+  float:left;
+}
+
+/********* Penal Pages *********/
+
+.page-aboutus .breadcrumb,
+.page-participation .breadcrumb,
+.page-event .breadcrumb,
+.page-learning .breadcrumb,
+.page-memberships .breadcrumb,
+.page-contact-us .breadcrumb{
+  display:none;
+}
+ 
+.region-two-50-first ul li,
+.region-two-50-second ul li{
+  list-style:none;
+  margin:0;
+}
+
+.region-two-50-first,
+.region-two-50-second{
+  float:left;
+  width:100%;
+}
+
+.view-dashboard-commons-activity-streams-activity-site-wide .user-picture img{
+  width:50px;
+}
+
+.page-user-dashboard .event_datetime .event_time{
+  text-transform:none;
+}
+
+/************ New Css added by devendra for IE 8 issue ***********/
+#block-block-22 ul li{
+  font-size: 16px;
+  font-weight:normal; 
+}
+
+#block-block-22 ul li a{
+  font-size: 18px;
+  font-weight:normal; 
+}
+
+#zone-postscript ul li a {
+  font-size: 12px;
+  font-weight:normal;
+}
+
+#zone-footer {
+  font-size: 14px;
+  font-weight:normal; 
+}
+
+#block-block-23 .content div > div{
+  font-size: 12px;
+  font-weight:normal;
+}
+
+#zone-postscript-wrapper{
+   width:100%;
+}
+
+
+@media \0screen {
+	 /* Css for IE 8 only */
+  #zone-postscript{
+     width:100%;
+  }
+}
+
+/* Css for IE 8 only */
+#zone-postscript{
+  width:100%\0/ 
+}
+
+/********* Archive *******/
+.view-group-documentation-library .view-footer a.archives {
+  float:right;
+}
+
+.view-group-documentation-library .view-footer a {
+  margin:0;
+}
+
+#block-act-event-eventbannertext {
+  text-align:justify;
+  margin-bottom:10px;
+}
+
+#block-views-order-event-to-calendar-block-1 h2.block-title,
+#block-act-invoice-purchased-events h2.block-title {
+  background:#6F6F6F no-repeat scroll 10px 12px !important;
+  font-size: 1.4em;
+  font-weight: normal;
+  padding: 10px 10px 0px 10px;
+  font-family:AvenirNextRegular;
+}
+
+

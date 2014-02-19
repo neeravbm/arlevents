@@ -1,0 +1,6 @@
+<?php
+$speaker = entity_load('field_collection_item', array($node->field_events_speaker['und'][0]['value']));
+$speaker = $speaker[$node->field_events_speaker['und'][0]['value']];
+$image = drupal_render(field_view_field('field_collection_item', $speaker, 'field_speaker_photo'));
+?>
+

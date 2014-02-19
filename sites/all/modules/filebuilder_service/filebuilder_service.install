@@ -1,0 +1,147 @@
+<?php
+
+/**
+ * @file
+ * filebuilder_service.install
+ * Filedepot: File Management Service Module developed by Nextide www.nextide.ca
+ * Service component for the Filedepot module allowing desktop clients to interface with filedepot
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+function filebuilder_service_schema() {
+
+  $schema['filebuilder_service_active_users'] = array(
+    'description' => ('Users who are currently active using the filedepot builder tool'),
+    'fields'      => array(
+      'uid' => array(
+        'description' => ('User ID of a user currently logged in using the tool'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'workspace'   => array(
+        'description' => ('(Future work)'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'first_ping'  => array(
+        'description' => ('First ping connection recorded (unix timestamp)'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+      ),
+      'last_ping'   => array(
+        'description' => ('Last ping connection recorded (unix timestamp)'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+      ),
+    ),
+//  'primary key' => array('cid'),
+    'indexes'     => array(
+      'workspace' => array('workspace'),
+      'uid' => array('uid'),
+      'last_ping' => array('last_ping'),
+    ),
+  );
+
+  $schema['filebuilder_service_job_statistics'] = array(
+    'description' => ('Job statistics for the filedepot builder tool web service'),
+    'fields'      => array(
+      'jobid' => array(
+        'description' => ('ID of the parent job'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'rid'         => array(
+        'description' => ('Job entry ID (correlates to repositoryActionId)'),
+        'type'        => 'int',
+        'size'        => 'big',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'status'      => array(
+        'description' => ('Status of the job entry'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+    ),
+    'indexes'     => array(
+      'jobid' => array('jobid'),
+    ),
+  );
+
+  $schema['filebuilder_service_upload_job'] = array(
+    'description' => ('Upload jobs for the filedepot builder tool web service'),
+    'fields'      => array(
+      'jobid' => array(
+        'description' => ('Auto increment field representing the unique job id'),
+        'type'        => 'serial',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'status'      => array(
+        'description'       => ('Current job status'),
+        'type'              => 'varchar',
+        'length'            => '50',
+        'not null'          => TRUE,
+        'default'           => '',
+      ),
+      'requested_command' => array(
+        'description' => ('Requested command for the job to execute'),
+        'type'        => 'varchar',
+        'length'      => '50',
+        'not null'    => TRUE,
+        'default'     => 'process',
+      ),
+      'uniqueid'    => array(
+        'description' => ('Unique upload directory ID'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+        'default'     => '0',
+      ),
+      'uid'         => array(
+        'description' => ('User ID of a user owning this job'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'workspace'   => array(
+        'description' => ('(Future work)'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'in_progress' => array(
+        'description' => ('If this job is currently in progress'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'lastupdate'  => array(
+        'description' => ('Last time the job was updated (unix timestamp)'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+      ),
+    ),
+    'primary key' => array('jobid'),
+    'indexes' => array(
+      'uniqueid' => array('uniqueid'),
+    ),
+  );
+
+  return $schema;
+}
+
+?>

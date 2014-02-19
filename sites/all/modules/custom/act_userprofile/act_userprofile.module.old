@@ -1,0 +1,1527 @@
+<?php
+/*
+ *@file
+ * ACT user profile data management callback function
+ */
+
+/*
+ * Implemeting hook_init()
+ */
+function act_userprofile_init() {
+  global $user;
+  $args = arg();
+
+
+  /*watchdog('args', serialize($args));*/
+  if (count($args) == 2 && $args[0] == 'user' && $args[1] == 'register') {
+    unset($_GET);
+    drupal_goto('resize');
+  }
+
+  // Redirecting user to dashboard if user is logged in
+  if (user_is_logged_in() && request_path() == '') {
+    drupal_goto('user/' . $user->uid . '/dashboard');
+  }
+
+  if (!user_is_logged_in() && isset($_GET['destination']) && isset($_GET['group_redirect'])) {
+    $group_redirect = $_GET['destination'];
+    variable_set('group_redirect', $group_redirect);
+  }
+
+  // Redirecting user to public profile page
+  if (count($args) == 2 && $args[0] == 'user' && is_numeric($args[1])) {
+    $uid = check_plain($args[1]);
+    $account = user_load($uid);
+    $status = user_view_access($account);
+    if (empty($status)) {
+      drupal_goto('user/' . $uid . '/public-profile');
+    }
+  }
+
+  drupal_add_js(drupal_get_path('module', 'act_userprofile') . '/js/act_userprofile.js');
+  drupal_add_js(drupal_get_path('module', 'pretty_calendar') . '/pretty_calendar.js');
+  drupal_add_js(array('act_userprofile' => array('uid' => arg(1))), array('type' => 'setting'));
+}
+
+
+/**
+ * Implements hook_user_login().
+ */
+function act_userprofile_user_login(&$edit, $account) {
+  $edit['redirect'] = 'user/' . $account->uid . '/dashboard';
+  if (variable_get('group_redirect')) {
+    $group_redirect = variable_get('group_redirect');
+    $edit['redirect'] = $group_redirect;
+    variable_del('group_redirect', '');
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function act_userprofile_block_info() {
+  $blocks = array();
+  $blocks['dashboardevent'] = array(
+    'info' => t('Dashboard Events'),
+    'status' => TRUE,
+    'weight' => 0,
+    'region' => -1,
+  );
+  $blocks['dashboardstats'] = array(
+    'info' => t('Dashboard Stats'),
+    'status' => TRUE,
+    'weight' => 0,
+    'region' => -1,
+  );
+  $blocks['userlogout'] = array(
+    'info' => t('Authenticated User Logout Block'),
+    'status' => TRUE,
+    'weight' => 0,
+    'region' => -1,
+  );
+  return $blocks;
+}
+
+
+/*
+ * Implemeting hook_block_view()
+ */
+function act_userprofile_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'dashboardevent':
+      $block['subject'] = t('Dashboard Events');
+      $block['content'] = dashboard_events_by_date();
+      break;
+    case 'dashboardstats':
+      $block['subject'] = t('Dashboard Stats');
+      $block['content'] = act_get_statistics_data();
+      break;
+    case 'userlogout':
+      $block['subject'] = NULL;
+      $block['content'] = act_get_authenticated_user_logout_data();
+      break;
+  }
+  return $block;
+}
+
+
+/*
+ * Implemeting hook_theme()
+*/
+
+function act_userprofile_theme() {
+  return array(
+    'public_profile' => array(
+      'template' => 'public-profile',
+      'variables' => array(
+        'account' => NULL,
+        'user_picture' => NULL,
+      ),
+    ),
+    'my_act_iac' => array(
+      'template' => 'my_act_iac',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'dashboard_event_listing' => array(
+      'template' => 'dashboard_event_listing',
+      'variables' => array(
+        'items' => array(),
+        'action' => NULL,
+      ),
+    ),
+  );
+}
+
+/*
+* Implementing hook_menu_alter();
+*/
+function act_userprofile_menu_alter(&$items) {
+  $items['user/%user/view']['title'] = t('My Account');
+  $items['user/%user/view']['weight'] = 100;
+  $items['user/%user/contact']['type'] = MENU_CALLBACK;
+  $items['user/%user/notification-settings']['type'] = MENU_CALLBACK;
+  $items['user/%user/shortcuts']['type'] = MENU_CALLBACK;
+  $items['user/%user/imce']['type'] = MENU_CALLBACK;
+  $items['user/%user/edit-profile']['type'] = MENU_CALLBACK;
+  $items['user/%user/edit']['type'] = MENU_CALLBACK;
+  $items['user/%user/orders']['type'] = MENU_CALLBACK;
+  $items['user/%user/devel']['type'] = MENU_CALLBACK;
+  $items['node/%node/panelizer']['type'] = MENU_CALLBACK;
+  $items['node/%node/rating']['type'] = MENU_CALLBACK;
+
+  if (isset($items['node/%node/access'])) {
+    $items['node/%node/access']['access callback'] = 'user_access';
+    $items['node/%node/access']['access arguments'] = array('view access control settings');
+  }
+
+  if (isset($items['user/register'])) {
+    $items['user/register']['access callback'] = 'act_user_register_access';
+  }
+}
+
+
+function act_user_register_access() {
+  return user_is_anonymous();
+}
+
+/*
+ * Implementing hook_menu(); 
+*/
+function act_userprofile_menu() {
+  $items = array();
+  $items['user/%user/public-profile'] = array(
+    'title' => t('Public Profile'),
+    'description' => 'My Profile',
+    'page callback' => 'public_profile_user_page',
+    'page arguments' => array(1),
+    'access callback' => 'view_public_profile_access',
+    'access arguments' => array(1),
+    'weight' => -7,
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['user/%user/my-act-iac'] = array(
+    'title' => t('MY ACT-IAC'),
+    'description' => 'MY ACT-IAC',
+    'page callback' => 'profile_user_my_act_iac',
+    'page arguments' => array(1),
+    'access callback' => 'view_act_iac_page_access',
+    'access arguments' => array(1),
+    'weight' => -6,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['my-act-iac'] = array(
+    'title' => t('My ACT-IAC'),
+    'description' => t("User's My ACT-IAC page"),
+    'page callback' => 'my_act_iac',
+    'access callback' => 'view_act_iac_page_access',
+    'access arguments' => array(1),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['user/%user/actgroups'] = array(
+    'title' => t('My Groups'),
+    'description' => t('My Groups'),
+    'page callback' => 'profile_user_groups',
+    'page arguments' => array(1),
+    'access callback' => 'view_public_profile_access',
+    'access arguments' => array(1),
+    'weight' => -5,
+    'type' => MENU_CALLBACK,
+  );
+  $items['user/interest/add/%'] = array(
+    'title' => t('My Profile Update'),
+    'description' => t('My Profile Update'),
+    'page callback' => 'profile_user_update',
+    'page arguments' => array(2, 3),
+    'access callback' => TRUE,
+    'weight' => -5,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['user/interest/remove/%'] = array(
+    'title' => t('My Profile Update'),
+    'description' => t('My Profile Update'),
+    'page callback' => 'profile_user_update',
+    'page arguments' => array(2, 3),
+    'access callback' => TRUE,
+    'weight' => -5,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['user/%user/dashboard'] = array(
+    'title' => t('My Dashboard'),
+    'description' => t('User Dashboard'),
+    'page callback' => 'profile_user_dashboard',
+    'page arguments' => array(1),
+    'access callback' => 'view_dashboard_access',
+    'access arguments' => array(1),
+    'weight' => -5,
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['calendar_get_data/%/%/%'] = array(
+    'title' => t('Event Status'),
+    'description' => t('Event Status'),
+    'page callback' => 'profile_user_dashboard_event_data',
+    'page arguments' => array(1, 2, 3),
+    'access callback' => TRUE,
+    'access arguments' => array('access content'),
+    'weight' => -5,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['user/%user/knowledge'] = array(
+    'title' => t('My Knowledge Bank'),
+    'description' => t('User Dashboard'),
+    'page callback' => 'drupal_goto',
+    'page arguments' => array('doc-knowledge-bank'),
+    'access callback' => 'user_view_access',
+    'access arguments' => array(1),
+    'weight' => 11,
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['userdashboard'] = array(
+    'title' => t('User Dashboard'),
+    'description' => t('User Dashboard'),
+    'page callback' => 'user_dashboard',
+    'access callback' => 'view_dashboard_access',
+    'weight' => -5,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['userfriends'] = array(
+    'title' => t('User Friends'),
+    'description' => t('User Friends'),
+    'page callback' => 'user_friends',
+    'access callback' => 'user_friends_access',
+    'weight' => -5,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implements hook_permission().
+ */
+function act_userprofile_permission() {
+  return array(
+    'view own my act-iac page' => array(
+      'title' => t('View own my act-iac page'),
+      'description' => t('View own my act-iac page.'),
+    ),
+    'view others my act-iac page' => array(
+      'title' => t('View others my act-iac page'),
+      'description' => t('View others my act-iac page.'),
+    ),
+    'view own dashboard' => array(
+      'title' => t('View own dashboard'),
+      'description' => t('View own Dashboard page.'),
+    ),
+    'view others dashboard' => array(
+      'title' => t('View others dashboard'),
+      'description' => t('View others dashboard page.'),
+    ),
+    'view others public profile' => array(
+      'title' => t("View others' public profile"),
+      'description' => t("View others' public profile."),
+    ),
+    'view own public profile' => array(
+      'title' => t('View own public profile'),
+      'description' => t('View own public profile.'),
+    ),
+    'view government documents' => array(
+      'title' => t('View government documents'),
+      'description' => t('View government documents.'),
+    ),
+    'view access control settings' => array(
+      'title' => t('View access control settings'),
+      'description' => t('View access control settings.'),
+    ),
+    'access archives' => array(
+      'title' => t('Access archives/non-archives settings'),
+      'description' => t('Access archives/non-archives settings.'),
+    ),
+  );
+}
+
+/*
+ * Menu access callback function
+ */
+function view_government_documents_access($node) {
+  global $user;
+
+  if (user_access('view government documents')) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Menu access callback to view someone's dashboard.
+ */
+function view_dashboard_access($account = NULL) {
+  if (!user_is_logged_in()) {
+    return FALSE;
+  }
+
+  global $user;
+
+  if (is_null($account)) {
+    $account = $user;
+  }
+
+  if ($user->uid == $account->uid && user_access('view own dashboard')) {
+    return TRUE;
+  }
+  elseif ($user->uid != $account->uid && user_access('view others dashboard')) {
+    return TRUE;
+  }
+
+  // Instead of Access denied simply redirect to user's public profile page
+  drupal_goto('user/' . $account->uid . '/public-profile');
+
+  return FALSE;
+}
+
+/*
+ * Menu access callback function
+ */
+function view_act_iac_page_access($account) {
+  global $user;
+
+  if (user_access('view others my act-iac page')) {
+    return TRUE;
+  }
+  if (is_object($account)) {
+    if ($account->uid == $user->uid && user_access('view own my act-iac page')) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/*
+ * Menu access callback function
+ */
+function view_public_profile_access($account) {
+  return TRUE;
+  global $user;
+
+  if ($account->uid != $user->uid && user_access('view others public profile')) {
+    return TRUE;
+  }
+  elseif ($account->uid == $user->uid && user_access('view own public profile')) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/*
+ * Purpose of the callback is to redirect current user to its dashboard.
+ * We are also trying to show this menu in user-menu. 
+ */
+function user_dashboard() {
+  global $user;
+  drupal_goto("user/" . $user->uid . "/dashboard");
+}
+
+/**
+ * Access callback for user friends.
+ */
+function user_friends_access() {
+  if (!user_is_logged_in()) {
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/*
+ * Purpose of the callback is to redirect current user to its friends page.
+ * We are also trying to show this menu in user-menu. 
+ */
+function user_friends() {
+  global $user;
+  drupal_goto("user/$user->uid/friends");
+}
+
+
+/*
+ * Callback function
+ */
+function public_profile_user_page($account) {
+  if (is_object($account->picture)) {
+    $uri = $account->picture->uri;
+  }
+  else {
+    $uri = variable_get('user_picture_default');
+  }
+  $user_picture = theme('image_style',
+    array(
+      'style_name' => 'medium',
+      'path' => $uri,
+      'attributes' => array(
+        'class' => 'avatar'
+      ),
+      'width' => NULL,
+      'height' => NULL,
+    )
+  );
+  return theme('public_profile', array('account' => $account, 'user_picture' => $user_picture));
+}
+
+
+/**
+ * My ACT-IAC main navigation.
+ */
+function my_act_iac() {
+  global $user;
+  drupal_goto('user/' . $user->uid . '/dashboard');
+}
+
+/**
+ * AJAX response for calendar navigation.
+ *
+ * @param int $month
+ *   Timestamp of selected month.
+ *
+ * @return string
+ *   Rendered block content.
+ */
+function profile_user_dashboard_event_data($cdate, $action, $uid) {
+  header('Content-Type: text/html; charset=utf-8');
+  print dashboard_events_by_date($cdate, $action, $uid);
+  drupal_exit();
+}
+
+/**
+ * Callback function for menu 'user/%user/dashboard'
+ */
+function profile_user_dashboard($account) {
+  $name = 'clone_of_og_user_groups';
+  return views_embed_view($name, 'page_1');
+}
+
+
+/**
+ * Callback function used to updated user profile in 'my interest' functionality
+ * @para string $action
+ *   it would be either add or remove
+ * @para int $tid
+ *   term id used to add or remove
+ * @para string $type
+ *   used to validate request (Is it ajax request?)
+ */
+function profile_user_update($action, $tid, $type = 'ajax') {
+  global $user;
+  if ($type == 'ajax') {
+    $edit = array();
+    $i = 0;
+    $userload = user_load($user->uid);
+
+    $results = $edit['field_my_interests'][LANGUAGE_NONE] = array_filter($userload->field_my_interests[LANGUAGE_NONE]);
+
+
+    if ($action == 'add' && $tid) {
+      $edit['field_my_interests'][LANGUAGE_NONE][] = array('tid' => $tid);
+
+    }
+    elseif ($action == 'remove' && $tid) {
+      if (sizeof($results) > 0) {
+        foreach ($results as $key => $result) {
+          if ($result['tid'] == $tid) {
+            unset($edit['field_my_interests'][LANGUAGE_NONE][$key]);
+          }
+        }
+      }
+    }
+
+    $edit['field_my_interests'][LANGUAGE_NONE] = array_values($edit['field_my_interests'][LANGUAGE_NONE]);
+
+
+    user_save($userload, $edit);
+    unset($userload);
+    $name1 = 'interests';
+    $name2 = 'my_interests';
+    $output = views_embed_view($name1);
+    $output1 = views_embed_view($name2);
+
+    $view = views_get_view($name2);
+    $view->set_display("block");
+    $view->render();
+    $view->pre_execute();
+    $view->execute();
+    $result = $view->result;
+
+    $empty = array();
+    $empty['view-empty'] = array(
+      '#markup' => t('There is no interest selected.'),
+      '#prefix' => '<div class="view-empty view-my-interests"><div class="myinterest">',
+      '#suffix' => '<div></div></div></div>',
+    );
+
+
+    //$output1 = (empty($result)) ? t('There is no interest selected.') : $output1;
+
+    $output1 = (empty($result)) ? drupal_render($empty['view-empty']) : $output1;
+
+    $commands = array();
+    //$commands[] = ajax_command_replace('.interest', $output);
+    //$commands[] = ajax_command_replace('.myinterest', $output1);
+
+    $commands[] = ajax_command_replace('.view-interests', $output);
+    $commands[] = ajax_command_replace('.view-my-interests', $output1);
+
+    $page = array('#type' => 'ajax', '#commands' => $commands);
+    ajax_deliver($page);
+
+  }
+}
+
+
+/*
+ * Callback function of menu 'user/%user/my-act-iac'global $user;
+ */
+function profile_user_my_act_iac($users) {
+  return theme('my_act_iac', array('users' => $users));
+}
+
+
+/*
+ * Callback function of menus
+*/
+function profile_user_groups($users) {
+  $name = 'clone_of_og_user_groups';
+  return views_embed_view($name, $display_id = 'page_1');
+}
+
+/*
+ * Callback function of menus
+*/
+function profile_user_page_one($users) {
+  return '';
+}
+
+
+/**
+ * Implementation of hook_views_query_alter
+ * @param type $view
+ * @param type $query
+ */
+function act_userprofile_views_query_alter(&$view, &$query) {
+  global $user;
+  $account_uid = '';
+  if (is_numeric(arg(1)) && arg(2) == 'dashboard') {
+    $account_uid = arg(1);
+  }
+
+  $uid = $user->uid;
+  $results = array();
+  $userload = user_load($uid);
+  $tids = array();
+  if (is_object($userload)) {
+    $results = field_get_items('user', $userload, 'field_my_interests');
+    if ($results && sizeof($results) > 0) {
+      foreach ($results as $result) {
+        $tids[] = $result['tid'];
+      }
+    }
+  }
+
+  if ($view->name == 'interests') {
+    if (sizeof($tids) > 0) {
+      $view->query->where[1]['conditions'][1]['field'] = 'taxonomy_term_data.tid';
+      $view->query->where[1]['conditions'][1]['value'] = $tids;
+      $view->query->where[1]['conditions'][1]['operator'] = 'not in';
+    }
+  }
+  //advanced search
+  if ($view->name == 'advance_search') {
+    if (!user_access('view government documents')) {
+      $count = count($view->query->where[1]['conditions']);
+      $query->add_table('field_data_field_view_government_only');
+      $view->query->where[1]['conditions'][$count]['field'] = 'field_data_field_view_government_only.field_view_government_only_value';
+      $view->query->where[1]['conditions'][$count]['value'] = 0;
+      $view->query->where[1]['conditions'][$count]['operator'] = '=';
+
+    }
+    //dsm($view->query->where);
+  }
+
+  if ($view->name == 'group_documentation_library') {
+    if (!user_access('view government documents')) {
+      $count = count($view->query->where[1]['conditions']);
+      $query->add_table('field_data_field_view_government_only');
+      $view->query->where[1]['conditions'][$count]['field'] = 'field_data_field_view_government_only.field_view_government_only_value';
+      $view->query->where[1]['conditions'][$count]['value'] = 0;
+      $view->query->where[1]['conditions'][$count]['operator'] = '=';
+
+    }
+    //dsm($view->query->where);
+  }
+
+  $results_account = array();
+  $account = user_load($user->uid);
+  $tids_account = array();
+  if (is_object($account)) {
+    $results_account = field_get_items('user', $account, 'field_my_interests');
+    if (sizeof($results_account) > 1) {
+      foreach ($results_account as $result_account) {
+        $tids_account[] = $result_account['tid'];
+      }
+    }
+  }
+
+  if ($view->name == 'dashboard_commons_activity_streams_activity_site_wide') {
+    //dsm($view->query);
+    $count = count($view->query->where[1]['conditions']);
+    //if(sizeof($tids_account) > 0){
+    $view->query->where[1]['conditions'][$count]['field'] = 'node_field_data_field_target_nodes__field_data_field_my_interests.field_my_interests_tid';
+    $view->query->where[1]['conditions'][$count]['value'] = $tids_account;
+    $view->query->where[1]['conditions'][$count]['operator'] = 'IN';
+    //}
+  }
+}
+
+
+/**
+ * function to get event listing by date
+ * @param type string $datetime
+ * @param type string $action
+ * @param type int $uid
+ */
+function dashboard_events_by_date($datetime = '', $action = 'all', $uid = '') {
+  $items = array();
+  $results = _act_get_dashboard_event($datetime, $action, $uid);
+  if (count($results) > 0) {
+    foreach ($results as $result) {
+      $date = date('Y-m-d', strtotime($result->field_date_value));
+      $items[$date][] = node_load($result->nid);
+    }
+  }
+  return $output = theme('dashboard_event_listing', array('items' => $items, 'action' => $action));
+}
+
+
+/**
+ * function to get event listing
+ * @param type string $datetime
+ * @param type string $action
+ * @param type int $uid
+ */
+function _act_get_dashboard_event($datetime = '', $action = 'all', $uid = '') {
+  if ($datetime == '') {
+    $datetime = date('Y-m-d');
+  }
+  $date = '';
+
+  if ($action == 'rsvp') {
+    $query = db_select('registration', 'registration');
+    $query->addJoin('LEFT', 'node', 'node_registration', 'registration.entity_id = node_registration.nid');
+    $query->addJoin('INNER', 'users', 'users_registration', 'registration.user_uid = users_registration.uid');
+    $query->addJoin('LEFT', 'field_data_field_date', 'node_registration__field_data_field_date', 'node_registration.nid = node_registration__field_data_field_date.entity_id');
+    $query->addField('node_registration', 'nid');
+    $query->addField('node_registration', 'title');
+    $query->addField('node_registration__field_data_field_date', 'field_date_value');
+    $query->condition('registration.author_uid', $uid);
+    $query->condition('node_registration__field_data_field_date.field_date_value', $datetime, '>=');
+    $query->addTag('node_access');
+  }
+  else {
+    $query = db_select('node', 'node');
+    $query->addJoin('INNER', 'field_data_field_date', 'eventdate', 'node.nid = eventdate.entity_id');
+    $query->addField('node', 'nid');
+    $query->addField('eventdate', 'field_date_value');
+    $query->addField('node', 'title');
+    $query->condition('node.type', 'event');
+    $query->addTag('node_access');
+    $query->condition('eventdate.field_date_value', $datetime, '>=');
+  }
+
+  return $query->execute()->fetchAll();
+}
+
+
+function act_get_statistics_data() {
+  global $user;
+  $uid = '';
+  if (arg(0) == 'user' && is_numeric(arg(1))) {
+    $uid = arg(1);
+  }
+
+  // Getting My Contacts records
+  $view = views_get_view('friends');
+  $view->set_display("block_1");
+  $view->set_arguments(array($uid));
+  $view->render();
+  $my_contacts = count($view->result);
+  $my_contacts = format_plural($my_contacts, '@count', '@count');
+  $my_contacts = l($my_contacts, "user/$uid/friends", array('query' => drupal_get_destination()));
+
+
+  // Getting Communities records
+  $view = views_get_view('clone_of_og_user_groups');
+  $view->set_display("page_1");
+  $view->set_arguments(array($uid));
+  $view->render();
+  $my_communities = count($view->result);
+  $my_communities = l($my_communities, "mygroups/$uid", array('query' => drupal_get_destination()));
+
+
+  // Getting All Communities
+  $view = views_get_view('all_communities');
+  $view->set_display("page");
+  $view->render();
+  $communities = $view->total_rows;
+  $communities = l($communities, "all-communities", array('query' => drupal_get_destination()));
+
+
+  // Getting Upcoming Events
+  $view = views_get_view('commons_events_user_upcoming_events');
+  $view->set_display("page_1");
+  $view->set_arguments(array($uid));
+  $view->render();
+  $upcoming_events = count($view->result);
+  $upcoming_events = l($upcoming_events, "upcoming-events/$uid", array('query' => drupal_get_destination()));
+
+  // Get number of messages.
+  module_load_include('inc', 'privatemsg', 'privatemsg.pages');
+  //$data = privatemsg_list_page('list', $uid);
+  /*$query = _privatemsg_assemble_query('list', user_load($uid), 'inbox') ->execute()
+      ->fetchField();*/
+  $alert_count = privatemsg_unread_count(user_load($uid)); //sizeof(element_children($data['updated']['list']));
+  $alert_count = l($alert_count, 'user/' . $uid . '/messages', array('query' => drupal_get_destination()));
+
+  // Getting Upcoming Events
+  $view = views_get_view('get_all_registered_event');
+  $view->set_display("page");
+  $view->set_arguments(array($uid));
+  $view->render();
+  $up_events = $view->total_rows;
+  //dsm($up_events);
+  $up_events = count($view->result);
+  //dsm($up_events);
+  $up_events = l($up_events, "get-all-registered-events/$uid", array('query' => drupal_get_destination()));
+
+  $header = array();
+
+  $rows[] = array(
+    l(t('View All Communities'), 'all-communities', array('query' => drupal_get_destination())),
+    $communities
+  );
+  $rows[] = array(
+    l(t('My Events'), "get-all-registered-events/$uid", array('query' => drupal_get_destination())),
+    $up_events
+  );
+  $rows[] = array(
+    l(t('My Meetings'), "upcoming-events/$uid", array('query' => drupal_get_destination())),
+    $upcoming_events
+  );
+  $rows[] = array(l(t('My Friends'), "user/$uid/friends", array('query' => drupal_get_destination())), $my_contacts);
+  $rows[] = array(l(t('My Communities'), "mygroups/$uid", array('query' => drupal_get_destination())), $my_communities);
+  $rows[] = array(
+    l(t('My Messages'), 'user/' . $uid . '/messages', array('query' => drupal_get_destination())),
+    $alert_count
+  );
+  $rows[] = array(l(t('User Guides'), 'node/11441'), '');
+
+  $table = array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array(),
+    'caption' => FALSE,
+    'colgroups' => array(),
+    'sticky' => FALSE,
+    'empty' => FALSE
+  );
+  $html = theme_table($table);
+
+  return $html;
+}
+
+/*
+ * Implementing hook_module_implements_alter() 
+ */
+function act_userprofile_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'form_alter') {
+    $group = $implementations['act_userprofile'];
+    unset($implementations['act_userprofile']);
+    $implementations['act_userprofile'] = $group;
+  }
+}
+
+
+/*
+ * Implementing hook_form_alter() 
+ */
+function act_userprofile_form_alter(&$form, &$form_state, $form_id) {
+  $destination = '';
+  if ($form_id == 'search_block_form') {
+    $form['search_block_form']['#attributes']['#placeholder'] = t('Search');
+  }
+  elseif ($form_id == 'user_login_block') {
+    $form['name']['#attributes']['placeholder'] = t('Email address');
+    $form['pass']['#attributes']['placeholder'] = t('Password');
+  }
+
+
+  if ($form_id == 'user_profile_form') {
+    $form['field_mailing_address_country'][LANGUAGE_NONE][0]['value']['#default_value'] = t('United States');
+    hide($form['field_mailing_address_country']);
+    $form['flag_friend']['#weight'] = 16;
+    $form['#submit'][] = 'change_user_password_force_avectra';
+    hide($form['field_user_contact_email']);
+  }
+
+  if ($form_id == 'user_register_form') {
+    $form['#submit'][] = 'change_new_user_password_force_avectra';
+  }
+
+  if ($form_id == 'user_pass') {
+    $form['actions']['submit']['#value'] = t('Submit');
+    $form['#submit'][] = 'act_userprofile_forgot_password_redirect';
+  }
+}
+
+/**
+ * Redirect back to user/password page.
+ */
+function act_userprofile_forgot_password_redirect($form, &$form_state) {
+  drupal_set_message(t('Instructions to reset your password have been sent to your email.'));
+  $form_state['redirect'] = 'user/password';
+}
+
+
+// Adds a submit handler/function to our form to update password in avectra as well 
+function change_user_password_force_avectra($form, &$form_state) {
+  global $user;
+  $userload = user_load($user->uid);
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $password = '';
+  $password = $form_state['values']['pass'];
+  $current_pass = isset($form_state['values']['current_pass']) ? $form_state['values']['current_pass'] : '';
+  $customer_key = $form_state['values']['field_customer_key'][LANGUAGE_NONE][0]['value'];
+
+  $status = FALSE;
+  if (isset($customer_key) && !empty($customer_key)) {
+    if (isset($current_pass) && !empty($current_pass)) { //607cd636-aa6f-445d-a0d1-a3f4897d70f3 customer key
+      $status = $act->changeUserPassword($customer_key, $current_pass, $password);
+      if ($status) {
+        drupal_set_message(t('Password have been changed on avectra'));
+      }
+      else {
+        drupal_set_message(t('There is some issue so password have been not changed on avectra'));
+      }
+    }
+    else {
+      if (isset($password) && !empty($password)) {
+        $status = $act->changeUserPasswordForce($customer_key, $password);
+        if ($status) {
+          drupal_set_message(t('Password have been changed on avectra'));
+        }
+        else {
+          drupal_set_message(t('There is some issue so password have been not changed on avectra'));
+        }
+      }
+    }
+  }
+}
+
+
+// Adds a submit handler/function to our form to update password in avectra as well 
+function change_new_user_password_force_avectra($form, &$form_state) {
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+  $password = '';
+  $password = $form_state['values']['pass'];
+  $customer_key = $form_state['user']->field_customer_key[LANGUAGE_NONE][0]['value'];
+
+  if (!empty($password) && !empty($customer_key)) {
+    $status = $act->changeUserPasswordForce($customer_key, $password);
+    if ($status) {
+      drupal_set_message(t('Password have been changed on avectra'));
+    }
+    else {
+      drupal_set_message(t('There is some issue so password have been not changed on avectra'));
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter(&$form, &$form_state, $form_id)
+ */
+function act_userprofile_form_views_form_commerce_cart_form_default_alter(&$form, &$form_state, $form_id) {
+  $form['actions']['continue_shopping'] = array(
+    '#type' => 'button',
+    '#value' => t('Continue Shopping'),
+    '#weight' => -999,
+  );
+  if (isset($_SERVER['HTTP_REFERER']) && strlen($_SERVER['HTTP_REFERER'])) {
+    // if user comes from product detail page, redirect user to previous page
+    $form['actions']['continue_shopping']['#attributes'] = array('ONCLICK' => "history.go(-1); return false;");
+  }
+  else {
+    // redirect user to product list page 'store' by default
+    $form['actions']['continue_shopping']['#attributes'] = array('ONCLICK' => "window.location.href='" . url('store') . "'; return false;");
+  }
+}
+
+/**
+ * Block callback function
+ */
+function act_get_authenticated_user_logout_data() {
+  $output = '';
+  $name_first = '';
+  $name = '';
+  global $user;
+  $userload = user_load($user->uid);
+  if (is_object($userload)) {
+    $name_first = field_get_items('user', $userload, 'field_name_first');
+    $name = $name_first[0]['value'];
+  }
+
+  $data['wrapper-id'] = array(
+    '#type' => 'fieldset',
+    '#attributes' => array('class' => array('user-logout')),
+  );
+
+  $data['wrapper-id']['welcome'] = array(
+    '#markup' => t('Hello, ' . l($name, 'user') . ' '),
+    '#prefix' => '<div class="welcome">',
+    '#suffix' => '</div>'
+  );
+
+  $data['wrapper-id']['myaccount'] = array(
+    '#markup' => t(l('My ACT-IAC', 'userdashboard')),
+    '#prefix' => '<div class="myaccount">',
+    '#suffix' => '</div>'
+  );
+
+  $data['wrapper-id']['userlogout'] = array(
+    '#markup' => t(l('Logout', 'user/logout')),
+    '#prefix' => '<div class="userlogout">',
+    '#suffix' => '</div>'
+  );
+
+
+  return $data;
+}
+
+
+function act_userprofile_get_privacy_form($form, $form_state) {
+
+  $uid = check_plain(arg(1));
+
+  $query = db_select('users', 'users');
+  /*$query->leftJoin('field_data_field_keep_name_private','kname','kname.entity_id = users.uid');*/
+  $query->leftJoin('field_data_field_keep_email_private', 'kemail', 'kemail.entity_id = users.uid');
+  $query->leftJoin('field_data_field_keep_phone_number_private', 'kphone', 'kphone.entity_id = users.uid');
+  $query->leftJoin('field_data_field_keep_photo_private', 'kphoto', 'kphoto.entity_id = users.uid');
+  /*$query->condition('kname.deleted',0);*/
+  $query->condition('users.uid', $uid)
+    ->fields('kemail', array('field_keep_email_private_value'))
+    ->fields('kphone', array('field_keep_phone_number_private_value'))
+    ->fields('kphoto', array('field_keep_photo_private_value'));
+
+  $result = $query->execute()->fetchAll();
+
+  $default_value = array();
+
+  foreach ($result as $key => $value) {
+    /* if(isset($value->field_keep_name_private_value) && $value->field_keep_name_private_value) $default_value[]='name';*/
+    if (isset($value->field_keep_photo_private_value) && $value->field_keep_photo_private_value) {
+      $default_value[] = 'photo';
+    }
+    if (isset($value->field_keep_phone_number_private_value) && $value->field_keep_phone_number_private_value) {
+      $default_value[] = 'phoneno';
+    }
+    if (isset($value->field_keep_email_private_value) && $value->field_keep_email_private_value) {
+      $default_value[] = 'email';
+    }
+  }
+
+  $options = array(
+    'email' => t('Keep email private'),
+    'photo' => t('Keep photo private'),
+    'phoneno' => t('Keep phone number private'),
+  );
+
+
+  $form['userprivacy']['options'] = array(
+    '#type' => 'checkboxes',
+    '#options' => $options,
+    '#default_value' => $default_value,
+  );
+
+  $form['userprivacy']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#submit' => array('act_userprofile_privacy_submit'),
+  );
+
+  return $form;
+
+}
+
+function act_userprofile_privacy_submit($form, &$form_state) {
+
+  $uid = check_plain(arg(1));
+  $account = user_load($uid);
+  if (is_object($account)) {
+    $values = $form_state['values']['options'];
+    $edit = array();
+    //$name = ($values['name'] != '' ) ? 1 : 0;
+    $email = ($values['email'] != '') ? 1 : 0;
+    $photo = ($values['photo'] != '') ? 1 : 0;
+    $phoneno = ($values['phoneno'] != '') ? 1 : 0;
+
+    //$edit['field_keep_name_private'][LANGUAGE_NONE][0]['value'] = $name;
+    $edit['field_keep_photo_private'][LANGUAGE_NONE][0]['value'] = $photo;
+    $edit['field_keep_phone_number_private'][LANGUAGE_NONE][0]['value'] = $phoneno;
+    $edit['field_keep_email_private'][LANGUAGE_NONE][0]['value'] = $email;
+    user_save($account, $edit);
+  }
+}
+
+
+/*
+ * Function to change user password at Change Password tab 
+ * 
+ */
+function act_userprofile_get_avectra_change_password_form($form, &$form_state) {
+
+  $form['avectra']['old_pass'] = array(
+    '#type' => 'password',
+    '#description' => t('Enter old password'),
+    '#size' => '30'
+  );
+
+  $form['avectra']['new_pass'] = array(
+    '#type' => 'password',
+    '#description' => t('Enter new password'),
+    '#size' => '30'
+  );
+
+  $form['avectra']['new_pass_confirm'] = array(
+    '#type' => 'password',
+    '#description' => t('Confirm new password'),
+    '#size' => '30'
+  );
+
+  $form['avectra']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Change'),
+    '#submit' => array('act_userprofile_avectra_change_password_form_submit'),
+  );
+  return $form;
+}
+
+/*
+ * Submit handler to change user password 
+ */
+function act_userprofile_avectra_change_password_form_submit(&$form, &$form_state) {
+
+  global $user;
+  global $base_url;
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+
+  $newpass = check_plain($form_state['input']['new_pass']);
+  $confpass = check_plain($form_state['input']['new_pass_confirm']);
+  $old_pass = check_plain($form_state['input']['old_pass']);
+
+  $err = FALSE;
+
+  if (empty($old_pass)) {
+    form_set_error('old_pass', t('Old password is required.'));
+    $err = TRUE;
+  }
+
+  if (empty($newpass) && empty($confpass)) {
+    form_set_error('new_pass', t('New Password is required'));
+    form_set_error('new_pass_confirm', t('Confirm Password is required'));
+    $err = TRUE;
+  }
+  else {
+    if ($newpass != $confpass) {
+
+      form_set_error('new_pass_confirm', t('Confirm Password do not match'));
+      $err = TRUE;
+    }
+  }
+
+  $form_state['redirect'] = $base_url . '/' . request_path() . '?pass=t';
+
+  if ($err) {
+    return;
+  }
+
+  $account = user_load($user->uid);
+  //$customer_key = $account->field_customer_key[LANGUAGE_NONE][0]['value'];
+
+  $status = avectra_set_new_password($account, $newpass, $old_pass);
+
+  //$field_customer_key = field_get_items('user', $userload, 'field_customer_key');
+  //$customer_key = $field_customer_key[0]['value'];
+  //$status = $act->changeUserPassword($customer_key, $old_pass, $newpass);
+
+  if ($status) {
+    drupal_set_message(t('Password has been changed successfully'));
+  }
+  else {
+    drupal_set_message(t('Password could not be changed'), 'error');
+  }
+
+
+}
+
+/*
+ * Function to get Events, Invoice of a user on My Transaction
+ */
+function act_userprofile_get_my_transaction() {
+
+  $data = _act_userprofile_get_user_invoice();
+  $data .= _act_userprofile_get_user_events();
+  $data .= _act_userprofile_get_user_membership();
+  $data .= _act_userprofile_get_user_chapters();
+
+  return $data;
+}
+
+/*
+ * Function to return users's invoices
+ */
+function _act_userprofile_get_user_invoice() {
+
+  $html = '<div class="act-table-heading">' . t('Invoices') . '</div>';
+
+  $header = array(t('Date'), t('Event Name'), t('Invoice Code'), t('Total'), t('Paid'), t('Balance'));
+
+  $uid = check_plain(arg(1));
+  $acc = user_load($uid);
+  $invoicesData = array();
+
+  if (!empty($acc->data['avectra']['invoices']) && ($acc->data['avectra']['invoices']['time'] >= strtotime('-2 day')) && isset($acc->data['avectra']['invoices']['data'])) {
+    $invoicesData = unserialize($acc->data['avectra']['invoices']['data']);
+  }
+  else {
+    $invoices = avectra_get_user_invoice($acc);
+
+    if (!empty($invoices) && sizeof($invoices)) {
+      foreach ($invoices as $inv) {
+        $invoicesData[] = array(
+          'total' => (string) $inv->getTotal(),
+          'bal' => (string) $inv->getBalance(),
+          'date' => (string) $inv->getDate(),
+          'invNum' => (string) $inv->getInvoiveNum(),
+          //'custType' => (string) $inv->getCustType()
+          'eventName' => (string) $inv->getEventName(),
+        );
+      }
+    }
+
+    $acc->data['avectra']['invoices']['time'] = REQUEST_TIME;
+    $acc->data['avectra']['invoices']['data'] = serialize($invoicesData);
+    user_save($acc);
+  }
+
+  if (empty($invoicesData)) {
+
+    $rows = array(
+      array(
+        'data' => array(array('data' => 'There are no records', 'colspan' => 6, 'align' => 'center'))
+      ),
+    );
+
+  }
+  else {
+
+    foreach ($invoicesData as $invoice) {
+      $paid = 0;
+      $total = $bal = 0;
+
+      $total = $invoice['total'];
+      $bal = $invoice['bal'];
+      $paid = $total - $paid;
+
+      $rows[] = array(
+        $invoice['date'],
+        $invoice['eventName'],
+        $invoice['invNum'],
+        $total,
+        $paid,
+        $bal,
+        $invoice['custType'],
+      );
+    }
+
+  }
+
+  $attributes = array();
+
+  $table = array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => $attributes,
+    'sticky' => FALSE,
+    'caption' => '',
+    'colgroups' => array(),
+    'empty' => ''
+  );
+  $html .= theme_table($table);
+
+  return $html;
+}
+
+/*
+ * Function to return user's events
+ */
+function _act_userprofile_get_user_events() {
+
+  $html = '<div class="act-table-heading">' . t('Events') . '</div>';
+
+  $header = array(t('Event Title'), t('Event Code'), t('Reg. Type'), t('Reg. Date'));
+
+  $uid = check_plain(arg(1));
+  $acc = user_load($uid);
+  $eventsData = array();
+
+  if (!empty($acc->data['avectra']['events']) && ($acc->data['avectra']['events']['time'] >= strtotime('-2 day'))) {
+    $eventsData = unserialize($acc->data['avectra']['events']['data']);
+  }
+  else {
+    $events = avectra_get_user_events($acc);
+    if (!empty($events) && sizeof($events)) {
+      foreach ($events as $ev) {
+        $eventsData[] = array(
+          'name' => (string) $ev->getEventName(),
+          'code' => (string) $ev->getEventCode(),
+          'regtype' => (string) $ev->getRegType(),
+          'regdate' => (string) $ev->getRegDate(),
+        );
+      }
+    }
+    $acc->data['avectra']['events']['time'] = REQUEST_TIME;
+    $acc->data['avectra']['events']['data'] = serialize($eventsData);
+    user_save($acc);
+  }
+
+  if (empty($eventsData)) {
+
+    $rows = array(
+      array(
+        'data' => array(array('data' => 'There are no records', 'colspan' => 4, 'align' => 'center'))
+      ),
+    );
+
+  }
+  else {
+
+    foreach ($eventsData as $event) {
+      $rows[] = array(
+        $event['name'],
+        $event['code'],
+        $event['regtype'],
+        $event['regdate'],
+      );
+    }
+
+  }
+
+  $attributes = array();
+
+  $table = array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => $attributes,
+    'sticky' => FALSE,
+    'caption' => '',
+    'colgroups' => array(),
+    'empty' => ''
+  );
+  $html .= theme_table($table);
+
+  return $html;
+}
+
+/*
+ * Function to return user's membership
+ */
+function _act_userprofile_get_user_membership() {
+
+  $html = '<div class="act-table-heading">' . t('Memberships') . '</div>';
+
+  $header = array(
+    t('Association'),
+    t('Type'),
+    t('Status'),
+    t('Effective On'),
+    t('Expires On'),
+    t('Joined'),
+    t('Terminates on'),
+    t('Rejoin/Renew')
+  );
+
+  $uid = check_plain(arg(1));
+  $acc = user_load($uid);
+  $membershipsData = array();
+
+  if (!empty($acc->data['avectra']['membersips']) && ($acc->data['avectra']['membersips']['time'] >= strtotime('-2 day'))) {
+    $membershipsData = unserialize($acc->data['avectra']['membersips']['data']);
+  }
+  else {
+    $memberships = avectra_get_user_membership($acc);
+    if (!empty($memberships) && sizeof($memberships)) {
+      foreach ($memberships as $mb) {
+        $membershipsData[] = array(
+          'association' => (string) $mb->getAssociation(),
+          'type' => (string) $mb->getType(),
+          'status' => (string) $mb->getStatus(),
+          'effective' => (string) $mb->getEffective(),
+          'expires' => (string) $mb->getExpires(),
+          'joined' => (string) $mb->getJoined(),
+          'terminate' => (string) $mb->getTerminate(),
+        );
+      }
+    }
+    $acc->data['avectra']['membersips']['time'] = REQUEST_TIME;
+    $acc->data['avectra']['membersips']['data'] = serialize($membershipsData);
+    user_save($acc);
+  }
+
+  if (empty($membershipsData)) {
+
+    $rows = array(
+      array(
+        'data' => array(array('data' => 'There are no records', 'colspan' => 8, 'align' => 'center'))
+      ),
+    );
+
+  }
+  else {
+
+    foreach ($membershipsData as $membership) {
+      $rows[] = array(
+        $membership['association'],
+        $membership['type'],
+        $membership['status'],
+        $membership['effective'],
+        $membership['expires'],
+        $membership['joined'],
+        $membership['terminate'],
+        '' /*$membership->getRenew()*/,
+      );
+    }
+
+  }
+
+  $attributes = array();
+
+  $table = array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => $attributes,
+    'sticky' => FALSE,
+    'caption' => '',
+    'colgroups' => array(),
+    'empty' => ''
+  );
+  $html .= theme_table($table);
+
+  return $html;
+}
+
+/*
+ * Function to return user's chapters
+ */
+function _act_userprofile_get_user_chapters() {
+
+  $html = '<div class="act-table-heading">' . t('Chapter Memberships') . '</div>';
+
+  $header = array(t('Chapter'), t('Type'), t('Status'), t('Joined'), t('Expires On'), t('Terminates on'));
+
+  $uid = check_plain(arg(1));
+  $acc = user_load($uid);
+  $chaptersData = array();
+
+  if (!empty($acc->data['avectra']['chapter_membersips']) && ($acc->data['avectra']['chapter_membersips']['time'] >= strtotime('-2 day'))) {
+    $chaptersData = unserialize($acc->data['avectra']['chapter_membersips']['data']);
+  }
+  else {
+    $chapters = avectra_get_user_chapters($acc);
+    if (!empty($chapters) && sizeof($chapters)) {
+      foreach ($chapters as $mb) {
+        $chaptersData[] = array(
+          'key' => (string) $mb->getKey(),
+          'type' => (string) $mb->getType(),
+          'status' => (string) $mb->getStatus(),
+          'joined' => (string) $mb->getJoined(),
+          'expires' => (string) $mb->getExpires(),
+          'terminates' => (string) $mb->getTerminates(),
+        );
+      }
+    }
+    $acc->data['avectra']['chapter_membersips']['time'] = REQUEST_TIME;
+    $acc->data['avectra']['chapter_membersips']['data'] = serialize($chaptersData);
+    user_save($acc);
+  }
+
+  if (empty($chaptersData)) {
+
+    $rows = array(
+      array(
+        'data' => array(array('data' => 'There are no records', 'colspan' => 6, 'align' => 'center'))
+      ),
+    );
+
+  }
+  else {
+
+    foreach ($chaptersData as $chapter) {
+      $rows[] = array(
+        $chapter['key'],
+        $chapter['type'],
+        $chapter['status'],
+        $chapter['joined'],
+        $chapter['expires'],
+        $chapter['terminates'],
+      );
+    }
+
+  }
+
+  $attributes = array();
+
+  $table = array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => $attributes,
+    'sticky' => FALSE,
+    'caption' => '',
+    'colgroups' => array(),
+    'empty' => ''
+  );
+  $html .= theme_table($table);
+
+  return $html;
+}
+
+/*
+ * Function to get user organization
+ */
+function act_userprofile_get_user_organization($uid) {
+  $title = '';
+  $query = new EntityFieldQuery();
+
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'organization')
+    ->propertyCondition('status', 1)
+    ->fieldCondition('field_organization_poc', 'target_id', $uid, '=');
+  $result = $query->execute();
+
+  if (isset($result['node'])) {
+    $nid = array_keys($result['node']);
+    $nid = $nid[0];
+    $node = node_load($nid);
+    $title = $node->title;
+  }
+  return $title;
+}
+
+
+

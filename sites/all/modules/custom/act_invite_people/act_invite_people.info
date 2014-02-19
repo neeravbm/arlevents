@@ -1,0 +1,8 @@
+name = ACT Invite People
+description = "Create and invite users to OG groups."
+package = "Organic groups"
+core = 7.x
+project = "act_invite_people"
+dependencies[] = og
+configure = admin/config/people/invite_sendmail
+

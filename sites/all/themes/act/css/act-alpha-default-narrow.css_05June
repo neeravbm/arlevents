@@ -1,0 +1,119 @@
+/* This file will hold styles that are loaded using the same media query as the narrow grid. */
+/* If you are using the default media queries provided by Omega, these styles will also
+ *  apply to the normal and widescreen layouts. You may override these styles in the normal 
+ *  and widescreen CSS files as appropriate. */
+
+/********** Ready to Join Reward Zone? ********/
+#readytojoin .left {
+  border-right: none;
+  border-bottom: 2px solid #EBDEDE;
+}
+
+.triple li {
+  width:100%;
+}
+
+/*********** Header ***********/
+
+#user-login-form .form-type-textfield, #user-login-form .form-type-password{
+  width:45%;
+}
+
+#block-user-login {
+  display:none;
+}
+
+
+.navigation{
+  display:none;
+}
+
+
+#block-block-11, 
+#block-block-12, 
+#region-branding .block-menu, #block-block-13 {
+ /* border-radius: 0 0 0 0;
+  margin: 10px 0;
+  padding: 12px 27px;*/
+  display:block;
+}
+
+
+/********** Search *******/
+
+#block-search-form {
+  display:none;
+}
+
+/********* Event node page ********/
+.page-user-dashboard .friend_block .frnd_info{
+  width:40%;
+}
+
+.page-node.node-type-group .frnd_info {
+  width:50%;
+}
+
+.field-collection-container .field-name-field-person > div > div {
+    width: 50%;
+}
+
+/********** Home Page ******/
+#block-block-22 ul li {
+  width:48%;
+}
+
+/******ACT -EVENT ********/
+
+.block-eventaddress {
+   float: left;
+   width: 60%;
+}
+
+.block-field-events-speaker {
+    float: right;
+    width: 37%;
+}
+.block-field-event-sponsor {
+    float: right;
+    width: 34%;
+}
+.block-cck-blocks-body {
+    width: 60%;
+}
+
+/********ACT Event - Agenda ********/
+.page-agenda .block-eventaddress {
+    float: none;
+    width: 100%;
+}
+.page-agenda .block-field-event-sponsor {
+    float: none;
+    width: 100%;
+}
+
+/****************** Two Col Layout in Inner Page **************/
+
+.page-node .innerpage-standard .col {
+  width: 100%;
+}
+
+.page-node .innerpage-standard .col .summery{
+  margin: 30px 0;
+  padding: 0 5%;
+}
+
+/*.page-node .bodysummery {
+  padding: 0 5%;
+}*/
+
+.page-node .innerpage .left{
+    float: left;
+    width: 14%;
+}
+
+.page-node .innerpage .right {
+  float: right;
+  width: 83%;
+  text-align:justify;
+}

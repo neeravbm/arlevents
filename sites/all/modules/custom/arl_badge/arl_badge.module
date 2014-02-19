@@ -1,0 +1,338 @@
+<?php
+
+require_once 'Zend/Pdf.php';
+require_once 'qrlib.php';
+require_once 'xwebSecureClient.class.php';
+
+// Set default path for Zend library
+ini_set('include_path', DRUPAL_ROOT . '/' . drupal_get_path('module','arl_badge') . '/' );
+
+define ("scanURL", 'http://www.actiac.org/eventScan?code=');
+define ("qrXOffset", '180');
+define ("qrYOffset", '160');
+define ("orgOffset", "30");
+define ("eventOffset", "60");
+define ("maxWidth", "250");
+define ("textSpacing", "12");
+define ("orgLineSpacing", "14");
+
+
+$nameXPos = Array();
+$nameYPos = Array();
+$nfxweb = null;
+$pdf = null;
+$tempDir = '';
+
+
+function getTempFolder() {
+	global $tempDir;
+	
+	// Get the temp folder
+	if (!function_exists('sys_get_temp_dir')) {
+		if($temp = getenv('TMP')) {
+			$tempDir = $temp;
+		}
+		else if ($temp = getenv('TEMP')) {
+			$tempDir = $temp;
+		} else if ($temp = getenv('TMPDIR')) {
+			$tempDir = $temp;
+		} else {
+			$temp = tempnam(__FILE__,'');
+			if (file_exists($temp)) {
+				unlink($temp);
+				$tempDir = dirname($temp);
+			}
+		}
+	} else {
+		$tempDir = sys_get_temp_dir();
+	}
+
+	// Make sure there is a trailing slash on the temp folder
+	if (((strrpos($tempDir, '/') + 1) != strlen($tempDir)) && ((strrpos($tempDir, '\\') + 1) != strlen($tempDir))) {
+		$tempDir .= '/';
+	}
+	
+	return $tempDir;
+}
+
+/******************************************************************/
+// $userArray is an array of customer keys.
+//   $onlyUnprinted is a boolean which when true will print all users who have not yet been printed.
+//   $if $onlyUnprinted is false and $userArray is null, will print every registrant
+//  Returns the number of badges created, or -1 on error
+function arl_badge_createBadges($soapURL, $xwebUser, $xwebPass, $evt_key, $outFile, $onlyUnprinted=false, $userArray=null) {
+	global $nfxweb;
+	global $pdf;
+	global $tempDir;
+	global $nameXPos;
+	global $nameYPos;
+	$count = 0;
+	
+	set_time_limit(120);
+
+	$nameXPos = Array(1=>40, 2=>330, 3=>40, 4=>330, 5=>40, 6=>330);
+	$nameYPos = Array(1=>680, 2=>680, 3=>465, 4=>465, 5=>250, 6=>250);
+
+	
+	$tempDir = getTempFolder();
+	echo('<br>TEMP: ' . $tempDir . '<br>');
+	
+	
+	try {
+		$nfxweb = new xwebSecureClient($soapURL, Array('trace'=>true, //turning on trace=true will let us grab the headers and responses
+						'exceptions'=>true,
+						'connection_timeout'=>120,
+						'xwebUserName'=>$xwebUser,
+						'xwebUserPass'=>$xwebPass));
+	} catch(Exception $e) {
+		$nfxweb = null;
+		return -1;
+	}
+		
+	// Create a new PDF
+	$pdf = new Zend_Pdf();
+			
+	$where = 'evt_key = \'' . $evt_key . '\'';
+	$users = "";
+	
+	// Create the list of users
+	if ($onlyUnprinted == true) {
+		// Figure out which users have not been printed yet
+		// See if the user already exists in the table
+		$result = db_select('arl_badge_userlist', 'ul')
+		->fields('ul', array('cust_key'))
+		->condition('ul.evt_key', $evt_key, '=')
+		->execute();
+		while($record = $result->fetchObject()) {
+			if ($users != '') {
+				$users .= ', ';
+			}
+			
+			$users .= '\'' . $record->cust_key . '\'';
+		}
+		
+		$where .= ' AND reg_cst_key NOT IN (' . $users . ')';
+		
+	} else if ($userArray != null) {
+		foreach ($userArray as $reg) {
+			if ($users != '') {
+				$users .= ', ';
+			}
+	
+			$users .= '\'' . $reg . '\'';
+		}
+			
+		$where .= ' AND reg_cst_key IN (' . $users . ')';
+	}
+
+	$columns = 'reg_cst_key, ind_first_name, ind_last_name, reg_badge_name, cst_org_name_dn, cst_ixo_title_dn, adr_city, adr_country, ind_customer_type_ext, evt_title';
+	$arr = Array('szObjectName'=>'EventsRegistrant', 'szColumnList'=>$columns, 'szWhereClause'=>$where, 'szOrderBy'=>'');
+	$response = $nfxweb->GetQuery($arr);
+	
+	// Load the XML into an object for easier access
+	$xml = $response->GetQueryResult->any;
+	$response2 = @simplexml_load_string($xml);	
+	
+	$position = 1;
+	foreach ($response2 as $obj) {
+		// If we are processing the first position, add a new page
+		if ($position == 1) {
+			$pdf->pages[] = $pdf->newPage(Zend_Pdf_Page::SIZE_LETTER);
+		}
+		
+		//Get the last page
+		$page = $pdf->pages[count($pdf->pages)-1];
+		
+		$obj->ind_first_name = decode_entities2($obj->ind_first_name);
+		$obj->ind_last_name = decode_entities2($obj->ind_last_name);
+		$obj->cst_org_name_dn = decode_entities2($obj->cst_org_name_dn);
+		$obj->evt_title = decode_entities2($obj->evt_title);
+		
+		// Create the shorter code and store it
+		$obj->scanCode = arl_badge_createScanCode($evt_key, $obj->reg_cst_key);
+
+		$result = arl_badge_merge($obj, $page, $position);
+	
+		$count += 1;
+		$position += 1;
+		if ($position == 7) {
+			$position = 1;
+		}
+
+	}
+
+	// Save the PDF
+	$pdf->save($outFile);
+
+	return $count;
+}
+
+//************************************************
+function arl_badge_insertQR(&$pdfPage, $code, $posLeft, $posBottom, $size) {
+	global $tempDir;
+	
+	$link = scanURL . $code;
+	
+	$outfile = $tempDir.$code.'.png';
+	QRcode::png($link, $outfile);
+
+	$image = Zend_Pdf_Image::imageWithPath($outfile);
+	$pdfPage->drawImage($image, $posLeft, $posBottom, $posLeft + $size, $posBottom + $size);
+	
+	
+	
+	// Delete the QR graphic file
+	unlink($outfile);
+}
+
+//************************************************
+function arl_badge_merge($mergeData, $page, $position) {
+	global $pdf;
+	global $nameXPos;
+	global $nameYPos;
+	
+	// Create the base font - we can adjust the size for each element we add to the page
+	$style = new Zend_Pdf_Style();
+	$pdfFontBold = Zend_Pdf_Font::fontWithName(Zend_Pdf_Font::FONT_HELVETICA_BOLD);
+	$pdfFont = Zend_Pdf_Font::fontWithName(Zend_Pdf_Font::FONT_HELVETICA);
+		
+	// Insert each string at the appropriate font and at the appropriate position
+	
+	// Add the name
+	$fullname = $mergeData->ind_first_name . ' ' . $mergeData->ind_last_name;
+	if (strlen($fullname) > 20) {
+		$style->setFont($pdfFontBold, 16);
+	} else {
+		$style->setFont($pdfFontBold, 24);
+	}
+	$page->setStyle($style);
+	
+	$page->drawText($mergeData->ind_first_name . ' ' . $mergeData->ind_last_name, $nameXPos[$position], $nameYPos[$position]);
+
+	// Add the organization
+	$style->setFont($pdfFontBold, 16);
+	$page->setStyle($style);
+
+	$y = $nameYPos[$position] - orgOffset;
+	$lines = explode("\n", getWrappedText($mergeData->cst_org_name_dn, $style, maxWidth));
+	foreach($lines as $line)
+	{
+		$page->drawText($line, $nameXPos[$position], $y);
+		$y -= orgLineSpacing;
+	}
+	
+	// Add the event
+	$style->setFont($pdfFontBold, 10);
+	$page->setStyle($style);
+	
+	$y = $nameYPos[$position] - eventOffset;
+	$lines = explode("\n", getWrappedText($mergeData->evt_title, $style, maxWidth));
+	foreach($lines as $line)
+	{
+		$page->drawText($line, $nameXPos[$position], $y);
+		$y -= textSpacing;
+	}
+	
+	
+	$fullURL = scanURL . $mergeData->scanCode;
+	arl_badge_insertQR($page, $mergeData->scanCode, $nameXPos[$position] + qrXOffset, $nameYPos[$position] - qrYOffset, 60);
+	
+	$style->setFont($pdfFontBold, 8);
+	$page->setStyle($style);
+	$page->drawText($mergeData->scanCode, $nameXPos[$position] + qrXOffset, $nameYPos[$position] - qrYOffset - 10);
+
+}
+
+/******************************************************************/
+// Returns the scanCode for the event/user combination and updated the print_date
+function arl_badge_createScanCode($evt_key, $cst_key) {
+	$userid = "";
+	
+	if (($evt_key == '') or ($cst_key == '')) {
+		return -1;
+	}
+	
+	// See if the user already exists in the table
+	$result = db_select('arl_badge_userlist', 'ul')
+	->fields('ul', array('user_id'))
+	->condition('ul.cust_key', $cst_key, '=')
+	->condition('ul.evt_key', $evt_key, '=')
+	->execute();
+	
+	$row = $result->fetchObject();
+	if ($row != false) {
+		// Already in the table, just grab the ID and update the print date
+		$userid = $row->user_id;
+		
+		$res = db_update('arl_badge_userlist')
+		->fields(array('print_date'=>time()))
+		->condition('user_id', $userid, '=')
+		->execute();
+
+	} else {
+		// Not in the table yet, so add the record
+		$userid = db_insert('arl_badge_userlist')
+		->fields(array('cust_key'=>$cst_key, 'evt_key'=>$evt_key, 'print_date'=>time()))
+		->execute();
+		
+		echo('Added: ' . $userid . '<br>');
+	}
+	
+	return $userid;	
+}
+
+/* Inserts \n characters to wrap text in the given font to fit within a box of the given width */
+function getWrappedText($string, Zend_Pdf_Style $style, $max_width) {
+	$wrappedText = '';
+	$lines = explode("\n", $string);
+
+	foreach ($lines as $line) {
+		$words = explode(' ',$line);
+		$word_count = count($words);
+		$i = 0;
+		$wrappedLine = '';
+		while($i < $word_count) {
+			// if adding a new word isn't wider than $max_width, we add the word
+			if (widthForStringUsingFontSize($wrappedLine.' '.$words[$i], $style->getFont(), $style->getFontSize()) < $max_width) {
+				if (!empty($wrappedLine)) {
+					$wrappedLine .= ' ';
+				}
+				$wrappedLine .= $words[$i];
+			} else {
+				$wrappedText .= $wrappedLine."\n";
+				$wrappedLine = $words[$i];
+			}
+
+			$i++ ;
+		}
+			
+		$wrappedText .= $wrappedLine."\n" ;
+	}
+	 
+	return $wrappedText ;
+}
+
+/* Calculates the width of a line of text, accounting for font size */
+function widthForStringUsingFontSize($string, $font, $fontSize) {
+	$drawingString = iconv('UTF-8', 'UTF-16BE//IGNORE', $string);
+	$characters = array();
+
+	for ($i = 0; $i < strlen($drawingString); $i++) {
+		$characters[] = (ord($drawingString[$i++]) << 8 ) | ord($drawingString[$i]);
+	}
+
+	$glyphs = $font->glyphNumbersForCharacters($characters);
+	$widths = $font->widthsForGlyphs($glyphs);
+	$stringWidth = (array_sum($widths) / $font->getUnitsPerEm()) * $fontSize;
+	return $stringWidth;
+}
+
+function decode_entities2($text) {
+	$text= html_entity_decode($text,ENT_QUOTES,"ISO-8859-1"); #NOTE: UTF-8 does not work!
+	$text= preg_replace('/&#(\d+);/me',"chr(\\1)",$text); #decimal notation
+	$text= preg_replace('/&#x([a-f0-9]+);/mei',"chr(0x\\1)",$text);  #hex notation
+	return $text;
+}
+
+
+?>

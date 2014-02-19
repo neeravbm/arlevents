@@ -1,0 +1,6 @@
+name = ACT Home
+description = Manage header, home page content, footer etc.
+core = 7.x
+version = 7.x-2.0
+package = ACT Custom
+file = act_home.module

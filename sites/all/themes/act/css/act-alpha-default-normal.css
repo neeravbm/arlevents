@@ -1,0 +1,682 @@
+/* This file will hold styles that are loaded using the same media query as the normal grid. */
+/* If you are using the default media queries provided by Omega, these styles will also
+ *  apply to the widescreen layout unless they are overridden by the widescreen styles. */
+/* Include css files */
+@import "devendra-normal.css";
+@import "ankur-normal.css";
+
+/* End */
+
+.branding-data .logo-img img {
+  width: 180px;
+  margin-top: 10px;
+}
+
+.myprofile-right {
+  float: right;
+  width: 30%;
+  margin-left: 10px;
+}
+
+.myprofile-top {
+  width: 68%;
+}
+
+.triple li {
+  width: 100%;
+}
+
+#block-views-interests-block .item-list ul li, #block-views-my-interests-block .item-list ul li {
+  margin: 0 0 0.25em 0;
+}
+
+/************* Tabs by devendra************/
+
+.ui-tabs {
+  zoom: 1;
+}
+
+.ui-tabs .ui-tabs-nav {
+  list-style: none;
+  position: relative;
+  padding: 0;
+  margin: 50px 0 0;
+  background: #203b6a;
+  width: 100%;
+  float: left;
+  height: 40px;
+}
+
+.ui-tabs .ui-tabs-nav div {
+  position: relative;
+  float: left;
+  margin: 0;
+  padding: 0;
+
+}
+
+.ui-tabs .ui-tabs-nav div a {
+  display: block;
+  padding: 8px 15px;
+  border-bottom-color: #ccc;
+  outline: none;
+  background: #203B6A;
+  border-right: 2px #162742 solid;
+  color: #fff;
+  text-decoration: none;
+  font-size: 1em;
+}
+
+.ui-tabs .ui-tabs-nav div a:hover,
+.ui-tabs .ui-tabs-nav div.active a {
+  background: #162742;
+}
+
+.ui-tabs .ui-tabs-nav div.active {
+  background: url('../images/arrow.png') no-repeat center bottom;
+  padding-bottom: 7px;
+}
+
+.ui-tabs .ui-tabs-nav div.ui-tabs-selected a {
+  padding: 10px 20px 12px 20px;
+  background: #fff;
+  border-bottom-style: none;
+}
+
+.ui-tabs .ui-tabs-nav div.ui-tabs-selected a,
+.ui-tabs .ui-tabs-nav div.ui-state-disabled a,
+.ui-tabs .ui-tabs-nav div.ui-state-processing a {
+  cursor: default;
+}
+
+.ui-tabs .ui-tabs-nav div a,
+.ui-tabs.ui-tabs-collapsible .ui-tabs-nav div.ui-tabs-selected a {
+  cursor: pointer;
+}
+
+.ui-tabs .tabcontent {
+  display: block;
+  clear: both;
+  padding: 10px 0;
+}
+
+.ui-tabs .ui-tabs-hide {
+  display: none;
+}
+
+/******** Profile Bottom ******/
+
+.profile-bottom .image {
+  float: left;
+  margin-top: 15px;
+}
+
+.profile-bottom .title {
+  font-size: 1.250em;
+  font-weight: normal;
+  margin-bottom: 0;
+  padding: 10px 0 0;
+}
+
+.profile-bottom .description {
+  float: right;
+  width: 85%;
+}
+
+/*
+.page-user #zone-postscript {
+    background:white;
+    margin-left: 6.3%;
+    margin-right: auto;
+    padding-bottom:20px;
+}
+*/
+
+/************** My ACT-IAC Page *******/
+
+.content-top {
+  padding: 20px 0;
+  color: #3B3B3B;
+  font-size: 1.250em;
+  font-weight: normal;
+}
+
+.content-top .first {
+  float: left;
+  border-right: 2px solid #E1E1E1;
+  padding-right: 20px;
+  margin-right: 20px;
+}
+
+.content-top .last {
+  float: right;
+  background: #4D7BBA;
+  border-radius: 6px;
+  padding: 0 20px;
+  font-size: 0.938em;
+}
+
+.content-top .last a {
+  text-decoration: none;
+  color: #fff;
+}
+
+.clear {
+  clear: both;
+}
+
+/********* Vertical tabs ********/
+/*
+#tabs-titles.myactiac{
+    float:left;
+    margin-right:40px;
+    background: #203B6A;
+    width: 25%;
+    display: block;
+}
+#tabs-titles.myactiac li{
+    cursor:pointer;
+    list-style:none;
+    color:#fff;
+    height: 40px;
+    padding: 10px;
+    border-bottom: 1px solid #FFFFFF;
+    font-weight:bolder;
+    background:#4D7BBA;
+}
+
+#tabs-titles.myactiac li.current{
+   background:#203B6A url('../images/arrow_vertical.png')  no-repeat top right;
+}
+
+
+#tabs-contents.myactiac{
+    background:#F2F2F2;
+    margin-left:25%;
+    padding:5px;
+    width: 73.5%;
+}
+#tabs-contents.myactiac li{
+    display:none;
+}
+#tabs-contents.myactiac li:first-child{
+    display:block;
+}
+#tabs-contents.myactiac table {
+    border: none;
+    width: 89%;
+}
+#tabs-contents.myactiac .block_title {
+    font-size: 20px;
+    font-weight: normal;
+    margin-bottom: 0;
+    padding: 10px 0;
+    color:#3B3B3B;
+}
+
+#tabs-contents.myactiac table tr td{
+    color:#3D3D3D;
+}
+
+#tabs-contents.myactiac table tr.even td {
+    background:#F2F2F2;
+}
+
+#tabs-contents.myactiac table tr.even, #tabs-contents.myactiac table tr.odd {
+    border-bottom:none;
+}
+*/
+
+/********** Ready to Join Reward Zone? ********/
+#readytojoin .left, #readytojoin .right {
+  width: 45%;
+}
+
+#readytojoin .left {
+  border-right: 2px solid #EBDEDE;
+  border-bottom: none;
+}
+
+#readytojoin .right {
+  float: left;
+}
+
+.triple li {
+  width: 100%;
+}
+
+/*********** Header ***********/
+#user-login-form .form-type-textfield, #user-login-form .form-type-password {
+  width: 45%;
+}
+
+#zone-branding #block-system-main-menu {
+  display: none;
+}
+
+#om-maximenu-maximenu ul li.leaf-become-a-member {
+  float: right;
+}
+
+.navigation, #om-maximenu-maximenu {
+  display: block;
+}
+
+#block-block-11 {
+  background: none repeat scroll 0 0 #AB1D2C;
+  border-radius: 10px 10px 10px 10px;
+  padding: 0;
+  margin: 17px 10px 10px 10px;
+  margin-left: 25px;
+  text-align: center;
+}
+
+.branding-data {
+  margin-bottom: 0;
+}
+
+/******** Search *********/
+
+#block-search-form {
+  display: block;
+}
+
+#block-search-form .block-title {
+  display: block;
+  color: gray;
+  font-size: 0.625em;
+  letter-spacing: 0px;
+  font-family: 'ArchivoNarrowRegular';
+}
+
+#block-search-form .form-type-textfield input {
+  border-radius: 5px;
+  height: 28px;
+  background: none;
+  position: static;
+  display: inline;
+  margin: 0 2px;
+  width: 65%;
+}
+
+#block-search-form .form-actions {
+  display: inline;
+}
+
+/********* Menu ********/
+#region-branding .block-menu {
+  display: none;
+}
+
+#block-block-11, #block-block-12, #region-branding .block-menu {
+  width: 10%;
+  margin-bottom: 0;
+}
+
+/********* Event node page ********/
+.page-user .friend_block .frnd_info {
+  width: 65%;
+}
+
+.page-user-dashboard .friend_block .frnd_info {
+  width: 60%;
+}
+
+.page-node.node-type-group .friend_block .frnd_info {
+  width: 65%;
+}
+
+/************ Login Page *******/
+#user-login .form-item-name input, #user-login .form-item-pass input {
+  width: 70%;
+}
+
+/********** Home Page ******/
+#block-block-22 ul li {
+  display: inline;
+  margin: 0px 10px 15px 0;
+  /*width: 32%;*/
+  width: 100%;
+
+  float: left;
+  min-height: 100px;
+  height: auto;
+}
+
+#block-block-22 ul li.views-row-3 {
+  margin-bottom: 0;
+}
+
+#block-block-22 ul li .views-field-title {
+  width: 35%;
+  /*padding-top: 12px;*/
+  padding-left: 15px;
+}
+
+#block-block-22 ul li .views-field-body {
+  padding: 0 15px;
+  width: 60%;
+}
+
+.project-title {
+  border-bottom: 1px solid #333333;
+  color: #333333;
+  font-family: 'ArchivoNarrowRegular';
+  font-size: 1.500em;
+  letter-spacing: 0px;
+  margin: 0 0 10px;
+}
+
+.front #tabs-contents table tr td {
+  vertical-align: top;
+}
+
+.front #tabs-contents .block_title {
+  font-size: 1.250em;
+  font-weight: normal;
+  margin-bottom: 0;
+  padding: 0 0 10px 0;
+  color: #3B3B3B;
+}
+
+#block-menu-menu-group-menus ul {
+  float: left;
+  width: 100%;
+  list-style: none;
+  background: #000000;
+}
+
+#block-menu-menu-group-menus ul li {
+  float: left;
+  list-style: none;
+  margin: 10px 29px;
+  width: auto;
+}
+
+#block-menu-menu-group-menus ul li a {
+  text-decoration: none;
+  color: #FFFFFF;
+}
+
+/************* Event Style By devendra *****/
+.block-cck-blocks-body {
+  width: 58%;
+}
+
+.block-field-events-speaker .content {
+  float: right;
+}
+
+.context-groups .field-name-field-speaker-department .field-items,
+.context-groups .field-name-field-speaker-name .field-items {
+  width: 187px;
+  text-align: left;
+  padding-left: 85px;
+  line-height: 1.1em;
+}
+
+.field-name-field-silver-sponsor img {
+  width: 100%;
+}
+
+.page-node-edit .field-name-field-silver-sponsor .image-widget-data .file img.file-icon {
+  width: auto;
+}
+
+.view-event-you-may-be-interested-in .views-row {
+  border-bottom: 1px solid #CCCCCC;
+  float: left;
+  padding: 10px 0;
+  width: 100%;
+  color: #7F7F7F;
+  text-align: left;
+}
+
+.view-event-you-may-be-interested-in .views-row .views-field-title a {
+  color: #4783C1;
+  font-size: 1em;
+  font-weight: bold;
+  margin: 0px;
+}
+
+.view-event-you-may-be-interested-in .views-row .views-field-field-events-banner {
+  float: left;
+  margin-right: 16%;
+  padding-bottom: 25px;
+  margin-left: 5%;
+}
+
+.page-cart section h2.block-title {
+  background: #7F7F7F;
+  color: #EBE6E6;
+  font-weight: normal;
+}
+
+.block-field-event-sponsor {
+  float: right;
+}
+
+#edit-act-event-registration-badge-account {
+  display: none;
+}
+
+.page-latest-events .view-event-category-listing .views-field-field-venue-address .field-content,
+.page-latest-events .view-future-events-by-term .views-field-field-venue-address .field-content {
+  margin-left: 10%;
+}
+
+.page-latest-events .view-event-category-listing .views-field-view, .page-latest-events .views-field-field-logo {
+  float: left;
+  width: 24%;
+  margin: 4%;
+  position: absolute;
+}
+
+.page-latest-events .view-future-events-by-term .events-keynote-speaker-details {
+  float: left;
+  width: 24%;
+  margin-top: -18%;
+}
+
+.page-latest-events .view-event-category-listing .latest-events-keynote-speaker-details {
+  float: left;
+  width: 24%;
+  margin-top: -18%;
+}
+
+#event_venue_container #event_date {
+  width: 100%;
+}
+
+.page-latest-events .view-event-category-listing .views-field-field-event-date,
+.page-latest-events .view-future-events-by-term .views-field-field-event-date,
+.page-latest-events .view-event-category-listing .views-field-field-venue-address,
+.page-latest-events .view-future-events-by-term .views-field-field-venue-address {
+  float: left;
+  width: 35%;
+  margin-left: 2%;
+  min-height: 25px;
+  margin-bottom: 0%;
+  margin-top: 5px;
+}
+
+.page-latest-events .view-event-category-listing .event-summary div,
+.page-latest-events .view-future-events-by-term .event-summary div {
+  margin-left: 25%;
+  /*padding-top: 2%;*/
+}
+
+.page-latest-events .view-event-category-listing .views-row .keynote_speaker_image,
+.page-latest-events .view-future-events-by-term .views-row .keynote_speaker_image {
+  width: 75%;
+  padding-left: 25%;
+  vertical-align: bottom;
+  float: none;
+  margin-left: 0;
+}
+
+.page-latest-events .view-future-events-by-term .views-row .keynote_speaker_image img {
+  width: 100%;
+  height: auto;
+}
+
+.page-latest-events .view-event-category-listing .views-row .keynote_speaker_image img {
+  width: 100%;
+  height: auto;
+}
+
+/********Latest Event- Item list of image *************/
+
+.view-id-event_profile .item-list .views-row {
+  width: 54%;
+  border: 0;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  -ms-box-shadow: none;
+  box-shadow: none;
+  margin-bottom: 15px;
+  float: right;
+}
+
+/****************** individual latest event page css*******************/
+
+.page-latest-events .view-event-category-listing .views-field-description,
+.page-latest-events .view-future-events-by-term .views-field-body {
+  margin-top: -19%;
+  font-size: 1em;
+  line-height: 18px;
+  width: 57%;
+  color: white;
+  background: rgba(0, 0, 0, 0.6);
+  margin-left: 4%;
+  margin-bottom: 0%;
+  padding: 1.5% 2%;
+}
+
+.page-latest-events .view-future-events-by-term .views-row .views-field-field-profile-picture {
+  margin-top: -15%;
+  margin-left: 5%;
+  vertical-align: bottom;
+  float: left;
+  width: 14%;
+  margin-right: 7%;
+}
+
+#block-user-login #user-login-form .form-actions {
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.page-latest-events .view-event-category-listing .views-row .views-field-field-logo {
+  top: 26px;
+  left: 26px;
+}
+
+/************** Maxi Menu **********/
+.om-maximenu ul.om-menu li.om-leaf .om-link {
+  padding: 0 9px;
+  text-decoration: none;
+  float: none !important;
+}
+
+.om-maximenu ul.om-menu li.om-leaf.open .om-link:hover {
+  color: #ffffff;
+}
+
+.om-maximenu ul.om-menu li.om-leaf .om-link:hover {
+  color: #782323;
+}
+
+.view-act-forum-topic .views-row {
+  padding: 15px 10px 15px 10px;
+  width: 92%;
+}
+
+.fc-header td, .fc-header td {
+  font-size: 1em;
+}
+
+.fc-header td h2 {
+  font-size: 1.3em;
+}
+
+.fc .fc-header-space {
+  padding-left: 10px;
+}
+
+html .fc, .fc table {
+  font-size: 1em;
+}
+
+.fc-button {
+  padding: 0 .6em;
+}
+
+.events-addtocart .form-submit {
+  padding: 10px 27%;
+}
+
+/************ what i do *****************/
+/*#what-i-want-todo{
+  height: 50px;
+}*/
+#what-i-want-todo label {
+  margin: 3px 0;
+  width: 35%;
+}
+
+#what-i-want-todo select {
+  border: 2px solid #009EDF;
+  border-radius: 5px 5px 5px 5px;
+  display: inline-block;
+  font-size: 0.8em;
+  height: 29px;
+  padding: 5px;
+  width: 65%;
+  margin: 2px 0 0 0;
+  float: left;
+}
+
+/*#block-act-home-what-i-want-to-do {
+    border-bottom: 1px solid #D1D1D1;
+}*/
+
+#views-exposed-form-what-i-want-to-do-block label, #what-i-want-todo label {
+  font-size: 1.1em;
+}
+
+#what-i-want-todo .form-type-select {
+  width: 100%;
+}
+
+#what-i-want-todo input.form-submit {
+  font-size: 1.375em;
+}
+
+.page-user .tabs ul.tabs li a {
+  font-size: 0.8em;
+}
+
+/*********** Event Slider **************/
+#block-views-events-slide-show-block .views_slideshow_cycle_slide img {
+  width: 120px;
+}
+
+#block-views-events-slide-show-block .views-slideshow-cycle-main-frame,
+#block-views-events-slide-show-block .views-slideshow-cycle-main-frame-row {
+  height: 72px !important;
+}
+
+/************ AJAX Cart ****************/
+#block-commerce-cart-cart {
+  margin-top: 5px;
+  margin-right: 0;
+}
+
+#block-commerce-cart-cart h2.block-title {
+  margin-bottom: 0;
+}
+
+#block-commerce-cart-cart .content {
+  width: 250px;
+}

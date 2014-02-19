@@ -1,0 +1,13 @@
+--- /sites/all/modules/contrib/field_collection/field_collection.module
++++ /sites/all/modules/contrib/field_collection/field_collection.module
+@@ -958,8 +958,9 @@ function field_collection_field_update($entity_type, $entity, $field, $instance,
+  * Implements hook_field_delete().
+  */
+ function field_collection_field_delete($entity_type, $entity, $field, $instance, $langcode, &$items) {
++  $ids = field_collection_field_item_to_ids($items);
+   // Also delete all embedded entities.
+-  if ($ids = field_collection_field_item_to_ids($items)) {
++  if ($ids && field_info_field($field['field_name'])) {
+     // We filter out entities that are still being referenced by other
+     // host-entities. This should never be the case, but it might happened e.g.
+     // when modules cloned a node without knowing about field-collection.

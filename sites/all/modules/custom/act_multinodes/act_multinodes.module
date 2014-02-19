@@ -1,0 +1,112 @@
+<?php
+/*
+* file document node
+*/
+
+/*
+ * Implementing hook_form_alter()
+ * 
+ */
+function act_multinodes_form_alter(&$form, &$form_state, $form_id){
+	if($form_id == 'multinodes_node_form') {
+		drupal_add_css(drupal_get_path('module','act_multinodes').'/css/act_multinodes.css');
+		hide($form['body']);
+		$form['actions']['submit']['#submit'][] = 'multinode_add_node_form_submit';
+		//$form['#submit'][] = 'multinode_add_node_form_submit';
+	}
+}
+
+
+/**
+ * form submit handler
+ */
+function multinode_add_node_form_submit($form, &$form_state) {
+  global $user;
+  
+  foreach($form_state['values']['field_documents_file']['und'] as $key => $val){
+		if($val['fid']){
+			// Create a node object, and add node properties.
+			$document = new stdClass();
+			$document->type = 'documents';
+			$document->uid = $user->uid;
+			$document->created = strtotime("now");
+			$document->changed = strtotime("now");
+			$document->status = 1;
+			$document->comment = 0;
+			$document->promote = 0;
+			$document->moderate = 0;
+			$document->sticky = 0;
+		  $document->language = LANGUAGE_NONE;
+			
+			$document->field_archive[$document->language][0]['value'] = $form_state['values']['field_archive']['und'][0]['value'];
+			$document->field_view_government_only[$document->language][0]['value'] = $form_state['values']['field_view_government_only']['und'][0]['value'];
+			$document->og_group_ref[$document->language][0]['target_id'] = $form_state['values']['field_documents_community']['und'][0]['target_id'];
+			$document->group_content_access[$document->language][0]['value'] = $form_state['values']['group_content_access']['und'][0]['value'];
+			
+			$file = file_load($val['fid']);
+			$file->display = 1;
+      $file->description = '';
+			$document->field_documents_file[$document->language][] = (array)$file;
+			$document->title = $file->filename;	
+			node_save($document);
+			drupal_set_message(t("@title Document has been created",array('@title' => $document->title)));
+			unset($document);
+		}
+	}
+ }
+ 
+ 
+ /**
+ * Implements hook_cronapi().
+ * Using ultimate cron
+ */
+function act_multinodes_cronapi($op, $function = NULL) {
+  switch ($op) {
+    case 'list':
+      return array(
+        'act_multinodes_delete_multinode' => t('Delete multinode'),
+      );
+
+    case 'rule':
+      switch ($function) {
+        case 'act_multinodes_delete_multinode':
+          return '59 0-5 * * *';
+        }
+      break;
+
+    case 'execute':
+      switch ($function) {
+        case 'act_multinodes_delete_multinode':
+          act_multinodes_delete_multinode();
+          break;
+        }
+      break;
+
+    case 'settings':
+      switch ($function) {
+        // 'mymodule_cronjob_3' disabled by default
+        case 'act_multinodes_delete_multinode':
+          return array('enabled' => TRUE);
+      }
+
+    case 'configure':
+      switch ($function) {
+        //case 'mymodule_cronjob_3': return 'admin/configure-modules-settings/xxx';
+      }
+  }
+}
+
+
+function act_multinodes_delete_multinode(){
+  $return_value = NULL;
+  try {
+		$return_value = db_delete('node')
+			->condition('type', 'multinodes')
+			->execute();
+  } catch (Exception $e) {
+    drupal_set_message(t('db_delete failed. Message = %message, query= %query',
+    array('%message' => $e->getMessage(), '%query' => $e->query_string)), 'error');
+  }
+  return $return_value;
+}
+

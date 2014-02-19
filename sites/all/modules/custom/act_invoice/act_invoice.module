@@ -1,0 +1,288 @@
+<?php
+/**
+ * @file
+ * This module contains membership renewal callback functions
+ *
+ */
+/*function act_invoice_init(){
+  act_invoice_users_invoice();	
+}*/
+
+/**
+ * Implement hook_permission()
+ */
+function act_invoice_permission() {
+  return array(
+    'access membership renewal' => array(
+      'title' => t('Access membership renewal'),
+      'description' => t('Allow users to membership renewal page'),
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_cronapi().
+ * Using ultimate cron
+ */
+function act_invoice_cronapi($op, $function = NULL) {
+  switch ($op) {
+    case 'list':
+      return array(
+        'act_invoice_users_invoice' => t('Get users invoices'),
+      );
+
+    case 'rule':
+      switch ($function) {
+        case 'act_invoice_users_invoice':
+          return '59 0-5 * * *';
+      }
+      break;
+
+    case 'execute':
+      switch ($function) {
+        case 'act_invoice_users_invoice':
+          act_invoice_users_invoice();
+          break;
+      }
+      break;
+
+    case 'settings':
+      switch ($function) {
+        case 'act_invoice_users_invoice':
+          return array('enabled' => TRUE);
+      }
+      break;
+  }
+}
+
+/*
+ * Function to create/update invoices while cron run
+ */
+function act_invoice_users_invoice() {
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('inc', 'act_invoice', 'includes/act_invoice.class');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+  $ActInvoice = new ActInvoice();
+  $node = NULL;
+
+  $time = strtotime('-5 day');
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')
+    ->fieldCondition('field_last_updated', 'value', $time, '<=')
+    ->range(0, 50);
+
+  $result = $query->execute();
+
+  $updatedUsers = count($result['user'] > 0) ? array_keys($result['user']) : array(0);
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')
+    ->propertyCondition('uid', $updatedUsers, 'NOT IN')
+    ->range(0, 50);
+
+  $result = $query->execute();
+
+  $result = entity_load('user', array_keys($result['user']));
+
+  foreach ($result as $account) {
+    if (empty($account->field_customer_key)) {
+      continue;
+    }
+    $ActInvoice->act_invoice_user_invoice($account);
+  }
+}
+
+
+/**
+ * Implements hook_user_login()
+ */
+function act_invoice_user_login(&$edit, $account) {
+  module_load_include('inc', 'act_invoice', 'includes/act_invoice.class');
+  $ActInvoice = new ActInvoice();
+  $ActInvoice->act_invoice_user_invoice($account);
+  if (act_event_user_is_poc($account->uid)) {
+    //drupal_set_message('POC');
+  }
+}
+
+/**
+ * Implementation of hook_views_query_alter
+ * @param type $view
+ * @param type $query
+ */
+function act_invoice_views_query_alter(&$view, &$query) {
+  if ($view->name == 'open_invoice') {
+    $product_ids = act_invoice_product_is_purchased();
+    $count = count($view->query->where[1]['conditions']);
+    if (sizeof($product_ids) > 0) {
+      $view->query->where[1]['conditions'][$count]['field'] = 'commerce_product_field_data_field_product.product_id';
+      $view->query->where[1]['conditions'][$count]['value'] = $product_ids;
+      $view->query->where[1]['conditions'][$count]['operator'] = 'NOT IN';
+    }
+  }
+}
+
+
+/*
+ * list of products bought by current user 
+ * @return $purchased
+ *   array contains product id
+ */
+function act_invoice_product_is_purchased() {
+  global $user;
+  $purchased = array();
+  $query = db_select('commerce_line_item', 'commerce_line_item');
+  $query->fields('commerce_product_field_data_commerce_product', array('product_id'));
+  $query->join('field_data_commerce_product', 'field_data_commerce_product',
+    'commerce_line_item.line_item_id = field_data_commerce_product.entity_id');
+  $query->join('commerce_product', 'commerce_product_field_data_commerce_product',
+    'field_data_commerce_product.commerce_product_product_id = commerce_product_field_data_commerce_product.product_id');
+  $query->join('commerce_order', 'commerce_order_commerce_line_item',
+    'commerce_line_item.order_id = commerce_order_commerce_line_item.order_id');
+  $query->join('users', 'users_commerce_order', 'commerce_order_commerce_line_item.uid = users_commerce_order.uid');
+  $query->condition('commerce_order_commerce_line_item.uid', $user->uid);
+  $query->condition('commerce_line_item.type', array('product'), 'IN');
+  $query->condition('commerce_order_commerce_line_item.status', array('pending', 'processing', 'completed'), 'IN');
+  $query->condition('commerce_product_field_data_commerce_product.type', array('invoice'), 'IN');
+  $results = $query->execute();
+  if (count($results) > 0) {
+    foreach ($results as $result) {
+      $purchased[] = $result->product_id;
+    }
+    $purchased = array_filter($purchased);
+    $purchased = array_unique($purchased);
+  }
+  return $purchased;
+}
+
+
+
+/*
+ * list of products bought by current user 
+ * @return $purchased
+ *   array contains product id
+ */
+function act_invoice_events_product_is_purchased() {
+  global $user;
+  $order_id = '';
+  if (arg(0) == 'checkout' && arg(2) == 'complete'){
+	  $order_id = arg(1);
+	}
+  $header = array(t('Event/Session/Track'), t('iCal, Outlook and Google calendar'));
+  $purchased = array();
+  $query = db_select('commerce_line_item', 'commerce_line_item');
+  $query->fields('commerce_product_field_data_commerce_product', array('product_id'));
+  $query->fields('commerce_product_field_data_commerce_product', array('title'));
+  $query->fields('node_field_data_field_product', array('nid'));
+  $query->join('field_data_commerce_product', 'field_data_commerce_product','commerce_line_item.line_item_id = field_data_commerce_product.entity_id');
+  $query->join('commerce_product', 'commerce_product_field_data_commerce_product','field_data_commerce_product.commerce_product_product_id = commerce_product_field_data_commerce_product.product_id');
+  $query->join('commerce_order', 'commerce_order_commerce_line_item','commerce_line_item.order_id = commerce_order_commerce_line_item.order_id');
+  $query->join('users', 'users_commerce_order', 'commerce_order_commerce_line_item.uid = users_commerce_order.uid');
+  
+  $query->join('field_data_field_product', 'field_data_field_product', 'commerce_product_field_data_commerce_product.product_id = field_data_field_product.field_product_product_id');
+  $query->join('node', 'node_field_data_field_product', 'field_data_field_product.entity_id = node_field_data_field_product.nid');
+  $query->join('users', 'users_node', 'node_field_data_field_product.uid = users_node.uid');
+  
+  $query->condition('commerce_order_commerce_line_item.uid', $user->uid);
+  $query->condition('commerce_order_commerce_line_item.order_id', $order_id);
+  $query->condition('commerce_line_item.type', array('product'), 'IN');
+  $query->condition('commerce_order_commerce_line_item.status', array('pending', 'processing', 'completed'), 'IN');
+  $query->condition('commerce_product_field_data_commerce_product.type', array('product', 'session_product', 'tracks_product'), 'IN');
+  $results = $query->execute();
+  if (count($results) > 0) {
+    foreach ($results as $result) {
+      $purchased[$result->nid] = $result->title;
+    }
+    //$purchased = array_filter($purchased);
+    $purchased = array_unique($purchased);
+  }
+  
+  foreach ($purchased as $nid => $title) {
+    $node = node_load($nid);
+    $display = array('label' => 'hidden','type' => 'addtocal_view','settings' => array('format_type' => 'medium','past_events' => TRUE,));
+    $rows[] = array(
+      $title,
+      drupal_render(field_view_field('node', $node, 'field_date',$display)),
+    );
+  }
+  
+  $attributes = array();
+  $html  = '';
+  $table = array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => $attributes,
+    'sticky' => FALSE,
+    'caption' => '',
+    'colgroups' => array(),
+    'empty' => ''
+  );
+  $html .= theme_table($table);
+
+  return $html;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function act_invoice_block_info() {
+  $blocks = array();
+  $blocks['purchased_events'] = array(
+    'info' => t('Purchased Events list'),
+    'status' => TRUE,
+    'weight' => 0,
+    'region' => -1,
+  );
+  return $blocks;
+}
+
+
+/*
+ * Implemeting hook_block_view()
+ */
+function act_invoice_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'purchased_events':
+      $block['subject'] = t('Add events to your calendar');
+      $block['content'] = act_invoice_events_product_is_purchased();
+      break;
+  }
+  return $block;
+}
+
+/*
+ * function to display open and close invoices of user.
+ * @para $uid
+ *   login user id
+ */
+function act_invoice_get_membership_renewal() {
+  global $user;
+  $data['data']['#prefix'] = '<div class="invoice">';
+  $data['data']['open']['#prefix'] = '<div class="open_invoice"><h1>' . t('Open Invoices') . '</h1>';
+  $data['data']['open']['#markup'] = views_embed_view('open_invoice', 'block', $user->uid);
+  $data['data']['open']['#suffix'] = '</div>';
+  $data['data']['close']['#prefix'] = '<div class="close_invoice"><h1>' . t('Closed Invoices') . '</h1>';
+  $data['data']['close']['#markup'] = views_embed_view('closed_invoice', 'block_1', $user->uid);
+  $data['data']['close']['#suffix'] = '</div>';
+  $data['data']['#suffix'] = '</div>';
+  return $data;
+}
+
+
+/**
+ * Implements hook_form_FORMID_alter() to change the Add to Cart button text.
+ */
+function act_invoice_form_commerce_cart_add_to_cart_form_alter(&$form, &$form_state) {
+  $line_item = $form_state['line_item'];
+  $product = commerce_product_load($line_item->commerce_product[LANGUAGE_NONE][0]['product_id']);
+  if ($product->type == 'invoice') {
+    // Change the submit button text to more appropriate "Pay now"
+    $form['submit']['#value'] = t('Pay Now');
+  }
+}
+
+
+

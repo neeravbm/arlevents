@@ -1,0 +1,449 @@
+/* This file will hold styles that are loaded using the same media query as the narrow grid. */
+/* If you are using the default media queries provided by Omega, these styles will also
+ *  apply to the normal and widescreen layouts. You may override these styles in the normal
+ *  and widescreen CSS files as appropriate. */
+
+/* Include css files */
+@import "devendra-narrow.css";
+@import "ankur-narrow.css";
+/* End */
+
+/********** Ready to Join Reward Zone? ********/
+#readytojoin .left {
+  border-right: none;
+  border-bottom: 2px solid #EBDEDE;
+}
+
+.triple li {
+  width:100%;
+}
+
+/*********** Header ***********/
+
+#user-login-form .form-type-textfield, #user-login-form .form-type-password{
+  width:45%;
+}
+
+#block-user-login {
+  display:none;
+}
+
+
+.navigation{
+  display:none;
+}
+
+
+#block-block-11,
+#block-block-12,
+#region-branding .block-menu, #block-block-13 {
+ /* border-radius: 0 0 0 0;
+  margin: 10px 0;
+  padding: 12px 27px;*/
+  display:block;
+}
+
+
+/********** Search *******/
+
+#block-search-form {
+  display:none;
+}
+
+/********* Event node page ********/
+.page-user-dashboard .friend_block .frnd_info{
+  width:40%;
+}
+
+.page-node.node-type-group .frnd_info {
+  width:50%;
+}
+
+.field-collection-container .field-name-field-person > div > div {
+    width: 50%;
+}
+
+/********** Home Page ******/
+#block-menu-menu-group-menus ul li {
+  width:15%;
+}
+
+#block-block-22 ul li {
+  width:100%;
+  min-height:60px;
+  height:auto;
+}
+
+.views-slideshow-cycle-main-frame-row img {
+  width: 275px;
+  height: auto;
+}
+
+#views_slideshow_controls_text_home_slider-block .views-slideshow-controls-text-next a {
+  position: absolute;
+  right: 0;
+  top: 46%;
+  background: url(../images/bg_direction_nav.png) no-repeat 0 0;
+  background-position: 100% 0;
+  z-index: 1000;
+  color: transparent;
+  height: 27px;
+  width: 27px;
+}
+
+#views_slideshow_controls_text_home_slider-block .views-slideshow-controls-text-previous a {
+  position: absolute;
+  left: 15px;
+  top: 46%;
+  background: url(../images/bg_direction_nav.png) no-repeat 0 0;
+  z-index: 1000;
+  color: transparent;
+  height: 27px;
+  width: 27px;
+}
+
+#views_slideshow_controls_text_home_slider-block .views-slideshow-controls-text-pause {
+  display: none;
+}
+
+/******ACT -EVENT ********/
+
+.block-eventaddress {
+   float: left;
+   width: 66%;
+}
+
+.block-field-events-speaker {
+  float: right;
+  width: 37%;
+}
+.block-field-event-sponsor {
+  width: 34%;
+}
+.block-cck-blocks-body {
+    width: 60%;
+}
+
+/********ACT Event - Agenda ********/
+.page-agenda .block-eventaddress {
+    float: none;
+    width: 100%;
+}
+.page-agenda .block-field-event-sponsor {
+    float: none;
+    width: 100%;
+}
+
+/*************** Event Link Style By Devendra ********/
+.event-links-item {
+  padding-right:10px;
+}
+
+
+.block-field-events-speaker .content {
+  float:none;
+}
+
+.context-groups .field-name-field-speaker-department .field-items,
+.context-groups .field-name-field-speaker-name .field-items {
+  padding-left:10px;
+}
+
+.field-name-field-silver-sponsor img{
+    width:100%;
+}
+.page-node-edit .field-name-field-silver-sponsor .image-widget-data .file img.file-icon{
+width:auto;
+}
+.view-event-you-may-be-interested-in .views-row {
+  text-align:center;
+}
+
+#event_venue_container #event_date {
+  width: 100%;
+}
+
+.view-event-you-may-be-interested-in .views-field-field-event-date,
+.view-event-you-may-be-interested-in .views-field-field-venue-name,
+.view-event-you-may-be-interested-in .views-field-view-node,
+.view-event-you-may-be-interested-in .views-field-title {
+  margin:0 10px;
+}
+
+.view-event-you-may-be-interested-in .views-row .views-field-field-events-banner {
+    float: none;
+    margin-left: 0;
+    margin-right: 0;
+    padding-bottom: 0;
+}
+
+/********ACT - Meet the Team *************/
+
+.view-id-event_profile .item-list .views-row {
+   width: 295px;
+}
+
+/********Latest Event- Item list of image *************/
+
+.view-id-event_profile .item-list .views-row {
+    width: 100%;
+    border: 0;
+    -webkit-box-shadow:none;
+    -moz-box-shadow:none;
+    -ms-box-shadow: none;
+    box-shadow: none;
+    margin-bottom:15px;
+}
+
+.page-latest-events .view-event-category-listing .views-row .views-field-field-logo {
+  top: 0;
+  left: 0;
+}
+
+.page-latest-events .view-event-category-listing .views-field-field-venue-address .field-content,
+.page-latest-events .view-future-events-by-term .views-field-field-venue-address .field-content{
+  margin-left:15%;
+}
+
+.page-latest-events .view-event-category-listing .views-field-field-event-date,
+.page-latest-events .view-future-events-by-term .views-field-field-event-date,
+.page-latest-events .view-event-category-listing .views-field-field-venue-address,
+.page-latest-events .view-future-events-by-term .views-field-field-venue-address{
+  float:left;
+  width:35%;
+  margin-left: 2%;
+  min-height: 25px;
+  margin-bottom: 0%;
+  margin-top: 5px;
+}
+
+.page-latest-events .view-event-category-listing .views-field-view, .page-latest-events .views-field-field-logo {
+  float:left;
+  width: 24%;
+  margin: 4%;
+  position:absolute;
+}
+
+.page-latest-events .view-future-events-by-term .events-keynote-speaker-details{
+    float:left;
+    width: 24%;
+    margin-top: -19%;
+}
+
+.page-latest-events .view-event-category-listing .latest-events-keynote-speaker-details{
+    float:left;
+    width: 24%;
+    margin-top: -18%;
+}
+
+.page-latest-events .view-event-category-listing .event-summary div,
+.page-latest-events .view-future-events-by-term .event-summary div{
+  margin-left:25%;
+ /* padding-top: 2%;*/
+}
+
+.page-latest-events .view-event-category-listing .views-row .keynote_speaker_image,
+.page-latest-events .view-future-events-by-term .views-row .keynote_speaker_image  {
+    width: 75%;
+    padding-left: 25%;
+    vertical-align: bottom;
+    float:none;
+    margin-left:0;
+}
+
+.page-latest-events .view-future-events-by-term .views-row .keynote_speaker_image img{
+  width:100%;
+  height:auto;
+}
+
+.page-latest-events .view-event-category-listing .views-row .keynote_speaker_image img{
+  width:100%;
+  height:auto;
+}
+
+
+/****************** individual latest event page css*******************/
+
+.page-latest-events .view-event-category-listing .views-field-description,
+.page-latest-events .view-future-events-by-term .views-field-body {
+    margin-top: -21%;
+    font-size: 0.750em;
+    line-height: 14px;
+    width: 60%;
+    color: white;
+    background: rgba(0, 0, 0, 0.6 );
+    margin-left: 4%;
+    margin-bottom: 0%;
+    padding: 1.5% 2%;
+}
+
+.page-latest-events .view-future-events-by-term .views-row .views-field-field-profile-picture{
+    margin-top: -15%;
+    margin-left: 5%;
+    vertical-align: bottom;
+    float: left;
+    width: 14%;
+    margin-right: 7%;
+}
+
+.view-act-forum-topic .views-row {
+padding: 15px 10px 15px 10px;
+width: 88%;
+}
+.fc-header td,.fc-header td {
+font-size:1em;
+}
+.fc-header td h2{
+font-size: 1.3em;
+}
+.fc .fc-header-space {
+padding-left: 1px;
+}
+.fc-button {
+padding: 0 .4em;
+}
+.events-addtocart .form-submit {
+  padding: 10px 20%;
+}
+/************ what i do *****************/
+/*#what-i-want-todo{
+  height: 50px;
+}*/
+#what-i-want-todo label{
+    margin: 10px 0;
+    width: 25%;
+}
+#what-i-want-todo select {
+    border: 1px solid #CCC;
+    border-radius: 5px 5px 5px 5px;
+    display: inline-block;
+    font-size: 1em;
+    height: 37px;
+    padding: 5px;
+    width: 75%;
+    margin: 8px 0em 0 0%;
+    float: left;
+}
+#views-exposed-form-what-i-want-to-do-block label,#what-i-want-todo label{
+    font-size: 19px;
+}
+#what-i-want-todo .form-type-select {
+    width: 100%;
+}
+
+#what-i-want-todo input.form-submit{
+    font-size: 1.375em;
+}
+
+/************ Forum block on Community page ***************/
+.view-id-group_documentation_library .views-field-edit-node a {
+    display: block;
+}
+
+/************* Tabs by devendra************/
+
+.ui-tabs {
+    zoom: 1;
+}
+
+.ui-tabs .ui-tabs-nav {
+    list-style: none;
+    position: relative;
+    padding: 0;
+    margin: 50px 0 0;
+    background:#203b6a;
+    width:100%;
+    float:left;
+    height:40px;
+}
+
+.ui-tabs .ui-tabs-nav div {
+    position: relative;
+    float: left;
+    margin: 0;
+    padding: 0;
+
+}
+
+.ui-tabs .ui-tabs-nav div a {
+    display: block;
+    padding: 10px 7%;
+    border-bottom-color: #ccc;
+    outline: none;
+    background: #203B6A;
+    border-right: 2px #162742 solid;
+    color:#fff;
+    text-decoration:none;
+    font-size: .8em;
+}
+
+.ui-tabs .ui-tabs-nav div a:hover,
+.ui-tabs .ui-tabs-nav div.active a {
+    background: #162742;
+}
+
+.ui-tabs .ui-tabs-nav div.active {
+     background:url('../images/arrow.png') no-repeat center bottom;
+     padding-bottom:7px;
+}
+
+.ui-tabs .ui-tabs-nav div.ui-tabs-selected a {
+    padding: 10px 20px 12px 20px;
+    background: #fff;
+    border-bottom-style: none;
+}
+.ui-tabs .ui-tabs-nav div.ui-tabs-selected a,
+.ui-tabs .ui-tabs-nav div.ui-state-disabled a,
+.ui-tabs .ui-tabs-nav div.ui-state-processing a {
+    cursor: default;
+}
+.ui-tabs .ui-tabs-nav div a,
+.ui-tabs.ui-tabs-collapsible .ui-tabs-nav div.ui-tabs-selected a {
+    cursor: pointer;
+}
+
+.ui-tabs .tabcontent{
+    display: block;
+    clear: both;
+    padding: 10px 0;
+}
+
+.ui-tabs .ui-tabs-hide {
+    display: none;
+}
+
+ .ui-tabs .ui-tabs-nav div a {
+    display: block;
+    padding: 10px 7px;
+    border-bottom-color: #ccc;
+    outline: none;
+    background: #203B6A;
+    border-right: 2px #162742 solid;
+    color:#fff;
+    text-decoration:none;
+    font-size: .8em;
+}
+
+#block-block-22 ul li .views-field-title {
+  padding:0px;
+}
+
+/*#region-content-bottom-second .region-content-bottom-second-inner {
+  border: 1px solid #D1D1D1;
+  padding: 0 10px;
+}*/
+
+/*********** Event Slider **************/
+#block-views-events-slide-show-block .views_slideshow_cycle_slide img{
+  width:120px;
+}
+
+#block-views-events-slide-show-block .views-slideshow-cycle-main-frame,
+#block-views-events-slide-show-block .views-slideshow-cycle-main-frame-row {
+  height:72px !important;
+}
+
+/*********** AJAX Cart ***************/
+#block-commerce-cart-cart {
+  margin-right: 100px;
+}

@@ -1,0 +1,14 @@
+#actics_popup div {
+	clear :both;
+}
+
+#actics_popup {
+	display: block;
+	width: 112px;
+	float: right;
+	background-color: #efefef;
+	z-index: 999;
+	position: absolute;
+	left: 155px;
+        top: 10%;
+}

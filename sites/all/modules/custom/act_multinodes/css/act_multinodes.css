@@ -1,0 +1,7 @@
+/*
+ * Event node page style
+ */
+.page-node-add-multinodes .vertical-tabs,
+.node-type-multinodes .vertical-tabs {
+  display:none;
+}

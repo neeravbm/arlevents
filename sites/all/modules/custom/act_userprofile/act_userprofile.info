@@ -1,0 +1,6 @@
+name = ACT User Profile 
+description = Manage user profile data.
+core = 7.x
+version = 7.x-2.0
+package = ACT Custom
+file = act_userprofile.module

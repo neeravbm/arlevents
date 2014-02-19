@@ -1,0 +1,332 @@
+<?php
+
+/**
+ * @file
+ * filebuilder_service.module
+ * FileBuilder: File Management Service Module developed by Nextide www.nextide.ca
+ * Service component for the Filedepot module allowing desktop clients to interface with filedepot
+ */
+define("FILEBUILDER_SERVICE_MAIL_NOTIFICATION_SUCCESS", "FILEBUILDER_SERVICE_MAIL_NOTIFICATION_SUCCESS");
+define("FILEBUILDER_SERVICE_MAIL_NOTIFICATION_CANCEL", "FILEBUILDER_SERVICE_MAIL_NOTIFICATION_CANCEL");
+define("FILEBUILDER_SERVICE_MAIL_NOTIFICATION_ERROR", "FILEBUILDER_SERVICE_MAIL_NOTIFICATION_ERROR");
+
+define("FILEBUILDER_SERVICE_GENERATEDKEY", "filebuilder_service_generatedkey");
+define("FILEBUILDER_SERVICE_FTPPATH", "filebuilder_service_ftp_path");
+
+/**
+ * Implementation of hook_menu()
+ */
+function filebuilder_service_menu() {
+  $items = array();
+
+  $items['filebuilder_service/get/%'] = array(
+    'title'           => '',
+    'page callback'   => 'filebuilder_service_dispatcher',
+//    'page arguments' => array(3),
+    'access callback' => TRUE, // everyone is allowed access as username / password checking is performed later on
+    'type'            => MENU_CALLBACK,
+  );
+
+
+  $items['filebuilder_service/generate_key'] = array(
+    'title'            => '',
+    'page callback'    => 'filebuilder_service_keygen',
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer filebuilder'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/config/media/filebuilder_service'] = array(
+    'title'            => 'FileBuilder Service Settings',
+    'description'      => 'Administrate FileBuilder Service Configuration Settings',
+    'page callback'    => 'filebuilder_service_admin_settings',
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer filebuilder'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/config/media/filebuilder_service/wizard/%'] = array(
+    'title'          => 'FileBuilder Service Sync Wizard',
+    'description'    => '',
+    'page callback'  => 'filebuilder_service_admin_setup_wizard',
+    'page arguments' => array(5),
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer filebuilder'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['filebuilder_service/export_key'] = array(
+    'title'            => '',
+    'page callback'    => 'filebuilder_service_export_key',
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer filebuilder'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function filebuilder_service_theme() {
+  $theme_hooks = array(
+    'filebuilder_service_configuration' => array(
+      'template'  => 'theme/configuration',
+      'variables' => array(),
+    ),
+    'wizard_step_one' => array(
+      'template'  => 'theme/wizard_step_one',
+      'variables' => array(),
+    ),
+  );
+
+  return $theme_hooks;
+}
+
+/**
+ * Implementation of hook_permission().
+ */
+function filebuilder_service_permission() {
+  return array(
+    'access filebuilder' => array(
+      'title'                  => t('Access FileBuilder Utility'),
+      'description'            => t('Provides the user the ability to login using the filebuilder utility. Individual folder permissions still apply.'),
+    ),
+    'administer filebuilder' => array(
+      'title'       => t('Administer FileBuilder Utility'),
+      'description' => t('Provides the user with the ability to cancel upload jobs that they do not own and other administration related tasks.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_mail
+ */
+function filebuilder_service_mail($key, &$message, $params) {
+  switch ($key) {
+    case FILEBUILDER_SERVICE_MAIL_NOTIFICATION_SUCCESS:
+      $message['subject'] = variable_get('site_name', '') . ' - ' . t('Successful FileBuilder commit');
+      $message_body       = t('This email is to notify you that the changes committed using the FileBuilder tool have been successfully applied.');
+      $message_body .= "\n\n" . t('You are receiving this because you requested to be notified') . "\n\n" . t('Thank You') . "\n";
+      $message['body'][]  = $message_body;
+      break;
+    case FILEBUILDER_SERVICE_MAIL_NOTIFICATION_CANCEL:
+      $message['subject'] = variable_get('site_name', '') . ' - ' . t('Cancelled FileBuilder commit');
+      $message_body       = t('This email is to notify you that the changes committed using the FileBuilder tool has been successfully cancelled as requested');
+      $message_body .= "\n\n" . t('You are receiving this because you requested to be notified') . "\n\n" . t('Thank You') . "\n";
+      $message['body'][]  = $message_body;
+      break;
+    case FILEBUILDER_SERVICE_MAIL_NOTIFICATION_ERROR:
+      $message['subject'] = variable_get('site_name', '') . ' - ' . t('Failed FileBuilder commit');
+      $message_body       = t('This email is to notify you that the changes committed using the FileBuilder tool failed due to errors.');
+      $message_body .= "\n\n" . t('You are receiving this because you requested to be notified') . "\n\n" . t('Thank You') . "\n";
+      $message['body'][]  = $message_body;
+      break;
+  }
+}
+
+/**
+ * Administration
+ */
+
+/**
+ * Generate a key and set the key value with that generated key
+ * 
+ * @return  String              Base64 encoded 128 bit key
+ */
+function filebuilder_service_keygen($donot_goto = FALSE) {
+  $bytes = openssl_random_pseudo_bytes(16); // 128 bit
+  variable_set(FILEBUILDER_SERVICE_GENERATEDKEY, base64_encode($bytes));
+  if ($donot_goto === FALSE) {
+    drupal_set_message(t("A new key has been generated and is available for download"));
+    drupal_goto('admin/config/media/filebuilder_service');
+  }
+}
+
+/**
+ * Wizard sync utility dispatcher
+ * @param type $wizard_ste
+ * @return type
+ */
+function filebuilder_service_admin_setup_wizard($wizard_step) {
+  if ($wizard_step == "one") {
+    return theme("wizard_step_one", array(
+        'wizard_step' => 1
+      ));
+  }
+  elseif ($wizard_step == "two_a") {
+    variable_set(FILEBUILDER_SERVICE_FTPPATH, FALSE);
+    return theme("wizard_step_one", array(
+        'wizard_step' => 2,
+        'ftp_path'    => FALSE,
+      ));
+  }
+  elseif ($wizard_step == "two_b") {
+    variable_set(FILEBUILDER_SERVICE_FTPPATH, TRUE);
+    return theme("wizard_step_one", array(
+        'wizard_step' => 2,
+        'ftp_path'    => TRUE,
+      ));
+  }
+  elseif (strstr($wizard_step, "three")) {
+    $file = drupal_realpath("private://filebuilder_working_directory/") . "/filebuilder.sync";
+    if (file_exists($file)) {
+      unlink($file);
+      $key = variable_get(FILEBUILDER_SERVICE_GENERATEDKEY, NULL);
+      if ($key === NULL) {
+        filebuilder_service_keygen(TRUE);
+        drupal_goto('admin/config/media/filebuilder_service/wizard/four');     
+      }
+      else {
+        drupal_set_message("Wizard complete - Note: to log into FileBuilder, use your <b>drupal</b> username / password", 'status');
+        drupal_goto('admin/config/media/filebuilder_service/');             
+      }
+    }
+    else {
+      if ($wizard_step == "three_a") {
+        $path = "admin/config/media/filebuilder_service/wizard/two_a";
+      }
+      elseif ($wizard_step == "three_b") {
+        $path = "admin/config/media/filebuilder_service/wizard/two_b";
+      }
+      
+      drupal_set_message("Error: The requested file could not be found. Please try again, performing the following steps:", "error");
+      drupal_goto($path);
+    }
+  }
+  elseif ($wizard_step == "four") {
+    return theme("wizard_step_one", array(
+        'wizard_step' => 3,
+      ));
+  }
+  elseif ($wizard_step == "target_file") {
+    $data    = "FileBuilder_Sync " . sha1(time());
+    $headers = array(
+      'Content-Type: text/plain; name="filebuilder.sync"',
+      'Content-Length: ' . strlen($data),
+      'Content-Disposition: attachment; filename="filebuilder.sync"',
+      'Cache-Control: private',
+    );
+
+    // This has to be manually done so we can still show error header information
+    foreach ($headers as $value) {
+      //drupal_add_http_header($name, $value);
+      header($value);
+    }
+
+    echo $data;
+
+    drupal_exit();
+  }
+  else {
+    return drupal_not_found();
+  }
+}
+
+/**
+ * Step two of the wizard sync utility
+ */
+function filebuilder_service_admin_setup_wizard_step_two() {
+  return theme('wizard_step_one');
+}
+
+function filebuilder_service_admin_settings() {
+
+  $key = variable_get(FILEBUILDER_SERVICE_GENERATEDKEY, NULL);
+
+  $export_key_link   = l('Download Key File', 'filebuilder_service/export_key');
+  $generate_key_link = l('Generate New Key', 'filebuilder_service/generate_key');
+
+  // check to see if the proper extensions are enabled
+  $openssl_exists = function_exists("openssl_random_pseudo_bytes");
+  $mcrypt         = function_exists("mcrypt_decrypt");
+  $simple_xml     = function_exists("simplexml_load_file");
+
+  $msg = "";
+  if ($openssl_exists === FALSE) {
+    $msg .= t("Failure: OpenSSL extension is not enabled<br />");
+  }
+
+  if ($mcrypt === FALSE) {
+    $msg .= t("Failure: Mcrypt extension is not enabled<br />");
+  }
+
+  if ($simple_xml === FALSE) {
+    $msg .= t("Failure: SimpleXML extension is not enabled<br />");
+  }
+
+  if (!empty($msg)) {
+    drupal_set_message(t("<b>Error: Filebuilder service module will not work because of the following issues:</b>") . '<br />' . $msg, 'error');
+    return "";
+  }
+
+  return theme('filebuilder_service_configuration', array(
+      'key'               => $key,
+      'export_key_link'   => $export_key_link,
+      'generate_key_link' => $generate_key_link
+      )
+  );
+}
+
+/**
+ * DISPATCHERS
+ */
+
+/**
+ * Export the saved key as a file to the browser
+ */
+function filebuilder_service_export_key() {
+  $key     = variable_get(FILEBUILDER_SERVICE_GENERATEDKEY, "");
+  $headers = array(
+    'Content-Type: text/plain; name="exported_key.ksc"',
+    'Content-Length: ' . strlen($key),
+    'Content-Disposition: attachment; filename="exported_key.ksc"',
+    'Cache-Control: private',
+  );
+
+  // This has to be manually done so we can still show error header information
+  foreach ($headers as $value) {
+    //drupal_add_http_header($name, $value);
+    header($value);
+  }
+
+  echo $key;
+
+  drupal_exit();
+}
+
+/**
+ * Called by the background_process command to execute manifest processing
+ * @param type $uniqueId                        Unique identifier for this job
+ * @param type $notificationsOn                 TRUE if email notifications are to be sent, FALSE otherwise
+ */
+function filebuilder_service_manifest_start($uniqueId, $notificationsOn) {
+  // Because this is loaded not as part of the original call, all required classes have to be reloaded again
+  module_load_include('php', 'filebuilder_service', 'lib/nws_service.conf');
+  module_load_include('php', 'filedepot', 'permissions.class');
+  module_load_include('php', 'filedepot', 'filedepot.class');
+  module_load_include('php', 'filebuilder_service', 'lib/nws_common');
+  module_load_include('php', 'filebuilder_service', 'lib/nws_services');
+  module_load_include('php', 'filebuilder_service', 'lib/manifest_common');
+  module_load_include('php', 'filebuilder_service', 'lib/manifest_services');
+
+  $mo = new ManifestOrchestrator($uniqueId, $notificationsOn);
+  $mo->Process();
+}
+
+/**
+ * Accepts REQUEST commands from the request and passes them off to the service handler
+ */
+function filebuilder_service_dispatcher() {
+  // Include necessary components
+  module_load_include('php', 'filebuilder_service', 'lib/manifest_common');
+  module_load_include('php', 'filebuilder_service', 'lib/nws_service.conf');
+  module_load_include('php', 'filebuilder_service', 'lib/nws_common');
+  module_load_include('php', 'filebuilder_service', 'lib/nws_services');
+  module_load_include('php', 'filedepot', 'permissions.class');
+  module_load_include('php', 'filedepot', 'filedepot.class');
+
+  $worker = new NWSRequestWorker(NULL, NWSOutputFormats::$JSON);
+  $worker->authenticateRequest();
+  echo $worker->getRequestResponse();
+}
+
+?>

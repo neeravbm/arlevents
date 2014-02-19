@@ -1,0 +1,278 @@
+<?php
+/**
+ * @file
+ * ACT Invite People
+ *
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function act_invite_people_menu() {
+  $items = array();
+  $items['group/%/%/admin/people/invite'] = array(
+    'page callback' => 'drupal_get_form',
+    'title' => 'Add Non-Members',
+    'page arguments' => array('_act_invite_people_new_users_form', 1, 2),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+    'access callback' => 'act_invite_people_user_access_group',
+    'access arguments' => array('invite people', 1, 2),
+  );
+  $items['admin/config/people/invite_sendmail'] = array(
+    'title'            => 'Invite people mail template',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('admin_send_mail_template_setting'),
+    'access arguments' => array('administer users'),
+    'description'      => 'Display email message setting page.',
+    'file'             => 'act_invite_people.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_og_ui_get_group_admin()
+ */
+function act_invite_people_og_ui_get_group_admin($group_type, $gid) {
+  $items = array();
+  if (og_user_access($group_type, $gid, 'invite people')) {
+    $items['act_invite_people'] = array(
+      'title' => t('Invite People'),
+      'description' => t('Invited users will be created and notified by email.'),
+      'href' => 'admin/people/invite',
+    );
+  }
+  return $items;
+}
+
+/**
+ * Check if entity is a group, and user has permission - Access.
+ */
+function act_invite_people_user_access_group($perm, $group_type, $gid) {
+  $group = entity_load_single($group_type, $gid);
+  if (!$group || !og_is_group($group_type, $group)) {
+    return FALSE;
+  }
+
+  // Extract the group's bundle.
+  list(, , $bundle) = entity_extract_ids($group_type, $group);
+  // Verify the bundle has roles
+  if (!og_roles($group_type, $bundle, $gid)) {
+    return FALSE;
+  }
+
+  $entity_info = entity_get_info($group_type);
+  if (!$group_type || !$entity_info) {
+    // Not a valid entity type.
+    return FALSE;
+  }
+  return og_is_group($group_type, $gid) && og_user_access($group_type, $gid, $perm);
+}
+
+
+/**
+ * Implement hook_og_permission().
+ */
+function act_invite_people_og_permission() {
+  $items = array();
+  $items['invite people'] = array(
+    'title' => t('Invite people'),
+    'description' => t('Users may invite other users to the group without approval.'),
+    'default role' => array(OG_ADMINISTRATOR_ROLE),
+  );
+  return $items;
+}
+
+/**
+ * Form for email text field
+ * @group_type 
+ *   node
+ */
+function _act_invite_people_new_users_form($form, &$form_state, $group_type, $gid) {
+  og_set_breadcrumb($group_type, $gid, array(l(t('Group'), "$group_type/$gid/group")));
+  $group = entity_load_single($group_type, $gid);
+  $label = entity_label($group_type, $group);
+
+  $form['group_type'] = array('#type' => 'value', '#value' => $group_type);
+  $form['gid'] = array('#type' => 'value', '#value' => $gid);
+
+  $form['act_invite_people'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Invite new users to %group', array('%group' => $label)),
+  );
+  $form['act_invite_people']['invitee'] = array(
+    '#type' => 'textarea',
+    '#title' => t('User email(s)'),
+    '#description' => t('Use commas or new lines to split email addresses. The new users will be created and invited as members of this group. A one time login link will be sent to the invitees\' email.  '),
+    '#required' => TRUE,
+  );
+  
+  $form['act_invite_people']['message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Request Message'),
+    '#description' => t('Please enter your request message.'),
+    '#required' => TRUE,
+  );
+  
+  $form['act_invite_people']['state'] = array(
+    '#type' => 'select',
+    '#title' => t('Membership state'),
+    '#options' => og_group_content_states(),
+    '#description' => t('Select the state of the membership.'),
+    '#access' => FALSE,
+  );
+
+  $field_names = og_get_group_audience_fields('user', 'user', $group_type);
+  $field_name = !empty($form_state['values']['field_name']) ? $form_state['values']['field_name'] : key($field_names);
+
+  if (count($field_names) > 1) {
+    $form['act_invite_people']['field_name'] = array(
+      '#type' => 'select',
+      '#title' => t('Field name'),
+      '#options' => $field_names,
+      '#default_value' => $field_name,
+      '#description' => t('Select the field name, the group membership should be registered in.'),
+    );
+  }
+  else {
+    // There is only a single field name, so just pass it as a value.
+    $form['act_invite_people']['field_name'] = array(
+      '#type' => 'value',
+      '#value' => $field_name,
+    );
+  }
+
+  $form_state['field_name'] = $field_name;
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Invite user(s)'));
+
+  return $form;
+}
+
+
+/**
+ * _act_invite_people_new_users_form - Validation handler
+ */
+function _act_invite_people_new_users_form_validate($form, &$form_state) {
+  $group_type = $form_state['values']['group_type'];
+  $gid = $form_state['values']['gid'];
+  $invitee_emails = preg_split('/\s*[,\n]\s*/', $form_state['values']['invitee']);
+
+  foreach ($invitee_emails as $invitee_email) {
+    if (!valid_email_address($invitee_email)) {
+      form_set_error('invitee', t('Invalid email(s).'));
+    }
+    elseif (user_load_by_mail($invitee_email)) {
+      form_set_error('invitee', t('User email already exists in the system.'));
+    }
+  }
+  $form_state['invitee_emails'] = $invitee_emails;
+}
+
+/**
+ * _act_invite_people_new_users_form - Submit handler
+ */
+function _act_invite_people_new_users_form_submit($form, &$form_state) {
+  global $user;
+  $language = language_default();
+  $from = variable_get('site_mail', 'admin@example.com');
+  $group_type = $form_state['values']['group_type'];
+  $gid = $form_state['values']['gid'];
+  $group = node_load($gid);
+  $invitee_emails = $form_state['invitee_emails'];
+  $state = $form_state['values']['state'];
+  $field_name = $form_state['field_name'];
+  $message = $form_state['values']['message'];
+  $result = '';
+  $send = TRUE;
+  // Add group membership form.
+  $values = array();
+
+  foreach ($invitee_emails as $invitee_email) {
+     $params = array(
+		   'email' => $user->mail,
+		   'node' => $group,
+		   'message' => $message,
+		  );
+		
+	  $result = drupal_mail('act_invite_people', 'invite_people', $invitee_email, $language, $params, $from, $send);
+    
+    if ($result['result'] == TRUE) {
+			$transaction = db_transaction();
+      try {
+			// Check duplicate
+			$nid	= db_select('act_invite_people','invite')
+				->fields('invite',array('nid'))
+				->condition('invite.nid', $gid, '=')
+				->condition('invite.email', $invitee_email, '=')
+				->execute()
+				->fetchField();
+				
+				if(!$nid){
+					$upid = db_insert('act_invite_people')
+						->fields(array('nid', 'email'))
+						->values(array(
+							'nid' => $gid,
+							'email' => $invitee_email,
+						 ))
+						->execute();
+				}
+      }
+			catch (Exception $e) {
+				$transaction->rollback();
+				watchdog_exception('act_invite_people', $e);
+			}
+
+    drupal_set_message(t('@user has been invited to this group.', array('@user' => $invitee_email)));
+    }
+  }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function act_invite_people_mail($key, &$message, $params) {
+  global $base_url, $user;
+  $account = user_load($user->uid);
+  switch ($key) {
+    case 'invite_people':
+      $message['subject'] = token_replace(variable_get('invite_subject', "Invitation to join [node:title]'s group"),array('node' => $params['node']));
+      $message['body'][] = $params['message'];
+      $message['body'][] = token_replace(variable_get('invite_message', 'Invitation Message'), array('user' => $user,'node' => $params['node']));
+    break;
+  }
+}
+
+
+/**
+* Implements hook_user_login()
+*/
+function act_invite_people_user_login(&$edit, $account) {
+  // If this is user's first time log-in.
+  //if ($account->access == 0) {
+		$group_type = 'node';
+		$values = array();
+		$field_name = 'og_user_node';
+		try {
+      $result	= db_select('act_invite_people','invite')
+				->fields('invite',array('nid'))
+				->condition('email', $account->mail, '=')
+				->execute();
+				if(isset($result) && sizeof($result) > 0){
+					foreach ($result as $group) {
+						 // Add group membership form. We still don't have the user or state.
+						$og_membership = og_membership_create($group_type, $group->nid, 'user', 0, $field_name, $values);
+           // Add user to group.
+						$og_membership->etid = $account->uid;
+						$og_membership->state = 1;
+						$og_membership->save();
+					}
+				}
+		 } catch (Exception $e) {
+			watchdog_exception('act_invite_people_error', $e);
+		 }
+  //}
+}
+
+

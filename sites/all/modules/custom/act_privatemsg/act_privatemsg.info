@@ -1,0 +1,6 @@
+name = ACT Private Message
+description = Manage Private Message.
+core = 7.x
+version = 7.x-2.0
+package = ACT Custom
+file = act_privatemsg.module

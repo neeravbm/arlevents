@@ -1,0 +1,58 @@
+<?php 
+$og = og_context();
+if(empty($og)) {
+  $node = node_load(check_plain(arg(1)));
+}else {
+  $node = node_load($og['gid']);
+}
+
+$product = drupal_render(field_view_field('node', $node, 'field_product'));
+
+
+$slogan = drupal_render(field_view_field('node', $node, 'field_event_slogan'));
+$start    = date('l, M jS',$node->field_event_date['und'][0]['value']);
+$end      = date('l, M jS, Y',$node->field_event_date['und'][0]['value2']);
+
+$venue_address = $node->field_venue_address['und'][0];
+
+?>
+<div>
+  
+  <div id="event_venue_container">
+    <div id="event_title"><h3><?php print render($node->title); ?></h3></div>
+
+    <div id="event_slogan"><?php print render($node->field_event_slogan['und'][0]['value']); ?></div>
+    
+    <div  id="event_date">
+        <div class="venue-cal-icon"><?php echo '<img src="' . base_path() . path_to_theme() . '/images/calender.png' . '">'; ?></div>
+        <div class="venue-cal-info"><?php print $start .' to '.$end; ?></div>
+    </div>
+    
+    <div  id="event_venue">
+      <div class="venue-icon"><?php echo '<img src="' . base_path() . path_to_theme() . '/images/location_icon.png' . '">'; ?></div>
+      <div class="venue-info">
+        <div  id="event_venue"><?php if(!empty($venue_address['name'])) print $venue_address['name']; ?></div>
+        <div  id="event_venue_address"><?php if(!empty($venue_address['street'])) print $venue_address['street'].','; ?></div>
+        <div  id="event_venue_address2"><?php print $venue_address['city'].', '.$venue_address['province'].' '.$venue_address['postal_code']; ?></div>
+        <div  id="event_venue_country"><?php print strtoupper($venue_address['country']); ?></div>
+      </div>
+    </div>
+    
+    <div  id="event_media">
+        <div class="venue-icon"><a href="/print/<?php print $node->nid;?>" ><?php echo '<img src="' . base_path() . path_to_theme() . '/images/print-icon.png' . '">'; ?></a></div>
+        <div class="venue-icon"><a href="#"><?php echo '<img src="' . base_path() . path_to_theme() . '/images/envelope-icon.png' . '">'; ?></a></div>
+        <div class="venue-icon ven-fb-icon">
+             <a href="https://www.facebook.com/act.iac"><?php echo '<img src="' . base_path() . path_to_theme() . '/images/fb-icon.png' . '">'; ?></a>
+        </div>
+        <div class="venue-icon">
+           <a href="https://twitter.com/ACTIAC"><?php echo '<img src="' . base_path() . path_to_theme() . '/images/twitter-icon.png' . '">'; ?></a>
+        </div>
+        <div class="venue-icon">
+          <a href="http://www.linkedin.com/groups?homeNewMember=&gid=1886703&trk=&ut=3z6wjeJ6GXI5M1"><?php echo '<img src="' . base_path() . path_to_theme() . '/images/link-icon.png' . '">'; ?></a>
+        </div>
+    </div>
+    
+    <div  id="event_register_btn"><?php print $product; ?></div>
+  </div>
+</div>
+

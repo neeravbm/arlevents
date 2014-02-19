@@ -1,0 +1,1424 @@
+/* This file will hold styles for the mobile version of your website (mobile first). */
+/* This also can include ANY global CSS that applies site-wide. Unless overwritten by a more specific style rule, CSS declarations in global.css will apply site-wide. */
+
+body {
+  font-family: Helvetica;
+  background-color: #EEEEEE;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: Helvetica;
+}
+
+
+body .region {
+  background-color: white;
+}
+
+
+body.page-user #block-system-main .content {
+  padding: 0 5px;
+}
+
+.myprofile-block {
+  margin-bottom: 20px;
+}
+
+.myprofile .block_action {
+  float: right;
+  font-size: 12px;
+  margin-top: 17px;
+}
+
+.myprofile .block_title {
+  background-color: #EEEEEE;
+  padding: 10px 0;
+  margin-bottom: 0;
+  font-weight: normal;
+  font-size: 20px;
+}
+
+.myprofile .welcome {
+  margin-bottom: 20px;
+}
+
+.myprofile .details .field .field-label {
+  font-weight: normal;
+}
+
+.myprofile .welcome .field-name-field-name-first, .myprofile .welcome .field-name-field-name-first div, .myprofile .welcome .field-name-field-name-last, .myprofile .welcome .field-name-field-name-last div {
+  display: inline;
+}
+
+.myprofile .block_content {
+  padding: 20px;
+}
+
+.myprofile .certificate, .myprofile .user_status, .myprofile .details, .myprofile .point {
+  border: 8px solid #EEEEEE;
+}
+
+.myprofile .field-name-field-mypoints {
+  float: left;
+  width: 30%;
+}
+
+.myprofile .field-name-field-mypoints .field-items {
+  font-size: 3em;
+  font-weight: bold;
+}
+
+.myprofile .field-name-field-mypoints .field-label {
+  font-weight: normal;
+}
+
+.myprofile .reward {
+  margin-left: 45%;
+}
+
+.myprofile .reward .valid_certificates .field-label, .myprofile .reward .total_amount .field-label {
+  font-weight: bold;
+}
+
+.myprofile .reward .reward_dollars {
+  overflow: auto;
+  margin-bottom: 5px;
+}
+
+.myprofile .reward .txt {
+  padding: 10px 12px;
+  background-color: #EEEEEE;
+  color: red;
+  float: left;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+
+.myprofile .reward .valid_certificates div, .myprofile .reward .total_amount div {
+  display: inline;
+}
+
+.myprofile .field-name-field-user-status, .myprofile .field-name-field-user-status div {
+  display: inline;
+}
+
+.myprofile .status_title {
+  font-weight: bold;
+}
+
+.myprofile .point table {
+  border: none;
+}
+
+.myprofile .point table th {
+  border: none;
+  background: none;
+}
+
+.myprofile .point table th {
+  font-weight: bold;
+}
+
+#block-block-2 .block-title {
+  background-color: #1B3454;
+  color: white;
+}
+
+#block-block-2 {
+  border: 4px solid #1B3454;
+}
+
+#block-block-2 .content {
+  padding: 20px;
+}
+
+#block-block-3 .block-title {
+  background-color: #3D74BA;
+  color: white;
+}
+
+#block-block-3 {
+  border: 4px solid #3D74BA;
+}
+
+#block-block-3 .content {
+  padding: 20px;
+}
+
+
+/********** Upper Drupal Tabs ********/
+
+.tabs ul.primary {
+    height:23px;
+    background:#D3CECE;
+    padding: 6px 0 0;
+    border-left: 4px solid #D3CECE;
+    border-top: 4px solid #D3CECE;
+}
+
+.tabs ul li {
+    margin-right : 0px;
+}
+
+.tabs ul.primary li a.active {
+    background:#850606;
+    color:#fff;
+}
+
+.tabs ul.primary li a {
+    margin-right:0px;
+    background:#EEEBEB;
+    border-right:5px solid #D3CECE;
+    color:#626060;
+    padding-bottom:6px;
+    padding-top:5px;
+    border-bottom:none;
+    border-top:none;
+    border-left:none;
+}
+
+.tabs ul li.last{
+ float:right;
+ margin-top:0;
+}
+
+@-moz-document url-prefix() { 
+ .tabs ul li.last{
+   float:right;
+   margin-top:-17px;
+ }
+}
+
+#tabs-titles.myactiac {
+  display: none;
+}
+
+#tabs-contents.myactiac {
+  margin-left: 0;
+}
+
+/************** My ACT-IAC Page *******/
+
+.content-top  {
+    padding: 20px 0;
+    color:#3B3B3B;
+    font-size: 20px;
+    font-weight: normal;
+}
+
+.content-top .first {
+    float:left;
+    border-right:2px solid #E1E1E1;
+    padding-right:20px;
+    margin-right:20px;
+}
+
+.content-top .last {
+    float:right;
+    background:#4D7BBA;
+    border-radius:10px;
+    padding:0 10px;
+    
+}
+
+.content-top .last a{
+    text-decoration:none;
+    color:#fff;
+}
+
+.clear {clear:both;}
+
+
+/********** Ready to Join Reward Zone? ********/
+#readytojoin {
+    background:#F4F4F4;
+    float:left;
+    width: 100%;
+}
+
+#readytojoin .block_title {
+    font-size: 18px;
+    font-weight: normal;
+    margin: 20px 5px 0;
+    color:#3B3B3B;
+    border-bottom:4px solid #973B38;
+}
+
+#readytojoin .block_action {
+  float: right;
+  margin: 3px 5px 0 0;
+}
+
+#readytojoin .block_action a{
+    text-decoration:none;
+}
+
+#readytojoin .left, #readytojoin .right {
+    width:95%;
+}
+
+#readytojoin .left{
+    float:left;
+    padding: 20px 10px;
+    border-right:none;
+    border-bottom:2px solid #EBDEDE;
+    margin: 5px 0;
+}
+
+#readytojoin .right{
+    float:left;
+    padding: 20px 10px;
+    margin: 5px 0;
+}
+
+#readytojoin .numbertxt { 
+    margin-right: 5px;
+    margin-top: 2px;
+    padding: 0px 12px;
+    float:left;
+    border: 3px solid #4D7BBA;
+    font-size:20px;
+    color:#6C6C6C;
+}
+
+#readytojoin .title {
+    font-size: 12px;
+    font-weight: normal;
+    padding: 10px 0;
+    color:#3B3B3B;
+ }
+
+#readytojoin .action {
+    margin: 7px 46px;
+}
+
+#readytojoin .right .action a{
+    background:#973B38;
+    border-radius:3px;
+    padding:3px 5px;
+    color:#fff;
+    text-decoration:none;
+}
+
+/******** Global Style for all blocks *******/
+
+section h2.block-title{
+  background: none repeat scroll 0 0 #162742;
+  color: #FFFFFF;
+  padding:5px 0 5px 10px;
+}
+
+aside section .content{
+  padding: 10px 10px 0 10px;
+  border:1px solid #EBEEF3;
+  border-top:none;
+}
+
+aside .content a {
+  text-decoration:none;
+  cursor:hand;
+}
+
+aside .block {
+  background-color: #FFFFFF;
+  margin: 0 0 20px;
+}
+
+#block-system-main .content {
+  margin:10px;
+}
+
+.page-node #zone-header-wrapper .block, 
+.page-node #zone-header-wrapper .block h2.block-title {
+  /*border-radius: 0;
+  -webkit-border-radius:0;
+  -o-border-radius:0;
+  -moz-border-radius:0;
+  -ms-border-radius:0;*/
+}
+
+.page-user .region, .page-node .region {
+  background-color: #EEEEEE;
+}
+
+.page-user #region-content, .page-node #region-content {
+  background-color: #FFFFFF;
+}
+
+.page-node #region-content #block-system-main {
+  margin-bottom: 20px;
+}
+
+/*************** Group Detail Page *********/
+
+.node-type-group section h2.block-title{
+  /*background: none repeat scroll 0 0 #162742;
+  border-radius: 10px 10px 0 0;
+  -webkit-border-radius:10px 10px 0 0;
+  -o-border-radius:10px 10px 0 0;
+  -moz-border-radius:10px 10px 0 0;
+  -ms-border-radius:10px 10px 0 0;
+  color: #FFFFFF;
+  padding:5px 0 5px 10px;*/
+}
+
+.node-type-group aside section .content{
+  /*padding: 10px 10px 0 10px;
+  border:1px solid #EBEEF3;
+  border-radius:0 0 10px 10px;
+  -webkit-border-radius:0 0 10px 10px;
+  -o-border-radius:0 0 10px 10px;
+  -moz-border-radius:0 0 10px 10px;
+  -ms-border-radius:0 0 10px 10px;
+   border: 2px solid #EBEEF3;
+   border-top:none;*/
+}
+
+.node-type-group aside section .content .views-field-name {
+  margin-bottom:5px;
+}
+
+.page-node.node-type-group table {
+  margin-bottom: 0;
+}
+
+.page-node.node-type-group .friend_block a {
+    float: left;
+    font-size: 1.2em;
+    margin-right:10px;
+}
+
+.page-node.node-type-group .frnd_info {
+   float: left;
+   line-height:1.2em;
+   width:50%;
+ }
+
+/*
+.field-name-field-topics .field-label {
+  float:left;
+  width:12%;
+}
+*/
+.field-name-field-topics .field-items a:after{
+  content:", ";
+}
+/*
+.field-name-field-topics .field-items a:last-child:after { 
+ content: " "; 
+}
+
+
+/**************** Quick links *********/
+
+.view-groups-quick-links .view-content .item-list ul {
+  margin:1em 0;
+}
+
+.view-groups-quick-links .view-content  .item-list ul li {
+  margin: 0 0 0.25em 0.5em;
+}
+
+/******************* End **************/
+
+
+.quick-links ul li {
+  background:url("../images/square.gif") no-repeat 0 7px transparent;
+  list-style:none;
+  padding-left:15px;
+  margin-top: 10px;
+}
+
+/********** Doc Lib *******/
+
+#region-sidebar-second .block-views .content {
+  padding:0px;
+}
+
+#region-sidebar-second .block-views .content table, #region-sidebar-second .block-views .content table tbody tr {
+  border:none;
+}
+
+.views-field-field-documents-file .file a {
+  display:none;
+}
+
+/****************** End *****************/
+
+
+/******************* Event Page style ***********/
+
+.page-node .user-picture {
+  border: 1px solid gray;
+  float: left;
+  margin: 0 10px 10px 0;
+  padding: 3px;
+}
+
+.node-type-meeting a.username,
+.node-type-event a.username,
+.node-type-announcements a.username{
+  color: #0062A0;
+  font-size: 20px;
+  text-decoration: none;
+}
+
+#page-title img {
+  border: 1px solid gray;
+  margin: 5px 0 0 10px;
+  padding: 2px;
+  vertical-align:top;
+} 
+
+.page-node .post-date {
+  float: right;
+  padding-right: 10px;
+}
+/****************** End *****************/
+
+
+/***************** Upcoming Group Meeting ************/
+
+#region-content .block .content {
+  padding: 10px;
+}
+
+#region-content .block .content a {
+  text-decoration:none;
+}
+
+.content .view-content span.views-label-field-meeting-date {
+  float: left;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.content .view-content .views-field-field-meeting-date{
+  border-bottom: 1px solid #EEEEEE;
+  margin-bottom: 30px;
+  padding-bottom: 10px;
+}
+
+/****************** End ******************************/
+
+
+/******************** My Interest section ************/
+
+.view-my-interests .view-content .item-list ul,
+.view-interests .view-content .item-list ul{
+  width:100%;
+  margin-bottom:20px;
+  overflow:hidden;
+  font-size: 0.8em;
+}
+.view-my-interests .view-content .item-list ul li,
+.view-interests .view-content .item-list ul li{
+  line-height:1.5em;
+  float:left;
+  display:inline;
+  padding-bottom:10px;
+}
+
+.triple li  { width:45%; } /* 3 col */
+
+/*.page-user-my-act-iac .block-views .block-title,
+.page-user-dashboard .block-views .block-title {
+    font-size: 18px;
+    font-weight: normal;
+    margin: 20px 5px 0;
+    color:#3B3B3B;
+    border-bottom:4px solid #973B38;
+}*/
+
+ul.interest li a span {
+  background: url("../images/plus_circle.png") no-repeat;
+  float: left;
+  height: 16px;
+  width: 20px;
+}
+
+ul.myinterest li a span {
+  background:url('../images/delete-icon.png') no-repeat;
+  float: left;
+  height: 16px;
+  width: 20px;
+}
+
+/**************************** End ********************/
+
+
+/*********** Calender Style **********/
+
+.pretty-calendar-show {
+  border-top: 3px solid #ccc;
+  height: 24px;
+}
+.pretty-calendar-show a div {
+  text-decoration: none;
+}
+.pretty-calendar-show {
+  font-weight: bold;
+  padding-top: 2px;
+  text-align: center;
+  width: 100%;
+}
+.pretty-calendar-show .month-title {
+  padding-top: 2px;
+  float:left;
+  padding-left:10px;
+}
+.pretty-calendar-show .calendar-current,
+.pretty-calendar-show .calendar-current {
+  border: none;
+  height: 18px;
+  line-height: 18px;
+  margin: 2px 0;
+  padding: 0;
+  width: 40px;
+}
+.pretty-calendar-show .calendar-current {
+  float:left;
+}
+.pretty-calendar-show .calendar-current {
+  float:left;
+}
+
+.pretty-calendar-month {
+  margin-top: 30px;
+}
+
+.month-show {
+  float:left;
+}
+
+.month-show .all {
+  border-right:2px solid #9C9999;
+  margin-right:5px;
+}
+
+/***************** End **************/
+
+
+/***************** Calender Event listing on Dashboard *******/
+.event-listing {
+  margin:10px;
+}
+
+.event-listing .datetitle{
+  display:block;
+  background-color:#f9f9f9;
+  color:#535353;
+  font-size:13px;
+  font-weight:bold;
+  line-height:36px;
+  border-top:1px solid #ccc;
+  border-bottom:1px solid #ddd;
+  text-align:center;
+}
+
+.event-listing .event-details{
+  margin:10px 12px;
+  border-bottom:1px dotted #CCCCCC;
+  padding:10px 0;
+  position:relative;
+}
+.event-group a{
+  display:inline-block;
+  color:#888;
+  text-decoration:none;
+  font-size:10px;
+  margin-right:20px;
+}
+
+.event-title {
+  display:inline-block;
+  font-size:13px;
+  font-weight:bold;
+  line-height:1.35em;
+  position:relative;
+}
+
+.event-title a{
+  text-decoration:none;
+}
+
+.event_datetime{
+  display:block;
+  font-size:10px;
+}
+
+.event_datetime .event_time{
+  display:inline-block;color:#333;
+}
+
+.event_datetime .event_time{
+  text-transform:lowercase;
+}
+
+.event_datetime .event_date{
+  display:inline-block;
+  color:#888;
+  padding-left:4px;
+}
+
+.page-user-dashboard #block-block-4{
+  display:none;
+} 
+
+.view-display-id-commons_events_full_attendee_list{
+  margin-top:10px;
+}
+
+#block-act-userprofile-dashboardevent {
+  margin:-21px 0 20px;
+  padding: 10px 0;
+}
+
+
+/********************* End ************/
+
+
+/************** Dashboard My Recent Activities *********/
+
+.view-dashboard-commons-activity-streams-activity-site-wide .views-row {
+  border-bottom:1px dotted #CCCCCC;
+  float: left;
+  width:100%;
+  padding:0 0 10px 0;
+}
+ 
+.view-dashboard-commons-activity-streams-activity-site-wide .user-picture {
+  float: left;
+  margin: 0 10px 0 0;
+}
+ 
+.user-picture img{
+  padding:2px;
+  border:1px solid #CCCCCC;
+}
+
+.view-dashboard-commons-activity-streams-activity-site-wide .entity-message h2 {
+  margin-bottom:0;
+}
+
+.page-user .view-friends .user-picture {
+  margin:10px 0;
+}
+
+/***************** End ******************/
+.pretty-calendar-day .active{
+  background-color: #1B3454;
+  border-color: #1B3454;
+}
+
+.pretty-calendar-day .active a{
+  color: #FFFFFF;
+}
+
+.addtocal {
+margin-left:20px;
+}
+#actics_addtocal {
+    color: #0062A0;
+    cursor: pointer;
+}
+#actics_popup {
+    text-align: left;
+    font-size: 13px;
+    padding: 8px;
+}
+
+.friend_block a {
+    float: left;
+    font-size: 15px;
+}
+.page-user .view-friends .views-field-uid {
+    width: 50px;
+}
+
+.page-user .friend_block .frnd_info {
+    float: left;
+    padding-left: 15px;
+    width:50%;
+}
+
+.friend_block .frnd_info div{
+    clear: both;
+}
+.frnd_info .frnd_last_access,.frnd_info .frnd_joined {
+    font-size: 11px;
+}
+.page-user .view-my-announcements .view-content {
+    margin-top: 15px;
+    margin-left: 12px;
+    margin-right: 12px;
+}
+.page-user .view .pager-previous a {
+    width: 70px;
+}
+
+.view-display-id-page_1 td {
+    padding: 17px 15px;
+    border-bottom: 1px solid #CCC;
+}
+.page-members .friend_block .frnd_name a {
+    font-weight: bold;
+}
+.page-members .view-filters {
+    padding: 10px 14px;
+    background-color: #F1F1F1;
+    border: 1px solid #CCC;
+}
+
+.page-members .view-filters  #edit-uid {
+    width: 220px;
+}
+.page-members .view-filters #edit-uid-wrapper {
+    float: right;
+    width: 225px;
+    padding-top: 18px;
+}
+.view-display-id-page_1 .views-field-og-user-node {
+    float: right;
+    width: 240px;
+}
+
+.page-members .friend_block .frnd_info {
+    float: left;
+    padding-left: 15px;
+    width:50%;
+}
+
+.friend_block img{
+  padding:1px;
+  border: 1px solid #969292;
+}
+
+/************** Event node page Theming ********/
+.node-type-event div.tabs{
+  display:block;
+}
+
+.event-group-details {
+  color:#555555;
+}
+
+.node-type-event #page-title{
+  display:none;
+}
+
+.node-type-event h2.node-title{
+  color:#333333;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  line-height:1.1;
+  margin:0;
+  padding:0 0 6.4px;
+}
+
+.date-icon {
+  background-image:url("../images/event-stack-sprite.png");
+  background-repeat:no-repeat;
+  background-position:-1px -1px;
+  height:35px;
+  width:35px;
+}
+
+
+.location-icon{
+  background-image:url("../images/event-stack-sprite.png");
+  background-repeat:no-repeat;
+  background-position:-1px -38px;
+  height:35px;
+  width:35px;
+}
+
+.event-location {
+  float:left;
+  width:100%;
+}
+
+.event-bg {
+  width:35px;
+  height:35px;
+  float:left;
+  background-color:#ddd;
+  -moz-border-radius:3px 3px 3px 3px;
+  -webkit-border-radius:3px 3px 3px 3px;
+  border-radius:3px 3px 3px 3px;
+  margin-right:10px;
+}
+
+.date-time{
+  width:auto;
+  display:table-cell;
+  vertical-align:top;
+}
+
+.date-time .headline {
+  font-size:20px;
+  line-height:22px;
+  margin-bottom:0.25em;
+  color:#272727;
+}
+
+.date-time .subtext, .event-location .subtext{
+  color:#777777;
+  font-size:14px;
+}
+
+.end-date-time{
+  width:auto;
+  display:table-cell;
+  vertical-align:top;
+  clear:both;
+  padding-right:;
+}
+
+.end-date-time .headline {
+  font-size:20px;
+  line-height:22px;
+  margin-bottom:0.25em;
+  color:#272727;
+}
+
+.end-date-time .subtext{
+  color:#777777;
+  font-size:14px;
+}
+
+.dateto{
+  float: left; 
+  width: 100%; 
+  margin: 0 0 2% 24%;
+}
+
+
+.bottom-line {
+  border-bottom:1px solid #EEEEEE;
+  padding: 10px 0;
+}
+
+.event-description {
+  float:left;
+  font-size:14px;
+  line-height:1.35em;
+  position:relative;
+}
+
+.event-description p {
+  color:#555555;
+  line-height:1.4;
+}
+
+.locality a{
+  color:#8073A7;
+  cursor:pointer;
+  text-decoration:none;
+  font-size:20px;
+}
+
+.founded {
+  font-size:0.92em;
+}
+
+.aboutus {
+  background: none repeat scroll 0 0 #E6E4E4;
+  padding: 10px;
+  text-align: center;
+}
+
+.aboutus a{
+  color:#8073A7;
+  font-size:13px;
+}
+
+
+.group-stats .label {
+  float:left;
+}
+
+.group-stats .value {
+  text-align:right;
+  
+}
+
+.organizers .names {
+  float:left;
+}
+
+.organizers .names a{
+  color:#8073A7;
+}
+
+.organizers .picture {
+  text-align:right;
+}
+
+.calendar-icon{
+  background-image:url("../images/date2.png");
+  background-repeat:no-repeat;
+  height:35px;
+  background-position:right top;
+}
+
+.weare-about .des a {
+  margin:0px;
+  color:#8073A7;
+}
+
+.event-group-details .image img{
+  max-width:100%
+}
+
+/****** Attendee Block on Event page ******/
+
+.views-field-picture {
+  border:1px solid #DEDBDB;
+  float:left;
+  margin-right:10px;
+  padding:2px;
+}
+
+
+
+
+/************* Header **********/
+
+#region-branding {
+  background:#FFFFFF;
+}
+
+.branding-data {
+  float:left;
+  width:26%;
+  margin:0 0 10px 10px;
+}
+
+.branding-data .logo-img img{
+  width:100%;
+  height:82px;
+}
+
+
+/************ Become a Member *****/
+
+#block-block-11 {
+  background: none repeat scroll 0 0 #782323;
+  border-radius: 10px 10px 10px 10px;
+  margin:10px;
+  float:left;
+}
+
+#block-block-11 a{
+  color:#FFFFFF;
+  text-decoration:none;
+}
+
+#block-block-11 a span{
+  font-size:16px;
+  font-weight:bold;
+}
+
+/************ login as Member *****/
+
+#block-block-12 {
+  float:left;
+  background: none repeat scroll 0 0 #782323;
+  border-radius: 10px 10px 10px 10px;
+  margin:10px;
+}
+
+#block-block-12 a{
+  color:#FFFFFF;
+  text-decoration:none;
+}
+
+#block-block-12 a span{
+  font-size:16px;
+  font-weight:bold;
+}
+
+.logged-in #block-block-13{
+  float:right;
+}
+
+#block-block-13 {
+  background: url('../images/btnSearch.png') no-repeat scroll center center #782323;
+  float:left;
+  display:block;
+  margin: 10px 0;
+  padding: 12px 5%;
+  font-weight:bold;
+  font-size:0px;
+ }
+
+#block-block-13 a{
+  color:#FFFFFF;
+  text-decoration:none;
+  
+}
+
+#block-block-13 .search-btn{
+  background: url('../images/btnSearch.png') no-repeat scroll center center;
+  height:20px;
+  font-size:12px;
+  width:10px;
+}
+
+/********** Search **********/
+ #block-search-form {
+    display:none;
+}
+
+
+
+#block-search-form{
+  float:right;
+  margin:0 10px;
+}
+
+
+#block-search-form .form-submit { 
+  background:#0075C0;
+  border:1px solid #0075C0;
+  border-radius:5px 5px 5px 5px;
+  color:#FFFFFF;
+  text-shadow:none;
+}
+
+
+#block-search-form .block-title{
+  background: none repeat scroll 0 0 transparent;
+  border-bottom: 1px solid #CCCCCC;
+  color: #848181;
+  margin: 10px 0;
+  font-weight: normal;
+  padding:0px;
+  font-size:12px;
+  display:block;
+}
+
+#block-search-form .form-type-textfield input{
+  position: absolute;
+  right: 10%;
+  top: 55px;
+  float: left;
+  width: 50%;
+  height: 20px;
+  background: #dee1e3;
+  background: -moz-linear-gradient(top, #dee1e3 0%, #dee1e3 50%, #dee1e3 51%, #dee1e3 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#dee1e3), color-stop(50%,#dee1e3), color-stop(51%,#dee1e3), color-stop(100%,#dee1e3)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, #dee1e3 0%,#dee1e3 50%,#dee1e3 51%,#dee1e3 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, #dee1e3 0%,#dee1e3 50%,#dee1e3 51%,#dee1e3 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, #dee1e3 0%,#dee1e3 50%,#dee1e3 51%,#dee1e3 100%); /* IE10+ */
+  background: linear-gradient(to bottom, #dee1e3 0%,#dee1e3 50%,#dee1e3 51%,#dee1e3 100%); /* W3C */
+  -webkit-border-radius: 100px;
+  -moz-border-radius: 100px;
+  border-radius: 100px;
+  margin: 2px 0 0 8px;
+  z-index:100;
+}
+
+.logged-in #block-search-form .form-type-textfield input{
+  width:auto; 
+}
+
+#block-search-form .block-title {
+  display:none;
+}
+
+.form-item-custom-search-types{
+  display:none !important;
+}
+
+#block-search-form .form-actions {
+  display:none;
+}
+
+
+
+/********** User Login *********/
+
+#block-user-login {
+  float:left;
+  width:27%;
+  background-image:url("../images/login_bg.png");
+  background-repeat:no-repeat;
+  height:80px;
+  display:none;
+  margin:6px;
+}
+
+#block-user-login #user-login-form{
+   margin: 0 10px;
+}
+
+#user-login-form label{
+  display:none;
+}
+
+#user-login-form label.option{
+  display:inline;
+}
+
+#user-login-form .item-list{
+  display:none;
+}
+
+#user-login-form .form-type-textfield, #user-login-form .form-type-password{
+  float:left;
+  margin-right:10px;
+}
+
+#user-login-form .form-type-textfield input, #user-login-form .form-type-password input{
+  border-radius:5px 5px 5px 5px;
+  width: 100%;
+}
+
+#user-login-form .form-item{
+  margin-bottom:0px;
+  margin-top:0px;
+}
+
+#user-login-form .form-type-checkbox{
+  float: left; 
+  padding-top:10px;
+}
+
+#user-login-form .form-actions input{
+  float: right; 
+}
+
+#user-login-form #edit-actions input[type="submit"]{
+  background:#0075C0;
+  border:1px solid #0075C0;
+  border-radius:5px 5px 5px 5px;
+  color:#FFFFFF;
+  text-shadow:none;
+  margin:2% 5%;
+}
+
+.page-members .title{
+  padding:10px 0 0 15px;
+}
+
+/*********** Menu ********/
+.navigation, #om-maximenu-maximenu{
+  display:none;
+}
+
+ul#main-menu {
+  float:left;
+}
+
+.navigation ul li a {
+  text-decoration:none;
+}
+
+.navigation{
+  background: none repeat scroll 0% 0% rgb(255, 255, 255); 
+  margin-top: 10px;
+}
+
+#region-branding .block-menu{
+  display:block;
+  float:left;
+  background: none repeat scroll 0 0 #782323;
+  padding:3px 10px 3px;
+}
+
+#region-branding .block-menu{
+  display:block;
+  float:left;
+  background: none repeat scroll 0 0 #782323;
+  padding:3px 10px 3px;
+}
+
+.logged-in #region-branding .block-menu{
+  float: left;
+  position: absolute;
+  right: 12%;
+}
+
+.logged-in #region-branding .block-menu{
+  float: left;
+  position: absolute;
+  right: 12%;
+  border-right:2px solid white;
+}
+
+#region-branding .block-menu h2.block-title{
+  background:none;
+  color:#FFFFFF;
+  padding:0px;
+  margin:0px;
+  font-weight:bold;
+  font-size:13px
+}
+/*
+#region-branding .block-menu ul li{
+  background: black;
+  top: 40px;
+  left: 295px;
+  z-index: 999;
+  position: absolute;
+  display: block;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+}*/
+
+#region-branding .block-menu ul{
+  position:absolute;
+  background:#A8A4A4;
+  margin-top:12px;
+  z-index:100;
+}
+
+#region-branding .block-menu ul li{
+  list-style:none;
+  border-bottom:1px solid #CCCCCC;
+}
+
+#region-branding .block-menu ul li a {
+  color:#FFFFFF;
+  text-decoration:none;
+}
+
+#region-branding .block-menu ul li a:hover {
+  color:#000000;
+  text-decoration:none;
+}
+
+#block-block-11, #block-block-12, #block-block-13, #region-branding .block-menu {
+  border-radius: 0 0 0 0;
+  margin: 10px 0;
+  padding: 12px 3%;
+  border-right:1px solid #DEDEDE;
+}
+
+
+#block-block-11 a, #block-block-12 a, #block-block-13 a, #region-branding .block-menu a {
+  font-size: 0.8em;
+}
+
+/********** Header End *********/
+
+.accr_sect a:hover{
+    color: #fff;
+}
+.accr_sect a {
+    border: 2px #162742 solid;
+    color: #fff;
+    padding: 10px 20px;
+    border-bottom-color: #ccc;
+    outline: none;
+    background: #203B6A;
+    border-right: 2px #162742 solid;
+    text-decoration: none;
+}
+
+
+
+/************* User Public Profile ********/
+.public-profile{
+  float: left;
+  height: 400px;
+  width: 100%;
+}
+
+.public-profile .image{
+  float:left;
+  margin-right: 20px;
+}
+
+.public-profile .image img{
+  border: 1px solid #969292;
+  padding: 5px;
+}
+
+.public-profile .name{
+  font-size:18px;
+}
+
+
+@media only screen and (max-width: 600px){
+  #block-block-11, #block-block-12, #region-branding .block-menu {
+    width:auto;
+  }
+}
+
+/************ Login Page *******/
+#user-login .form-item-name input, #user-login .form-item-pass input{
+  width:100%;
+}
+
+
+.om-maximenu.om-maximenu-block.om-maximenu-row ul.om-menu li.om-leaf {
+    float: left;
+}
+.om-maximenu.om-maximenu-block ul.om-menu li.om-leaf {
+    float: left;
+}
+.om-maximenu ul.om-menu li.open {
+    background: #782323;
+    color: #ffffff;
+}
+.om-maximenu-bubble .om-maximenu-middle {
+    background: #FFFFFF;
+    border: 3px solid #782323;
+}
+.om-maximenu-bubble .om-maximenu-middle-left, .om-maximenu-bubble .om-maximenu-middle-right {
+    background: none;
+    height: auto;
+}
+.om-maximenu-bubble .om-maximenu-top-left, .om-maximenu-bubble .om-maximenu-top-right {
+    background: none;
+    height: auto;
+}
+.om-maximenu .om-maximenu-content .om-maximenu-middle .block {
+    display: inline-block;
+    vertical-align: top;
+    width: 46%;
+    float: left;
+    padding-left: 15px;
+    padding-top: 18px;
+}
+.om-maximenu-bubble .om-maximenu-top, .om-maximenu-bubble .om-maximenu-middle-left {
+    background: none;
+    height: auto;
+}
+.om-maximenu-bubble.om-maximenu-block .om-maximenu-content {
+    padding: 5px 0 0;
+    top: 25px;
+    width: 525px;
+}
+.om-maximenu-bubble .om-maximenu-arrow {
+    background: none;
+}
+.om-maximenu-middle .block h2 {
+    color: #333333;
+    font-family: 'archivo_narrowregular';
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+#zone-header .block-title {
+    display: none;
+}
+
+/********* User Menu *********/
+
+.block-user-menu ul {
+  margin:0 0 1em 1em;
+}
+
+.block-user-menu ul li.leaf{
+  list-style-image:none;
+}
+
+.view-empty {
+  margin-bottom: 10px;
+  text-align: center;
+}

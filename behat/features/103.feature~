@@ -1,0 +1,22 @@
+Feature: 100-Create features for ACT-IAC project
+  In order to check if user has access the site
+  As a various different roles
+  I need to be able login and create content
+
+  @javascript
+  Scenario: Authenticated User as Member role can access private community content, Non-member cannot access private community content
+    Given I am on "/"
+    Then I fill in "username" as "devendra.mishra26@gmail.com"
+    Then I fill in password "password" as "devendra"
+    Then I press button "Log in"
+    Then I should be redirected to "user/27120/dashboard"
+    Then I click "Planning and Architecture Shared Interest Group"
+    Then I should be redirected to "node/9598"
+    Then I click "Archives"
+    Then I should be redirected to "archives/9598"
+    Then I click "Screenshot_5_28_13_12_13_PM.png"
+    Then I should be redirected to "node/13888"
+    # code to redirect to a content which would be private and not associated with user's community. 
+    Then I should be redirected to "node/13888"  
+    # need to change
+

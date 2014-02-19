@@ -1,0 +1,615 @@
+<?php
+
+function commerce_avectra_menu() {
+
+  $items = array();
+
+  $items['payment-gateway-response'] = array(
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'page callback' => 'payment_gateway_response',
+    'access callback' => TRUE,
+  );
+
+  $items['payment-gateway-example'] = array(
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'payment_gateway_example',
+    'access callback' => TRUE,
+  );
+
+  return $items;
+
+}
+
+/**
+ * Implements hook_commerce_payment_method_info().
+ */
+function commerce_avectra_commerce_payment_method_info() {
+
+  $paymentUpdate = FALSE;
+  $paymentInfo = variable_get('commerce_avectra_payment_info', '');
+
+  if (!empty($paymentInfo)) {
+    if ($paymentInfo['time'] >= strtotime('-10 day')) {
+      $paymentData = unserialize($paymentInfo['data']);
+    }
+    else {
+      $paymentUpdate = TRUE;
+    }
+  }
+  else {
+    $paymentUpdate = TRUE;
+  }
+
+  //if ($paymentUpdate) {
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+  $paymentMethods = $act->getPaymentMethods();
+
+  foreach ($paymentMethods as $payment) {
+    $paymentData[] = array(
+      'key' => trim((string) $payment->getKey()),
+      'type' => trim((string) $payment->getType()),
+      'method' => trim((string) $payment->getMethod()),
+    );
+    //}
+
+    $paymentInfo['data'] = serialize($paymentData);
+    $paymentInfo['time'] = REQUEST_TIME;
+    variable_set('commerce_avectra_payment_info', $paymentInfo);
+
+  }
+
+  $payment_methods = array();
+  foreach ($paymentData as $payment) {
+
+    $key = $payment['key'];
+
+    $type = $payment['type'];
+
+    $method = $payment['method'];
+
+    $payment_methods[str_replace('-', '_', $key)] = array(
+      'title' => t('@type', array('@type' => $method)),
+      'description' => t('Implements Avectra Payment using @type', array('@type' => $method)),
+      'active' => TRUE,
+      'callbacks' => array(
+        'settings_form' => 'commerce_avectra_settings_form',
+        'submit_form' => 'commerce_avectra_submit_form',
+        'submit_form_validate' => 'commerce_avectra_submit_form_validate',
+        'submit_form_submit' => 'commerce_avectra_submit_form_submit',
+      ),
+    );
+  }
+
+  return $payment_methods;
+}
+
+/**
+ * Payment method callback: settings form.
+ */
+function commerce_avectra_settings_form($settings = NULL) {
+  $form = array();
+
+  $settings = (array) $settings + array(
+      'merchant_id' => '',
+      'merchant_profile_id' => '',
+      'merchant_key' => '',
+      'mode' => 'test',
+    );
+
+  $form['merchant_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Merchant id'),
+    '#default_value' => $settings['merchant_id'],
+    '#required' => TRUE,
+  );
+
+  $form['merchant_profile_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Merchant profile id'),
+    '#default_value' => $settings['merchant_profile_id'],
+    '#required' => TRUE,
+  );
+
+  $form['merchant_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Merchant key'),
+    '#default_value' => $settings['merchant_key'],
+    '#required' => TRUE,
+  );
+
+  $form['transaction_mode'] = array(
+    '#type' => 'select',
+    '#options' => drupal_map_assoc(array('test', 'live')),
+    '#title' => t('Transaction mode'),
+    '#default_value' => $settings['transaction_mode'],
+    '#required' => TRUE,
+  );
+
+  return $form;
+}
+
+/**
+ * Payment method callback: Submit form.
+ */
+function commerce_avectra_submit_form($payment_method, $pane_values, $checkout_pane, $order) {
+  module_load_include('inc', 'commerce_payment', 'includes/commerce_payment.credit_card');
+
+  // Prepare the fields to include on the credit card form.
+  $fields = array(
+    'code' => '',
+  );
+
+  drupal_add_js(drupal_get_path('module', 'commerce_avectra') . '/commerce_avectra.js', array('scope' => 'footer'));
+  return ($order->commerce_order_total[LANGUAGE_NONE][0]['amount'] == 0) ? array() : commerce_payment_credit_card_form($fields);
+}
+
+/**
+ * Payment method callback: submit form validation.
+ */
+function commerce_avectra_submit_form_validate($payment_method, $pane_form, $pane_values, $order, $form_parents = array()) {
+  module_load_include('inc', 'commerce_payment', 'includes/commerce_payment.credit_card');
+
+  // Validate the credit card fields.
+
+  $settings = array(
+    'form_parents' => array_merge($form_parents, array('credit_card')),
+  );
+
+  $account = user_load($order->uid);
+  $user_key = field_get_items('user', $account, 'field_customer_key');
+  if (empty($user_key[0]['value'])) {
+    drupal_set_message(t('You are not registered with Avectra.'), 'error');
+
+    return FALSE;
+  }
+  if (isset($pane_values['credit_card'])) {
+    if (!commerce_payment_credit_card_validate($pane_values['credit_card'], $settings)) {
+      return FALSE;
+    }
+  }
+}
+
+/**
+ * Payment method callback: submit form submission.
+ */
+function commerce_avectra_submit_form_submit($payment_method, $pane_form, $pane_values, $order, $charge) {
+  // Determine the credit card type if possible for use in later code.
+  if (!empty($pane_values['credit_card']['number'])) {
+    module_load_include('inc', 'commerce_payment', 'includes/commerce_payment.credit_card');
+    $card_type = commerce_payment_validate_credit_card_type($pane_values['credit_card']['number'], array_keys(commerce_payment_credit_card_types()));
+  }
+
+  // If the charge amount is 0...
+  /*if ($charge['amount'] == 0) {
+    // Prevent the transaction except under limited circumstances.
+    $prevent_transaction = TRUE;
+
+    // Allow 0 amount authorizations on Visa cards.
+    if ($payment_method['settings']['txn_type'] == COMMERCE_CREDIT_AUTH_ONLY && $card_type == 'visa') {
+      $prevent_transaction = FALSE;
+    }
+
+    // If the transaction should still be prevented...
+    if ($prevent_transaction) {
+      // Create a transaction to log the skipped transaction and display a
+      // helpful message to the customer.
+      $transaction = commerce_payment_transaction_new('commerce_avectra', $order->order_id);
+      $transaction->amount = $charge['amount'];
+      $transaction->currency_code = $charge['currency_code'];
+      $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
+      $transaction->message = t('Invalid @amount transaction not attempted.', array('@amount' => commerce_currency_format($charge['amount'], $charge['currency_code'])));
+      commerce_payment_transaction_save($transaction);
+
+      drupal_set_message('We encountered an error processing your transaction. Please contact us to resolve the issue.', 'error');
+      return FALSE;
+    }
+  }*/
+
+  $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+
+  /*// Get the default transaction type from the payment method settings.
+  $txn_type = $payment_method['settings']['txn_type'];
+
+  // If txn_type has been specified in the pane values array, such as through
+  // the special select element we alter onto the payment terminal form, use
+  // that instead.
+  if (!empty($pane_values['txn_type'])) {
+    $txn_type = $pane_values['txn_type'];
+  }*/
+
+  // Build a description for the order.
+  $description = array();
+
+  foreach ($order_wrapper->commerce_line_items as $delta => $line_item_wrapper) {
+    if (in_array($line_item_wrapper->type->value(), commerce_product_line_item_types())) {
+      $description[] = round($line_item_wrapper->quantity->value(), 2) . 'x ' . $line_item_wrapper->line_item_label->value();
+    }
+  }
+
+  // Prepare the billing address for use in the request.
+  if ($order_wrapper->commerce_customer_billing->value()) {
+    $billing_address = $order_wrapper->commerce_customer_billing->commerce_customer_address->value();
+
+    if (empty($billing_address['first_name'])) {
+      $name_parts = explode(' ', $billing_address['name_line']);
+      $billing_address['first_name'] = array_shift($name_parts);
+      $billing_address['last_name'] = implode(' ', $name_parts);
+    }
+  }
+  else {
+    $billing_address = array();
+  }
+
+  $apm_key = str_replace('_', '-', $payment_method['method_id']);
+  $name = trim((!empty($billing_address['first_name']) ? $billing_address['first_name'] : '') . ' ' . (!empty($billing_address['last_name']) ? $billing_address['last_name'] : ''));
+  //$payment = new Payment($name, $pane_values['credit_card']['number'], $pane_values['credit_card']['code'], $pane_values['credit_card']['exp_year'] . '/' . $pane_values['credit_card']['exp_month'], $apm_key, "0.00");
+  $payment = new Payment($name, $pane_values['credit_card']['number'], $pane_values['credit_card']['code'], $pane_values['credit_card']['exp_year'] . '/' . $pane_values['credit_card']['exp_month'], $apm_key, $charge['amount'] / 100);
+  $payment = (!empty($pane_values['credit_card']['number'])) ? new Payment
+  ($name,
+    $pane_values['credit_card']['number'],
+    $pane_values['credit_card']['code'],
+    $pane_values['credit_card']['exp_year'] . '/' .
+    $pane_values['credit_card']['exp_month'], $apm_key,
+    $charge['amount'] / 100) : new Payment('', '', '', '', '', "0.00");
+
+  $account = user_load($order->uid);
+  $user_key = field_get_items('user', $account, 'field_customer_key');
+  if (empty($user_key[0]['value'])) {
+    drupal_set_message(t('You are not registered with Avectra.'), 'error');
+
+    return FALSE;
+  }
+  else {
+    $user_key = $user_key[0]['value'];
+  }
+
+  // Create the events array.
+  $event_ids = array();
+  $session_ids = array();
+  $track_ids = array();
+  $MembershipArray = array();
+  foreach ($order_wrapper->commerce_line_items as $delta => $line_item_wrapper) {
+    $product_wrapper = $line_item_wrapper->commerce_product;
+    $product = $product_wrapper->value();
+    if ($product->type == 'product') {
+      // This is an event. First the corresponding event node.
+      $event_id = db_select('field_data_field_product', 'fp')
+        ->fields('fp', array('entity_id'))
+        ->condition('fp.field_product_product_id', $product->product_id)
+        ->condition('fp.entity_type', 'node')
+        ->condition('fp.bundle', 'events')
+        ->execute()
+        ->fetchField();
+      if ($event_id) {
+        $event_ids[] = $event_id;
+      }
+    }
+    elseif ($product->type == 'session_product') {
+      // This is a session. First the corresponding session node.
+      $session_id = db_select('field_data_field_session_product_ref', 'fspr')
+        ->fields('fspr', array('entity_id'))
+        ->condition('fspr.field_session_product_ref_product_id', $product->product_id)
+        ->condition('fspr.entity_type', 'node')
+        ->condition('fspr.bundle', 'session')
+        ->execute()
+        ->fetchField();
+      if ($session_id) {
+        $session_ids[] = $session_id;
+      }
+    }
+    elseif ($product->type == 'track_product') {
+      // This is a track. First the corresponding track node.
+      $track_id = db_select('field_data_field_track_product_ref', 'ftpr')
+        ->fields('ftpr', array('entity_id'))
+        ->condition('ftpr.field_tracks_product_ref_product_id', $product->product_id)
+        ->condition('ftpr.entity_type', 'node')
+        ->condition('ftpr.bundle', 'tracks')
+        ->execute()
+        ->fetchField();
+      if ($track_id) {
+        $track_ids[] = $track_id;
+      }
+    }
+    /******* Added By Devendra **********/
+    else {
+      if ($product->type == 'invoice') {
+        // This is an invoice.
+        $query = db_select('field_data_field_product', 'invoice_pro');
+        $query->join('field_data_field_invoice_key', 'invoice_key', 'invoice_pro.entity_id = invoice_key.entity_id');
+        $query->fields('invoice_key', array('field_invoice_key_value'));
+        $query->condition('invoice_pro.field_product_product_id', $product->product_id);
+        $query->condition('invoice_pro.entity_type', 'node');
+        $query->condition('invoice_pro.bundle', 'invoice');
+        $results = $query->execute();
+        if (count($results) > 0) {
+          foreach ($results as $result) {
+            $MembershipArray[] = $result->field_invoice_key_value;
+          }
+        }
+      }
+    }
+    /************** End ***************/
+  }
+
+  $participant_uids = array();
+  // Get registration badge information.
+  if (!empty($order->data['reg_badge_data'])) {
+    foreach ($order->data['reg_badge_data'] as $key => $badge) {
+      $participant_uids[] = $badge['badgename'];
+    }
+  }
+  else {
+    global $user;
+    $participant_uids[] = $user->uid;
+  }
+  $participant_users = user_load_multiple($participant_uids);
+  $participant_keys = array();
+  foreach ($participant_users as $uid => $participant_user) {
+    $customer_key = field_get_items('user', $participant_user, 'field_customer_key');
+    if (empty($customer_key[0]['value'])) {
+      drupal_set_message(t('@username is not registered with Avectra.', array('@username' => $participant_user->realname)), 'error');
+
+      return FALSE;
+    }
+    else {
+      $participant_keys[] = $customer_key[0]['value'];
+    }
+  }
+
+  $events_array = array();
+  if (sizeof($event_ids)) {
+    $events = node_load_multiple($event_ids);
+    foreach ($participant_keys as $participant_key) {
+      foreach ($events as $event) {
+        $event_key = field_get_items('node', $event, 'field_event_key');
+        $event_key = $event_key[0]['value'];
+        $event_array = array(
+          'evt_key' => $event_key,
+          'participant_key' => $participant_key
+        );
+
+        $field_event_session = field_get_items('node', $event, 'field_event_session');
+        $event_session_ids = array();
+        $event_track_ids = array();
+        $event_sessions = array();
+        $event_tracks = array();
+        if (!empty($field_event_session) && sizeof($field_event_session)) {
+          foreach ($field_event_session as $event_session) {
+            $field_collection = entity_load('field_collection_item', array($event_session['value']));
+
+            foreach ($field_collection as $key => $fc) {
+              $sessions = field_get_items('field_collection_item', $fc, 'field_session_reference');
+              if (!empty($sessions)) {
+                foreach ($sessions as $session) {
+                  $event_session_ids[] = $session['target_id'];
+                }
+              }
+
+              $tracks = field_get_items('field_collection_item', $fc, 'field_track_reference');
+              if (!empty($tracks)) {
+                foreach ($tracks as $track) {
+                  $event_track_ids[] = $track['target_id'];
+                }
+              }
+            }
+          }
+          $event_session_ids = array_intersect($session_ids, $event_session_ids);
+          $event_track_ids = array_intersect($track_ids, $event_track_ids);
+
+          $event_sessions = node_load_multiple($event_session_ids);
+          $event_tracks = node_load_multiple($event_track_ids);
+        }
+
+        // Get the session keys.
+        $event_session_keys = array();
+        foreach ($event_sessions as $event_session) {
+          $event_session_key = field_get_items('node', $event_session, 'field_session_key');
+          $event_session_key = $event_session_key[0]['value'];
+          $event_session_keys[] = $event_session_key;
+        }
+        $event_array['sessions'] = $event_session_keys;
+
+        // Get the track keys.
+        $event_track_keys = array();
+        foreach ($event_tracks as $event_track) {
+          $event_track_key = field_get_items('node', $event_track, 'field_track_key');
+          $event_track_key = $event_track_key[0]['value'];
+          $event_track_keys[] = $event_track_key;
+        }
+        $event_array['tracks'] = $event_track_keys;
+
+        // Include the price key.
+        global $user;
+        $roles = $user->roles;
+        $field_price_key = 'field_price_key';
+        if (in_array('government', $roles)) {
+          $field_price_key = 'field_govt_price_key';
+        }
+        elseif (in_array('industry', $roles)) {
+          $field_price_key = 'field_industry_price_key';
+        }
+        // Get the product id from the event.
+        $product_id = field_get_items('node', $event, 'field_product');
+        $product_id = !empty($product_id[0]['product_id']) ?
+          $product_id[0]['product_id'] : '';
+        if (!empty($product_id)) {
+          $product = commerce_product_load($product_id);
+          $field_price_key = field_get_items('commerce_product', $product,
+            $field_price_key);
+          $field_price_key = $field_price_key[0]['safe_value'];
+          $event_array['prc_key'] = $field_price_key;
+        }
+
+        $events_array[] = $event_array;
+      }
+    }
+  }
+
+  module_load_include('php', 'avectra', 'includes/ACT');
+  module_load_include('php', 'avectra', 'includes/Profile');
+  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
+  try {
+    $reg_key = $act->registerForEvent($user_key, $events_array, $payment, $MembershipArray);
+  } catch (Exception $e) {
+    drupal_set_message(t('Payment Exception.'), 'error');
+
+    return FALSE;
+  }
+
+  if (!$reg_key) {
+    drupal_set_message(t('Could not process the payment.'), 'error');
+
+    return FALSE;
+  }
+
+  // Prepare a transaction object to log the API response.
+  $transaction = commerce_payment_transaction_new('commerce_avectra', $order->order_id);
+  $transaction->instance_id = $payment_method['instance_id'];
+  //$transaction->remote_id = $response[6];
+  $transaction->amount = $charge['amount'];
+  $transaction->currency_code = $charge['currency_code'];
+  $transaction->payload[REQUEST_TIME] = $reg_key;
+
+  // Since the API responds with success or failure at a delay, set the status to Pending.
+  $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+
+  // Store the type of transaction in the remote status.
+  //$transaction->remote_status = $response[11];
+
+  // Build a meaningful response message.
+  $message = array(
+    //'<b>' . commerce_authnet_reverse_txn_type($response[11]) . '</b>',
+    '<b>' . t('ACCEPTED') . ':</b> ',
+    //t('AVS response: @avs', array('@avs' => commerce_authnet_avs_response($response[5]))),
+  );
+
+  /*// Add the CVV response if enabled.
+  if (isset($nvp['x_card_code'])) {
+    //$message[] = t('CVV match: @cvv', array('@cvv' => commerce_authnet_cvv_response($response[38])));
+  }*/
+
+  $transaction->message = implode('<br />', $message);
+
+  // Save the transaction information.
+  commerce_payment_transaction_save($transaction);
+
+  // Empty the Avectra cache for each participant so that the new transaction is reflected immediately.
+  foreach ($participant_users as $uid => $participant_user) {
+    unset($participant_user->data['avectra']);
+  }
+
+  // If the payment failed, display an error and rebuild the form.
+  /*if ($response[0] != '1') {
+    drupal_set_message(t('We received the following error processing your card. Please enter you information again or try a different card.'), 'error');
+    drupal_set_message(check_plain($response[3]), 'error');
+    return FALSE;
+  }*/
+}
+
+/**
+ * Creates a transaction.
+ */
+function commerce_avectra_transaction($payment_method, $order, $charge, $name) {
+  $transaction = commerce_payment_transaction_new('commerce_avectra', $order->order_id);
+  $transaction->instance_id = $payment_method['instance_id'];
+  $transaction->amount = $charge['amount'];
+  $transaction->currency_code = $charge['currency_code'];
+  $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+  $transaction->message = 'Name: @name';
+  $transaction->message_variables = array('@name' => $name);
+
+  commerce_payment_transaction_save($transaction);
+}
+
+/**
+ * Submits a dynamic transaction API request to FeelPago.
+ */
+function commerce_avectra_request($payment_method, $nvp = array()) {
+  // Get the API endpoint URL for the method's transaction mode.
+  $url = commerce_avectra_server_url($payment_method['settings']['txn_mode']);
+
+  // Add the default name-value pairs to the array.
+  $nvp += array(
+    // API credentials
+    'x_merchant_id' => $payment_method['settings']['merchant_id'],
+    'x_merchant_profile_id' => $payment_method['settings']['merchant_profile_id'],
+    'x_merchant_key' => $payment_method['settings']['merchant_key'],
+
+    // Extra administrative values
+    /*'x_test_request' => $payment_method['settings']['txn_mode'] == AUTHNET_TXN_MODE_LIVE_TEST ? 'TRUE' : 'FALSE',
+    'x_delim_data' => 'TRUE',
+    'x_delim_char' => '|',
+    'x_encap_char' => '"',
+    'x_relay_response' => 'FALSE',
+    'x_email_customer' => $payment_method['settings']['email_customer'],*/
+  );
+
+  // Allow modules to alter parameters of the API request.
+  drupal_alter('commerce_avectra_request', $nvp);
+
+  // Log the request if specified.
+  if ($payment_method['settings']['log']['request'] == 'request') {
+    // Mask the credit card number and CVV.
+    $log_nvp = $nvp;
+    $log_nvp['x_login'] = str_repeat('X', strlen($log_nvp['x_login']));
+    $log_nvp['x_tran_key'] = str_repeat('X', strlen($log_nvp['x_tran_key']));
+
+    if (!empty($log_nvp['x_card_num'])) {
+      $log_nvp['x_card_num'] = str_repeat('X', strlen($log_nvp['x_card_num']) - 4) . substr($log_nvp['x_card_num'], -4);
+    }
+
+    if (!empty($log_nvp['x_card_code'])) {
+      $log_nvp['x_card_code'] = str_repeat('X', strlen($log_nvp['x_card_code']));
+    }
+  }
+
+  // Prepare the name-value pair array to be sent as a string.
+  $pairs = array();
+
+  foreach ($nvp as $key => $value) {
+    $pairs[] = $key . '=' . urlencode($value);
+  }
+
+  // Setup the cURL request.
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $url);
+  curl_setopt($ch, CURLOPT_VERBOSE, 0);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, implode('&', $pairs));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_NOPROGRESS, 1);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
+  $result = curl_exec($ch);
+
+  // Log any errors to the watchdog.
+  if ($error = curl_error($ch)) {
+    watchdog('commerce_avectra', 'cURL error: @error', array('@error' => $error), WATCHDOG_ERROR);
+
+    return FALSE;
+  }
+  curl_close($ch);
+
+  // Make the response an array and trim off the encapsulating characters.
+  $response = explode('|', $result);
+
+  for ($i = 0; $i < count($response); $i++) {
+    $response[$i] = substr($response[$i], 1, strlen($response[$i]) - 2);
+  }
+
+  // Log the response if specified.
+  /*if ($payment_method['settings']['log']['response'] == 'response') {
+    watchdog('commerce_avectra', 'Avectra dynamic response: !param', array(
+      '!param' => '<pre>' . check_plain(print_r($response, TRUE)) . '</pre>',
+      WATCHDOG_DEBUG
+    ));
+  }*/
+
+  return $response;
+}

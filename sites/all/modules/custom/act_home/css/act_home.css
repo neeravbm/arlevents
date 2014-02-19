@@ -1,0 +1,61 @@
+/*
+ * Event node page style
+ */
+h1, h2, h3, h4, h5, h6 {
+  color:#333333;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  line-height:1.1;
+  margin:0;
+  padding:0 0 6.4px;
+}
+
+form.commons-events-form-float {
+  float:left !important;
+  width:100%!important;
+}
+
+.events-attendees-form {
+  border-bottom: 1px solid #EEEEEE;
+  float: left;
+  margin-bottom: 10px;
+  padding-bottom: 20px;
+  width: 100%;
+}
+
+.events-attendees-form  input[type="submit"]{
+  /*background:-moz-linear-gradient(center top , #7B6DB0, #5F5291) repeat scroll 0 0 transparent;
+  background:-webkit-gradient(linear,left top,left bottom,from(#7B6DB0),to(#5F5291));
+  filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0, startColorstr='#7B6DB0', endColorstr='#5F5291');
+  -ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr='#7B6DB0', endColorstr='#5F5291')";*/
+  background:#162742;
+  border-color:#5F5291;
+  color:#FFFFFF;
+  text-shadow:-1px -1px 0 rgba(0, 0, 0, 0.2);
+  display:block;
+  margin:0 0 12px;
+  border-radius:0px;
+  padding:6px 35px;
+  width:100%;  
+}
+
+
+.events-attendees-title{
+  float:left;
+  width:100%;
+}
+
+.date-time-calender{
+  float:right;
+}
+
+.date-time-calender .field-name-field-date .field-label {
+  display:none !important;
+}
+
+.date-time-calender .field-items .date-display-start{
+  display:none;
+}
+
+.commons-event-status {
+  text-align:center;
+}

@@ -1,0 +1,39 @@
+Feature: 100-Create features for ACT-IAC project
+  In order to check if user has access the site
+  As a various different roles
+  I need to be able login and create content
+
+  @javascript
+  Scenario: Authenticated User as admin, staff or government role can access government document on knowledge page.
+    Given I am on "/"
+    Then I fill in "username" as "staff@gmail.com"
+    Then I fill in password "password" as "admin123"
+    Then I press button "Log in"
+    Then I should be redirected to "user/27120/dashboard"
+    Then I click "Knowledge Bank"
+    Then I should be redirected to "knowledge-bank"
+    Then I should see ""
+    # logout user
+    Then I click "Logout"
+    Then I should be redirected to "user/logout"
+    Given I am on "/"
+    Then I fill in "username" as "government@gmail.com"
+    Then I fill in password "password" as "admin123"
+    Then I press button "Log in"
+    Then I should be redirected to "user/27120/dashboard"
+    Then I click "Knowledge Bank"
+    Then I should be redirected to "knowledge-bank"
+    Then I should see ""
+    # logout user
+    Then I click "Logout"
+    Then I should be redirected to "user/logout"
+    Given I am on "/"
+    Then I fill in "username" as "member@gmail.com"
+    Then I fill in password "password" as "admin123"
+    Then I press button "Log in"
+    Then I should be redirected to "user/27120/dashboard"
+    Then I click "Knowledge Bank"
+    Then I should be redirected to "knowledge-bank"
+    Then I should see ""
+    
+    

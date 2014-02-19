@@ -1,0 +1,57 @@
+<?php
+
+/*
+ * Implementing hook_preprocess_page()
+ */
+function act_alpha_preprocess_page(&$vars) {
+	if (isset($vars['node']->field_logo) && !empty($vars['node']->field_logo['und'][0]['filename'])) {
+        $filename = $vars['node']->field_logo['und'][0]['filename'];
+        $image_uri = file_build_uri($filename);
+        //$vars['titleimage'] = theme('image_style', array('style_name' => '35X35', 'path' => $image_uri));
+        $vars['titleimage'] = '<img src="'.file_create_url($vars['node']->field_logo['und'][0]['uri']).'" width=35  height=35 />';
+    }
+    
+    if (isset($vars['node']->field_group_logo) && !empty($vars['node']->field_group_logo['und'][0]['filename'])) {
+        $filename = $vars['node']->field_group_logo['und'][0]['filename'];
+        $image_uri = file_build_uri($filename);
+        //$vars['titleimage'] = theme('image_style', array('style_name' => '35X35', 'path' => $image_uri));
+        $vars['titleimage'] = '<img src="'.file_create_url($vars['node']->field_group_logo['und'][0]['uri']).'" width=35  height=35 />';
+    }
+    
+    if(isset($vars['titleimage'])) {
+		$vars['title'] = $vars['titleimage'] . ' '.$vars['node']->title;
+	}
+	
+	if(arg(0) == 'user' && is_numeric(arg(1))){
+		
+		$title = '';
+		//$loaduser = user_load($vars['user']->uid);
+		$uid = arg(1);
+		$loaduser = user_load($uid);
+		$name = array();
+		if(is_object($loaduser)){
+			$name[] = $loaduser->field_name_first['und'][0]['value'];
+			$name[] = $loaduser->field_name_last['und'][0]['value'];
+			if(is_object($loaduser->picture)){
+			    $uri = $loaduser->picture->uri;
+		    } else {
+				$uri = variable_get('user_picture_default'); 
+			}
+			$vars['user_avatar'] = theme('image_style',
+								array(
+									'style_name' => '50x50_avatar',
+									'path' => $uri,
+									'attributes' => array(
+									'class' => 'avatar'
+										),
+									'width' => NULL,
+									'height' => NULL,            
+									)
+								);
+			if(sizeof($name) > 0){
+				$title = implode(' ',$name);         
+			}        
+			$vars['title'] = $vars['user_avatar'] .' '.$title;
+	    }
+    }
+}

@@ -1,0 +1,7 @@
+name = ACT Committee API
+description = ACT Committee API.
+core = 7.x
+version = 7.x-2.0
+package = ACT Custom
+file = committee_api.module
+dependencies[] = avectra

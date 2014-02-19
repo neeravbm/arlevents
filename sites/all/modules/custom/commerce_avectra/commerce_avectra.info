@@ -1,0 +1,5 @@
+name = Commerce Avectra
+description = Avectra payment module
+core = 7.x
+
+files[] = commerce_avectra.module

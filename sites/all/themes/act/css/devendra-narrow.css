@@ -1,0 +1,168 @@
+/********************** Home page event slider *************/
+#zone-eventslider-wrapper {
+  background:url("../images/blueline_bg.png") repeat-x scroll 0 0 transparent;
+  margin-top:0px;
+}
+.views-field-field-events-banner {
+    float: left;
+}
+/****************** Two Col Layout in Inner Page **************/
+.node-type-innerpage .bodysummary{
+  border-bottom:1px solid #CCCCCC;
+}
+
+
+.node-type-innerpage .innerpage {
+  border:0;
+  border-bottom:1px solid #CCCCCC;
+}
+
+.node-type-innerpage .innerpage-standard .col {
+  width: 100%;
+  
+}
+
+.node-type-innerpage .innerpage-standard .col .summary{
+  margin: 30px 0;
+  padding: 0 5%;
+}
+
+.node-type-innerpage .innerpage .left{
+    float: left;
+    width: 14%;
+}
+
+.node-type-innerpage .innerpage .right {
+  float: right;
+  width: 83%;
+  text-align:justify;
+}
+
+.node-type-innerpage .innerpage-standard .col {
+  border:0;
+  border-bottom:1px solid #CCCCCC;
+}
+
+.node-type-innerpage .innerpage-standard .last {
+  border-bottom:0;
+}
+
+.front .homeaccordion{
+  display:block;
+}
+
+.front .tabonhome{
+  display:none;
+}
+
+.front .ui-accordion-content-active {
+  height:auto;
+}
+
+.front .ui-state-active .ui-icon {
+  background-image:none !important;
+}
+
+.front .ui-corner-all {
+  border-radius:0px!important;
+}
+
+.front.ui-state-default, 
+.front .ui-widget-content .ui-state-default, 
+.front .ui-widget-header .ui-state-default {
+ background: #203B6A!important;
+} 
+
+
+/*********** Home Event Slider ********/
+
+#region-eventslider-first, #region-eventslider-third{
+  display:block;
+}
+
+
+#accordion .column{
+  width:100%;
+  float:left;
+  display:inline-block;
+  margin:10px;
+  text-align:justify;
+}
+
+
+#accordion .column img{
+  width:100%;
+}
+
+/*************** My account and logout header links ********/
+#block-act-userprofile-userlogout {
+  float:left;
+}
+
+/*************** Checkout Page *********/
+
+.page-checkout #commerce-checkout-form-checkout fieldset label, 
+.page-checkout #commerce-checkout-form-review fieldset label {
+  text-align:right;
+}
+
+/******* Group Menu ********/
+#zone-gmenu-wrapper {
+    line-height: 1.2em;
+    margin-top: 10px;
+}
+
+/**************** Latest Event ******/
+.page-latest-events .events-addtocart{
+  float:left;
+  margin:0 0 0 15%;
+}
+
+/************ strategic initiatives template *********/
+.field-name-field-strategic-image {
+  border: 1px solid #CCCCCC;
+  float: left;
+  margin: 0 10px 0 0;
+  padding: 5px;
+}
+
+.field-name-field-strategic-image img {
+  width:auto;
+}
+
+.front #zone-preface-wrapper #zone-preface {
+  /*background: url("../images/act_bg.png") no-repeat scroll 0 0 transparent;*/
+  margin-top: 20px;
+  background-size: 100%;
+}
+
+
+/************** Compelition Page ********/
+#commerce-checkout-form-checkout fieldset,
+#commerce-checkout-form-checkout fieldset legend{
+  width:100%;
+}
+
+.page-checkout #addressfield-wrapper input {
+   max-width: 100%;
+   padding: 0 5px;
+}
+
+.page-checkout .street-block .form-item-customer-profile-billing-commerce-customer-address-und-0-thoroughfare,
+.page-checkout .street-block .form-item-customer-profile-billing-commerce-customer-address-und-0-premise {
+  float:none;
+}
+
+#block-block-19, #block-block-21 {
+  width:45%;
+  float:left;
+}
+
+.view-id-home_slider .flexslider{
+  margin-bottom:0;
+}
+
+#block-cck-blocks-field-events-banner {
+  float:none;
+}
+

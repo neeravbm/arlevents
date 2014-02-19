@@ -1,0 +1,16 @@
+/* This file will hold styles for all layouts using the alpha grid (i.e. not the mobile layout). */
+
+/********* Header ****/
+#block-user-login {
+  display:block;
+  height: 70px;
+}
+
+#block-block-12 {
+  display:none;
+}
+
+#block-block-13 {
+  display:none;
+}
+

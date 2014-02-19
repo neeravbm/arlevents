@@ -1,0 +1,407 @@
+<?php
+/*
+ *@file
+ * ACT services
+*/
+
+
+
+function curlCommonSettings($cookie_session = NULL) {
+	$curl = curl_init();
+	curl_setopt($curl, CURLOPT_HEADER, FALSE);
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+	curl_setopt($curl, CURLOPT_FAILONERROR, TRUE);
+	if (!is_null($cookie_session)) {
+		curl_setopt($curl, CURLOPT_COOKIE, "$cookie_session");
+	}
+
+	return $curl;
+}
+
+function getCurlData($curl) {
+	$response = curl_exec($curl); 
+	$http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+	print "HTTP Code: $http_code\n";
+	print "Response: " . $response . "\n";
+
+	if ($http_code == 200) {
+		$data = json_decode($response);
+		return $data;
+	}
+	else {
+		// Get error message.
+		$http_message = curl_error($curl);
+		print $http_message . "\n";
+		return FALSE;
+	}
+}
+
+function getEntity($service_url, $entity_type, $entity_id, $cookie_session = NULL) {
+	$curl = curlCommonSettings($cookie_session);
+	curl_setopt($curl, CURLOPT_URL, $service_url . '/' . $entity_type . '/' . $entity_id . '.json');
+	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Accept: application/json'));
+
+	return getCurlData($curl);
+}
+
+function createEntity($service_url, $entity_type, $data, $cookie_session = NULL) {
+	$curl = curlCommonSettings($cookie_session);
+	curl_setopt($curl, CURLOPT_URL, $service_url . '/' . $entity_type . '.json');
+	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+	curl_setopt($curl, CURLOPT_POST, 1);
+	curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+
+	return getCurlData($curl);
+}
+
+function updateEntity($service_url, $entity_type, $entity_id, $data, $cookie_session = NULL) {
+	$curl = curlCommonSettings($cookie_session);
+	curl_setopt($curl, CURLOPT_URL, $service_url . '/' . $entity_type . '/' . $entity_id . '.json');
+	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+	curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
+	curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+
+	return getCurlData($curl);
+}
+
+function deleteEntity($service_url, $entity_type, $entity_id, $cookie_session = NULL) {
+	$curl = curlCommonSettings($cookie_session);
+	curl_setopt($curl, CURLOPT_URL, $service_url . '/' . $entity_type . '/' . $entity_id . '.json');
+	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Accept: application/json'));
+	curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
+
+	return getCurlData($curl);
+}
+
+function resourceTypeAction($service_url, $resource_type, $action, $data, $cookie_session = NULL) {
+	$curl = curlCommonSettings($cookie_session);
+	curl_setopt($curl, CURLOPT_URL, $service_url . '/' . $resource_type . '/' . $action . '.json');
+	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+	curl_setopt($curl, CURLOPT_POST, 1);
+	curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+
+	return getCurlData($curl);
+}
+
+function resourceTypeTargetedAction($service_url, $resource_type, $entity_id, $action, $data, $cookie_session = NULL) {
+	$curl = curlCommonSettings($cookie_session);
+	curl_setopt($curl, CURLOPT_URL, $service_url . '/' . $resource_type . '/' . $entity_id . '/' . $action . '.json');
+	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+	curl_setopt($curl, CURLOPT_POST, 1);
+	curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+
+	return getCurlData($curl);
+}
+
+
+
+/*
+ * Implementing hook_menu(); 
+*/
+function act_services_menu() {
+    $items = array();
+    $items['admin/actservices'] = array(
+		'title' => 'ACT-IAC services',
+		'description' => 'ACT-IAC services',
+		'access callback' => TRUE,
+		
+   );
+   $items['admin/actservices/user/create'] = array(
+		'title' => 'User Create',
+		'description' => 'User Create',
+		'page callback' => 'act_services_profile_user_create',
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+		
+   );
+   $items['admin/actservices/user/%user/edit'] = array(
+		'title' => 'User Edit',
+		'description' => 'User Edit',
+		'page callback' => 'act_services_profile_user_edit',
+		'page arguments' => array(3),
+		'access callback' => TRUE,
+		
+		'type' => MENU_CALLBACK,
+		
+   );
+   $items['admin/actservices/user/%user/delete'] = array(
+		'title' => 'User Delete',
+		'description' => 'User Delete',
+		'page callback' => 'act_services_profile_user_delete',
+		'page arguments' => array(3),
+		'access callback' => TRUE,
+		
+		'type' => MENU_CALLBACK,
+		
+   );
+   $items['act-services/user/login'] = array(
+		'title' => 'User Login',
+		'description' => 'User Login',
+		'page callback' => 'act_services_profile_user_login',
+		'access callback' => TRUE,
+		'type' => MENU_CALLBACK,
+		
+   );
+   
+   $items['act-services/user/%user/logout'] = array(
+		'title' => 'User Logout',
+		'description' => 'User Logout',
+		'page callback' => 'act_services_profile_user_logout',
+		'page arguments' => array(3),
+		'access callback' => TRUE,
+		
+		'type' => MENU_CALLBACK,
+		
+   );
+  return $items;
+}
+
+
+/*
+ * Callback function of menus
+*/
+function act_services_profile_user_create(){ 
+$resourceData = array( 
+	'username' => 'devendra12',   
+	'name' => 'devendra12', 
+	'pass' => '123456',                 
+	'mail' => 'devendra.mishra@ebizontek.com',
+	 'field_name_first' => array(
+			'und' => array(
+				0 => array(
+					'value' => 'Devendra',
+				),
+			),
+	  ),
+	  'field_name_last' => array(
+			'und' => array(
+				0 => array(
+					'value' => 'Mishra',
+				),
+			),
+	  ),
+	  'field_mypoints' => array(
+			'und' => array(
+				0 => array(
+					'value' => 240,
+				),
+			),
+	  ),
+	  'field_valid_certificates' => array(
+			'und' => array(
+				0 => array(
+					'value' => 50,
+				),
+			),
+	  ),
+	  'field_total_amount' => array(
+			'und' => array(
+				0 => array(
+					'value' => 224,
+				),
+			),
+	  ),
+	  'field_user_status' => array(
+			'und' => array(
+				0 => array(
+					'value' => 'Premium Silver',
+				),
+			),
+	  ),
+	  'field_user_address' => array(
+			'und' => array(
+				0 => array(
+					'value' => '2101 California Street, Apt. 415,Mountain View, CA 94040.',
+				),
+			),
+	  ),
+	  'field_user_contact_email' => array(
+			'und' => array(
+				0 => array(
+					'value' => 'example.example@example.com',
+				),
+			),
+	  ),
+	  'field_user_primary_phone' => array(
+			'und' => array(
+				0 => array(
+					'value' => '9999999999',
+				),
+			),
+	  ),
+	  'field_facebook_url' => array(
+			'und' => array(
+				0 => array(
+					'url' => 'https://www.facebook.com/',
+				),
+			),
+	  ),
+	  'field_linkedin_url' => array(
+			'und' => array(
+				0 => array(
+					'url' => 'http://www.linkedin.com',
+				),
+			),
+	  ),
+	  'field_twitter_url' => array(
+			'und' => array(
+				0 => array(
+					'url' => 'https://twitter.com',
+				),
+			),
+	  ),                    
+		); 
+	$options = array (
+				'method' => 'POST',
+				'data' => json_encode($resourceData),
+				'headers' => array(
+					'Content-Type' => 'application/json; charset=utf-8',
+				),
+			);
+			
+	$result = drupal_http_request("http://act.redcrackle.com/rest/user", $options);	
+	if ($result->code == 200) {
+	   drupal_set_message(t('User has been created successfully.'));
+	}
+}
+
+/*
+ * Callback function of menus
+*/
+function act_services_profile_user_edit($users){
+ $uid = $users->uid;
+ act_services_profile_user_login('devendra','1234');
+ $resourceData = array( 
+			  'username' => 'devendra',   
+			  'name' => 'devendra', 
+			  'pass' => '1234',                 
+			  'mail' => 'devendra@ebizontek.com',
+			  'field_name_first' => array(
+					'und' => array(
+						0 => array(
+							'value' => 'Devendra',
+						),
+					),
+			  ),
+			  'field_name_last' => array(
+					'und' => array(
+						0 => array(
+							'value' => 'Mishra12',
+						),
+					),
+			  ),
+		      'field_mypoints' => array(
+					'und' => array(
+						0 => array(
+							'value' => 24111,
+						),
+					),
+			  ),
+			  'field_valid_certificates' => array(
+					'und' => array(
+						0 => array(
+							'value' => 501,
+						),
+					),
+			  ),
+			  'field_total_amount' => array(
+					'und' => array(
+						0 => array(
+							'value' => 2241,
+						),
+					),
+			  ),
+			  'field_user_status' => array(
+					'und' => array(
+						0 => array(
+							'value' => 'Premium Silver1',
+						),
+					),
+			  ),
+			  'field_user_address' => array(
+					'und' => array(
+						0 => array(
+							'value' => '2101 California Street, Apt. 415,Mountain View, CA 94040.',
+						),
+					),
+			  ),
+			  'field_user_contact_email' => array(
+					'und' => array(
+						0 => array(
+							'value' => 'example.example@example.com',
+						),
+					),
+			  ),
+			  'field_user_primary_phone' => array(
+					'und' => array(
+						0 => array(
+							'value' => '9999999999',
+						),
+					),
+			  ),
+			  'field_facebook_url' => array(
+					'und' => array(
+						0 => array(
+							'url' => 'https://www.facebook.com/',
+						),
+					),
+			  ),
+			  'field_linkedin_url' => array(
+					'und' => array(
+						0 => array(
+							'url' => 'http://www.linkedin.com',
+						),
+					),
+			  ),
+			  'field_twitter_url' => array(
+					'und' => array(
+						0 => array(
+							'url' => 'https://twitter.com',
+						),
+					),
+			  ),                    
+			); 
+				   $options = array (
+		'method' => 'PUT',
+		'data' => json_encode($resourceData),
+		'headers' => array(
+			'Content-Type' => 'application/json; charset=utf-8',
+		 ),
+	);
+	$result = drupal_http_request("http://act.redcrackle.com/rest/user/".$uid.".json",$options);
+    print_r($result);
+    if ($result->code == 200) {
+	  drupal_set_message(t('@user has been updated successfully.',array('@user' => $user->name,)));	
+	}
+}
+
+
+/*
+ * Callback function of menus
+*/
+function act_services_profile_user_delete($user){
+ return '';	
+}
+
+
+
+/*
+ * Callback function of menus
+*/
+function act_services_profile_user_login($username = null, $password = ''){
+   $service_url = 'http://act.redcrackle.com/rest';
+   $login_info = array(
+	   'username' => $username,
+	   'password' => $password,
+     );
+	$admin_user = resourceTypeAction($service_url, 'user', 'login', $login_info);
+	exit;
+}
+
+
+/*
+ * Callback function of menus
+*/
+function act_services_profile_user_logout($user){
+ $anonymous_user = resourceTypeAction($service_url, 'user', 'logout', array(), $cookie_session);
+}

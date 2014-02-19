@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function act_invite_people_schema() {
+	$t = get_t();
+  $schema['act_invite_people'] = array(
+		'description' => $t('Table to store nid and email address to create user and associate with nid while login'),
+		'fields' => array(
+			'mid' => array(
+				'description' => $t('The primary identifier.'),
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'nid' => array(
+				'description' => $t('Node id.'),
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'email' => array(
+				'description' => $t('Email address.'),
+				'type' => 'varchar',
+			  'length' => 128,
+				'not null' => TRUE,
+			),
+		),
+		'primary key' => array('mid'),
+	);
+	
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function act_invite_people_install() {
+  $t = get_t();
+  drupal_set_message($t('Thank you for installing ACT invite people. Please
+  proceed to the <a href="@settings">Settings Page</a> and configure
+  request message template using tokens.',
+  array('@settings' => url('admin/config/people/invite_sendmail'))));
+}

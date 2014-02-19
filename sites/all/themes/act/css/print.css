@@ -1,0 +1,122 @@
+/* Include css files */
+@import "act-alpha-default-normal.css";
+@import "global.css";
+/* End */
+
+body, html, #wrapper {
+    width: 100% !important;
+    background: white!important;
+}
+
+#content { 
+  background: transparent!important;
+}
+
+#section-content img {
+  border: 1px solid gray;
+  margin: 5px 0 0 10px;
+  padding: 1px;
+}
+
+
+#toolbar, 
+#admin-menu,
+#region-postscript-fourth,
+#block-act-home-what-i-want-to-do,
+#block-menu-menu-secondary-mobile-menus,
+#block-block-13,
+#block-sharethis-sharethis-block,
+#zone-header-wrapper,
+#block-block-12,
+#block-block-11,
+#accordion,
+#block-search-form,
+#region-eventslider-first,
+#region-eventslider-third,
+.not-logged-in #block-user-login {
+  display:none !important;
+}
+
+#block-block-22 .views-field-field-upload-image img{
+  width:75px!important;
+  height:75px!important;
+}
+
+#block-views-events-slide-show-block .views-field-field-events-banner img{
+  width:120px!important;
+  height:72px!important;
+} 
+
+
+#block-act-home-strategic-initiatives #tabs-contents img{
+  width:250px!important;
+  height:186px!important;
+}
+
+#block-block-22 ul li {
+  width:100%!important;
+}
+
+/*#region-preface-first ,
+#region-preface-third,
+#region-eventslider-first, 
+#region-eventslider-third {
+  float:left !important;
+  width:100% !important;
+}*/
+
+#region-preface-first ,
+#region-preface-third {
+  float:left !important;
+  width:100% !important;
+}
+
+#tabs-contents table tr td {
+  float:left !important;
+}
+
+.tabonhome {
+  display:block !important;
+}
+
+#tabs-contents{
+  margin-left: 0 !important;
+  float:left !important;
+  width:100% !important;
+}
+
+#tabs-titles {
+  float:none !important;
+  width:100% !important;
+}
+
+#region-eventslider-second .view-events-slide-show .flexslider,
+#region-eventslider-second .view-events-slide-show,
+#region-eventslider-second {
+  width:100% !important;
+}
+
+#region-eventslider-second{
+  width:100% !important; 
+}
+
+.views-field-field-events-banner {
+ float:none !important;
+}
+
+.view-events-slide-show .views-field-body,
+.view-events-slide-show .views-field-title {
+  margin:15px 0 !important;
+  width:70% !important;
+}
+
+.view-events-slide-show .views-field-title {
+  width:70% !important;
+  height:auto!important;
+  overflow:visible!important;
+}
+
+
+
+
+

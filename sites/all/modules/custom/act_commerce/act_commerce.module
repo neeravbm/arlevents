@@ -1,0 +1,359 @@
+<?php
+/*fgd
+ *@file
+ * ACT Commerce Callback function
+ */
+
+/*
+ * Implemeting hook_block_info()
+ */
+function act_commerce_block_info() {
+  $blocks = array();
+  $blocks['sessiontrack'] = array(
+    'info' => t('Session and Track Products'),
+    'status' => TRUE,
+    'weight' => 0,
+    'region' => -1,
+  );
+  return $blocks;
+}
+
+
+/*
+ * Implemeting hook_block_view()
+ */
+function act_commerce_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'sessiontrack':
+      $block['subject'] = NULL; //t('Session and Track Cart');
+      $block['content'] = session_track_cart_display_contents();
+      break;
+  }
+  return $block;
+}
+
+
+function session_track_cart_display_contents() {
+  global $user;
+  $products = array();
+  $events = array();
+  //$output = t('Add header text here.');
+  $output = t('');
+  $str = '';
+  if ($order = commerce_cart_order_load($user->uid)) {
+    $wrapper = entity_metadata_wrapper('commerce_order', $order);
+    if (commerce_line_items_quantity($wrapper->commerce_line_items, commerce_product_line_item_types()) > 0) {
+      $view = views_get_view('commerce_cart_form');
+      $view->set_display('default');
+      $view->set_arguments(array($order->order_id));
+      $view->pre_execute();
+      $view->execute();
+      $results = $view->result;
+      foreach ($results as $result) {
+        $products[] = $result->commerce_product_field_data_commerce_product_product_id;
+      }
+
+      if (sizeof($products) > 0) {
+        $view = views_get_view('session_and_track_shopping_cart');
+        $view->set_display('page');
+        $view->set_arguments(array(implode('+', $products)));
+        $view->pre_execute();
+        $view->execute();
+        $product = $view->result;
+        foreach ($product as $prod) {
+          $events[] = $prod->nid;
+        }
+        $str = implode('+', $events);
+      }
+      // dsm($str);
+      $view = views_get_view('event_session_track_cart');
+      $view->set_display('block_1');
+      $view->set_arguments(array($str));
+      $view->pre_execute();
+      $view->execute();
+      $track = $view->render();
+      if (count($view->result)) {
+        $output .= '<h3 class="block-title">' . t('Sessions') . '</h3>';
+        $output .= $track;
+      }
+
+      $view = views_get_view('event_session_track_cart');
+      $view->set_display('block_2');
+      $view->set_arguments(array($str));
+      $view->pre_execute();
+      $view->execute();
+      $session = $view->render();
+      if (count($view->result)) {
+        $output .= '<h3 class="block-title">' . t('Tracks') . '</h3>';
+        $output .= $session;
+      }
+
+    }
+
+  }
+
+  return $output;
+}
+
+/**
+ * Implements hook_form_FORMID_alter() to change the Add to Cart button text.
+ * Task:If the event, session or track is in the past, user should not be able to register for it. Disable the Add to cart button.
+ */
+function act_commerce_form_commerce_cart_add_to_cart_form_alter(&$form, &$form_state, $form_id) {
+  global $user;
+  $status = array();
+  $product_id = '';
+  if (isset($form['product_id']) && !empty($form['product_id'])) {
+    $product_id = $form['product_id']['#value'];
+    $product = commerce_product_load($product_id);
+    if ($product->type == 'product') {
+      if (sizeof($form_state['build_info']['args'][2]) > 0 && $form_state['build_info']['args'][2]['entity_type'] == 'node') {
+        $event = node_load($form_state['build_info']['args'][2]['entity_id']);
+        if ($event->type == 'events') {
+          $field_date = field_get_items('node', $event, 'field_date');
+          $field_date = strtotime($field_date[0]['value']);
+          if ($field_date < time() || $user->uid == 0) {
+            $form['submit']['#disabled'] = TRUE;
+          }
+        }
+      }
+    }
+  }
+
+  /******* Session Node Page *******/
+  if (isset($form['product_id']) && !empty($form['product_id'])) {
+    $product_id = $form['product_id']['#value'];
+    $product = commerce_product_load($product_id);
+    if ($product->type == 'session_product') {
+      if (sizeof($form_state['build_info']['args'][2]) > 0 && $form_state['build_info']['args'][2]['entity_type'] == 'node') {
+        $session = node_load($form_state['build_info']['args'][2]['entity_id']);
+        if ($session->type == 'session') {
+          $field_session_time = field_get_items('node', $session, 'field_session_time');
+          $field_session_time = $field_session_time[0]['value'];
+          if ($field_session_time < time() || $user->uid == 0) {
+            $form['submit']['#disabled'] = TRUE;
+          }
+        }
+      }
+    }
+  }
+
+
+  /******* Track Node Page *******/
+  if (isset($form['product_id']) && !empty($form['product_id'])) {
+    $product_id = $form['product_id']['#value'];
+    $product = commerce_product_load($product_id);
+    if ($product->type == 'tracks_product') {
+      if (sizeof($form_state['build_info']['args'][2]) > 0 && $form_state['build_info']['args'][2]['entity_type'] == 'node') {
+        $tracks = node_load($form_state['build_info']['args'][2]['entity_id']);
+        if ($tracks->type == 'tracks') {
+          //Get event is of track
+          $event_id = get_events_by_track($tracks->nid); // this function is act_event.module
+          if ($event_id) {
+            $node_event = node_load($event_id);
+            $field_date = field_get_items('node', $node_event, 'field_date');
+            $field_date = strtotime($field_date[0]['value']);
+            if ($field_date < time() || $user->uid == 0) {
+              $form['submit']['#disabled'] = TRUE;
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  /******* Session Listing Page *******/
+  if (isset($form['product_id']) && !empty($form['product_id'])) {
+    $product_id = $form['product_id']['#value'];
+    $query_session = new EntityFieldQuery;
+    $query_session->entityCondition('entity_type', 'node', '=')
+      ->propertyCondition('type', 'session')
+      ->fieldCondition('field_session_product_ref', 'product_id', $product_id, '=')
+      ->range(0, 1);
+    $result = $query_session->execute();
+
+    if (isset($result['node'])) {
+      $nid = array_keys($result['node']);
+      $nid = $nid[0];
+      $node = node_load($nid);
+      $field_session_time = field_get_items('node', $node, 'field_session_time');
+      $field_session_time = $field_session_time[0]['value'];
+      if ($field_session_time < time()) {
+        $form['submit']['#disabled'] = TRUE;
+      }
+    }
+  }
+
+
+  /******* Track Listing Page *******/
+  if (isset($form['product_id']) && !empty($form['product_id'])) {
+    $product_id = $form['product_id']['#value'];
+    $query_track = new EntityFieldQuery;
+    $query_track->entityCondition('entity_type', 'node', '=')
+      ->propertyCondition('type', 'tracks')
+      ->fieldCondition('field_tracks_product_ref', 'product_id', $product_id, '=')
+      ->range(0, 1);
+    $result = $query_track->execute();
+    if (isset($result['node'])) {
+      $nid = array_keys($result['node']);
+      $track_nid = $nid[0];
+      $event_nid = get_events_by_track($track_nid);
+      $event = node_load($event_nid);
+      if ($event->type == 'events') {
+        $status = validate_event_registration($event);
+        if ($status['status']) {
+          $form['submit']['#disabled'] = TRUE;
+          if ($status['hide']) {
+            $form['submit']['#access'] = FALSE;
+          }
+        }
+      }
+    }
+  }
+
+
+  /******* Event Listing Page *******/
+  if (isset($form['product_id']) && !empty($form['product_id'])) {
+    $product_id = $form['product_id']['#value'];
+    $query_events = new EntityFieldQuery;
+    $query_events->entityCondition('entity_type', 'node', '=')
+      ->propertyCondition('type', 'events')
+      ->fieldCondition('field_product', 'product_id', $product_id, '=')
+      ->range(0, 1);
+    $result = $query_events->execute();
+
+    if (isset($result['node'])) {
+      $nid = array_keys($result['node']);
+      $nid = $nid[0];
+      $node = node_load($nid);
+      $field_date = field_get_items('node', $node, 'field_date');
+      $field_date = strtotime($field_date[0]['value']);
+      if ($field_date < time()) {
+        $form['submit']['#disabled'] = TRUE;
+      }
+    }
+  }
+
+
+  /******* Track Listing Page *******/
+  if (is_numeric(arg(1)) && arg(0) == 'track-listing') {
+    $node = node_load(arg(1));
+    if ($node->type == 'events') {
+      $field_event_session = field_get_items('node', $node, 'field_event_session');
+      $track_reference_arr = array();
+      if (isset($node->field_event_session) && !empty($field_event_session)) {
+        foreach ($field_event_session as $key => $value) {
+          $session_track = entity_load('field_collection_item', array($value['value']));
+          $session_track = $session_track[$value['value']];
+          $field_track_reference = field_get_items('field_collection_item', $session_track, 'field_track_reference');
+          //$track_reference_arr[] = $field_track_reference[0]['target_id'];
+          $field_date = field_get_items('node', $node, 'field_date');
+          $field_date = strtotime($field_date[0]['value']);
+          if ($field_date < time() || $user->uid == 0) {
+            $form['submit']['#disabled'] = TRUE;
+          }
+        }
+      }
+    }
+  }
+
+  /********** Disable 'Register Now' on tracker node page *********/
+  /*if ($node = menu_get_object()){
+    if($node->type == 'tracks'){
+      $event_id = get_events_by_track($node->nid); // this function is act_event.module
+      if($event_id){
+        $node_event = node_load($event_id);
+        $field_date = field_get_items('node', $node_event, 'field_date');
+        $field_date = strtotime($field_date[0]['value']);
+        if($field_date < time()){
+          $form['submit']['#disabled'] = TRUE;
+        }
+      }
+    }
+  }*/
+
+}
+
+/**
+ * Implements hook_form_FORMID_alter()
+ * Task:Disallow autofill on Checkout page
+ */
+function act_commerce_form_commerce_checkout_form_checkout_alter(&$form, &$form_state, $form_id) {
+  $form['customer_profile_billing']['commerce_customer_address']['und'][0]['name_block']['name_line']['#attributes']['autocomplete'] = 'off';
+  array_unshift($form['buttons']['continue']['#validate'], '_act_commerce_checkout_validate');
+
+  global $user;
+  $form['account']['username']['#markup'] = format_username($user);
+}
+
+/**
+ * Validate callback for registration badge 
+ */
+function _act_commerce_checkout_validate($form, &$form_state) {
+
+  if (!empty($form_state['values']['act_event_registration_badge']['registration_badge'])) {
+
+    $regbadges = $form_state['values']['act_event_registration_badge']['registration_badge'];
+
+    $total_cart_items = 0;
+    $order = $form_state['order'];
+    $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+    foreach ($order_wrapper->commerce_line_items as $delta => $line_item_wrapper) {
+      $product_type = $line_item_wrapper->commerce_product->type->value();
+      if ($product_type == 'product' || $product_type == 'session_product' || $product_type == 'track_product') {
+        $line_item = $line_item_wrapper->value();
+        $total_cart_items = intval($line_item->quantity);
+        break;
+      }
+    }
+
+    $count = 0;
+    foreach ($regbadges as $regbadge) {
+      if (!empty($regbadge['badgename']) && $regbadge['badgename'] != '0') {
+        $count += 1;
+      }
+    }
+
+    if ($count != $total_cart_items) {
+      form_set_error('act_event_registration_badge', t('Number of registration badges does not match the number of registrations.'));
+    }
+  }
+}
+
+/**
+ * Implements hook_block_view_MODULE_DELTA_alter().
+ */
+function act_commerce_block_view_commerce_cart_cart_alter(&$data, $block) {
+  $data['subject'] = t('Cart');
+  if ($quantity = get_items_in_cart()) {
+    $data['subject'] = t('(@quantity)', array('@quantity' => $quantity));
+  }
+}
+
+
+/**
+ * Returns number of items in cart.
+ *
+ * @param mixed $uid
+ *   Account id.
+ * @return integer $quantity
+ *   Number of items in cart.
+ */
+function get_items_in_cart($uid = '') {
+  if (empty($uid)) {
+    global $user;
+    $uid = $user->uid;
+  }
+
+  $quantity = 0;
+  $order = commerce_cart_order_load($uid);
+  if (!empty($order)) {
+    $wrapper = entity_metadata_wrapper('commerce_order', $order);
+    $line_items = $wrapper->commerce_line_items;
+    $quantity = commerce_line_items_quantity($line_items, commerce_product_line_item_types());
+  }
+
+  return $quantity;
+}

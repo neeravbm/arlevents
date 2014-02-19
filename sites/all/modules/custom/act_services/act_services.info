@@ -1,0 +1,6 @@
+name = ACT Services
+description = Manage services.
+core = 7.x
+version = 7.x-2.0
+package = ACT Custom
+file = act_services.module

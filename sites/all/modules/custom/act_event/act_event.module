@@ -1,0 +1,1915 @@
+<?php
+/*
+ *@file
+ * ACT event
+*/
+
+function act_event_init() {
+
+  if (isset($_GET['ss'])) {
+    $acc = user_load(9622);
+    $status = og_user_access_entity("create group content", "node", 3074, $acc);
+  }
+
+  drupal_add_js(drupal_get_path('module', 'act_event') . '/js/act_event.js');
+
+  // To manage group nid in url.
+  if (isset($_GET['n']) && arg(1) == '') {
+    $nid = check_plain($_GET['n']);
+    drupal_goto(request_path() . '/' . $nid);
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function act_event_permission() {
+  return array(
+    'register for events marked govt' => array(
+      'title' => t('Register for events that are marked as for government members'),
+      'description' => t('Register for events that are marked as for government members.'),
+    ),
+    'update from netforum' => array(
+      'title' => t('Update from netforum'),
+      'description' => t('Update from netforum'),
+    ),
+    'view event attendees' => array(
+      'title' => t('View Event Attendees'),
+      'description' => t('View Event Attendees'),
+    ),
+  );
+}
+
+/*
+ * Implementing hook_menu(); 
+*/
+function act_event_menu() {
+  $items = array();
+
+  $items['keynote-speaker/%node'] = array(
+    'title' => t('Keynote Speaker'),
+    'page callback' => 'act_event_speaker',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['agenda/%node'] = array(
+    'title' => t('Agenda'),
+    'page callback' => 'act_event_agenda',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['press-release/%node'] = array(
+    'title' => t('Press Release'),
+    'page callback' => 'act_event_press_release',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['travel/%node'] = array(
+    'title' => t('Travel'),
+    'page callback' => 'act_event_travel',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['accommodation/%node'] = array(
+    'title' => t('Accommodation'),
+    'page callback' => 'act_event_accommodation',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['media-partner/%node'] = array(
+    'title' => t('Media Partners'),
+    'page callback' => 'act_event_media_partner',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['sponsorship-opportunities/%node'] = array(
+    'title' => t('Sponsorship Opportunities'),
+    'page callback' => 'act_event_sponsorship_opp',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['contact-us/%node'] = array(
+    'title' => t('Contact Us'),
+    'page callback' => 'act_event_contact_us',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['social-media/%node'] = array(
+    'title' => t('Social Media'),
+    'page callback' => 'act_event_social_media',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['floor-plans/%node'] = array(
+    'title' => t('Floor Plans'),
+    'page callback' => 'act_event_floor_plans',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['program-committee/%node'] = array(
+    'title' => t('Program Committee'),
+    'page callback' => 'act_event_program_committee',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['track-description/%node'] = array(
+    'title' => t('Track Description'),
+    'page callback' => 'act_event_track_description',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['conference-sponsors/%node'] = array(
+    'title' => t('Conference Sponsors'),
+    'page callback' => 'act_event_conference_sponsors',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['create-badges/%node'] = array(
+    'title' => t('Create Badges'),
+    'page callback' => 'act_event_create_badges',
+    'page arguments' => array(1),
+    'access callback' => 'event_group_access',
+    'access arguments' => array(1),
+    'file' => 'include/act_event.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['node/%node/manage-badge'] = array(
+    'title callback' => 'badge_page_title',
+    'title arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_act_event_manage_badge'),
+    'access callback' => '_act_event_manage_badge_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'include/act_event.pages.inc',
+  );
+
+  $items['badge/user/%node'] = array(
+    'page callback' => '_act_event_badge_autocomplete_user',
+    'page arguments' => array(2),
+    'access callback' => user_access('administer content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'include/act_event.pages.inc',
+  );
+
+  $items['eventScan'] = array(
+    'page callback' => '_act_event_badge_eventscan',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'include/act_event.pages.inc',
+  );
+
+  $items['manage-badge-attendance'] = array(
+    'title' => t('Badge Attendance'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('act_event_manage_badge_attendance'),
+    'access callback' => 'act_event_manage_badge_attendance_access',
+    'type' => MENU_CALLBACK,
+    'file' => 'include/act_event.pages.inc',
+  );
+
+  $items['node/%node/event-attendees'] = array(
+    'title' => t('Attendees'),
+    'page callback' => 'act_get_arl_event_attendees',
+    'page arguments' => array(1),
+    'access callback' => '_act_event_attendees_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'include/act_event.pages.inc',
+  );
+
+  $items['resize'] = array(
+    'title' => t('Resize'),
+    'page callback' => 'act_event_get_resize_page',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'include/act_event.pages.inc',
+  );
+
+  return $items;
+}
+
+/*
+ * Access callback for Badge
+ */
+function _act_event_manage_badge_access($node) {
+  global $user;
+  return $node->type == 'events' && og_user_access_entity('administer group', 'node', $node, $user);
+}
+
+/*
+ * Access callback for Event attendees 
+ */
+function _act_event_attendees_access($node) {
+  return $node->type == 'events' && user_access('view event attendees');
+}
+
+/*
+ * Access callback for Marking user attendance
+ */
+function act_event_manage_badge_attendance_access() {
+  return TRUE;
+}
+
+/*
+ * Implements hook_node_access
+ * Function to set access permission for Edit Org node for its POC user only
+ */
+function act_event_node_access($node, $op, $account) {
+
+}
+
+/**
+ * Badge Title callback.
+ */
+function badge_page_title($node) {
+  return t('Badges for ' . $node->title);
+}
+
+/*
+ * Access Callback 
+ */
+function event_group_access($node) {
+  global $user;
+  if (is_object($node)) {
+    $group_access = field_get_items('node', $node, 'group_access');
+    $group_access = $group_access[0]['value'];
+    if ($group_access) {
+      if ((og_is_member('node', $node->nid, 'user', $user, array(OG_STATE_ACTIVE)) || $user->uid == 1)) {
+        return TRUE;
+      }
+    }
+    if ($group_access == 0) { // public group
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+
+/*
+ * Implemeting hook_block_info()
+ */
+function act_event_block_info() {
+  $blocks = array();
+  $blocks['joinevent'] = array(
+    'info' => t('Will you attend?'),
+    'status' => TRUE,
+    'weight' => 0,
+    'region' => 'sidebar_second',
+  );
+  $blocks['eventlinks'] = array(
+    'info' => t('Event Links'),
+    'status' => TRUE,
+  );
+  $blocks['eventaddress'] = array(
+    'info' => t('Event Address'),
+    'status' => TRUE,
+  );
+  $blocks['eventbannertext'] = array(
+    'info' => t('Event Banner Text'),
+    'status' => TRUE,
+  );
+  $blocks['eventtab'] = array(
+    'info' => t('Event Tabs'),
+    'status' => TRUE,
+    'region' => -1,
+  );
+  return $blocks;
+}
+
+
+/*
+ * Implemeting hook_block_view()
+ */
+function act_event_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'joinevent':
+      $block['subject'] = t('Will you attend?');
+      $block['content'] = event_join_event_display_content();
+      break;
+    case 'eventlinks':
+
+      $group = og_context();
+
+      if (empty($group)) {
+        $gnode = check_plain(arg(1));
+        $gnode = is_numeric($gnode) ? $gnode : NULL;
+      }
+      else {
+        $gnode = $group['gid'];
+      }
+
+      $node = node_load($gnode);
+
+      if (!is_object($node)) {
+        return;
+      }
+
+      $eventShortTitle = $node->field_event_short_title[LANGUAGE_NONE][0]['value'];
+
+      $block['subject'] = t($eventShortTitle);
+      $block['content'] = act_event_get_event_links($node);
+      break;
+    case 'eventaddress':
+      $block['subject'] = NULL;
+      $block['content'] = act_event_get_event_address();
+      break;
+    case 'eventbannertext':
+      $block['subject'] = NULL;
+      $block['content'] = act_event_get_event_bannertext();
+      break;
+    case 'eventtab':
+      $block['subject'] = NULL;
+      $block['content'] = act_event_tab();
+      break;
+  }
+  return $block;
+}
+
+
+/*
+ * Implemeting hook_theme()
+*/
+
+function act_event_theme() {
+
+  return array(
+    'event_links' => array(
+      'template' => 'theme/act-event-links',
+      'variables' => array(
+        'users' => NULL,
+        'session_count' => NULL,
+        'track_count' => NULL,
+        'meetspeaker_count' => NULL,
+        'agenda_count' => NULL,
+        'conference_sponsors_count' => NULL,
+      ),
+    ),
+    'event_address' => array(
+      'template' => 'theme/act-event-address',
+      'variables' => array(
+        'users' => NULL,
+        'details' => NULL,
+      ),
+    ),
+    'event_get_speaker' => array(
+      'template' => 'theme/act-event-speaker',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_agenda' => array(
+      'template' => 'theme/act-event-agenda',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_press_release' => array(
+      'template' => 'theme/act-event-press-release',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_travel' => array(
+      'template' => 'theme/act-event-travel',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_accommodation' => array(
+      'template' => 'theme/act-event-accommodation',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_media_partners' => array(
+      'template' => 'theme/act-event-media-partners',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_sponsorship_opp' => array(
+      'template' => 'theme/act-event-sponsorship-opp',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_contact_us' => array(
+      'template' => 'theme/act-event-contact-us',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_social_media' => array(
+      'template' => 'theme/act-event-social-media',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_floor_plans' => array(
+      'template' => 'theme/act-event-floor-plans',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_program_committee' => array(
+      'template' => 'theme/act-event-program-committee',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_track_description' => array(
+      'template' => 'theme/act-event-track-description',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_get_conference_sponsors' => array(
+      'template' => 'theme/act-event-conference-sponsors',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+    'event_tabs' => array(
+      'template' => 'theme/act-event-tabs',
+      'variables' => array(
+        'users' => NULL,
+      ),
+    ),
+
+  );
+}
+
+
+/*
+ * Callback function for $blocks['joinevent']
+ */
+function event_join_event_display_content() {
+  drupal_add_css(drupal_get_path('module', 'act_event') . '/css/act_event.css');
+  global $user;
+  $output = '';
+  $event = (is_numeric(arg(1))) ? node_load(arg(1)) : 0;
+  if (is_object($event)) {
+    $attendee_count = db_select('registration', 'r')
+      ->fields('r')
+      ->condition('entity_id', $event->nid)
+      ->condition('entity_type', 'node')
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $registration_type = registration_get_entity_registration_type('node', $event);
+    $registration = entity_get_controller('registration')->create(array(
+      'entity_type' => 'node',
+      'entity_id' => $event->nid,
+      'type' => $registration_type,
+      'author_uid' => $user->uid,
+    ));
+
+    if ($user->uid) {
+      if (!registration_is_registered($registration, NULL, $user->uid)
+        && registration_access('create', $registration, $user, $registration->type)
+      ) {
+        module_load_include('inc', 'commons_events', 'includes/commons_events.forms');
+        $output .= '<div class="events-attendees-form">' . drupal_render(drupal_get_form('commons_events_attend_event_form', $event, $registration, $attendee_count)) . '</div>';
+      }
+      else {
+        if (registration_access('delete', $registration, $user, $registration->type)) {
+          module_load_include('inc', 'commons_events', 'includes/commons_events.forms');
+          $output .= '<div class="events-attendees-form">' . drupal_render(drupal_get_form('commons_events_cancel_event_form', $event)) . '</div>';
+        }
+      }
+    }
+
+    if ($attendee_count) {
+      $name = 'dashboard_event_attendee_list';
+      $output .= '<div class="events-attendees-title"><h3>' . t('@attendees attending', array('@attendees' => $attendee_count)) . '</h3>';
+      $output .= views_embed_view($name, $display_id = 'block_1', $event->nid);
+      $output .= '</div>';
+    }
+  }
+  return $output;
+}
+
+/*
+ * Implemeting hook_form_alter()
+ */
+function act_event_form_alter(&$form, &$form_state, $form_id) {
+  global $user;
+
+  $eventRegDisableFlag = FALSE;
+
+  if (strpos($form_id, 'commerce_cart_add_to_cart_form_') === 0) {
+    $product_id = $form['product_id']['#value'];
+    $product = commerce_product_load($product_id);
+    if ($product->type == 'product') {
+      // Product type is event. Check that registration is allowed for this node.
+      if (sizeof($form_state['build_info']['args'][2]) > 0 && $form_state['build_info']['args'][2]['entity_type'] == 'node') {
+        $event = node_load($form_state['build_info']['args'][2]['entity_id']);
+        if ($event->type == 'events') {
+          $status = validate_event_registration($event);
+          if ($status['status']) {
+            $form['submit']['#disabled'] = TRUE;
+            if ($status['hide']) {
+              $form['submit']['#access'] = FALSE;
+            }
+            $eventRegDisableFlag = TRUE;
+          }
+
+        }
+      }
+    }
+
+    if ($product->type == 'session_product') {
+      // Product type is event. Check that registration is allowed for this node.
+      if (sizeof($form_state['build_info']['args'][2]) > 0 && $form_state['build_info']['args'][2]['entity_type'] == 'node') {
+        $session = $form_state['build_info']['args'][2]['entity_id'];
+        if (get_events_by_session($session)) {
+          $event_nid = get_events_by_session($session);
+          $event = node_load($event_nid);
+          if ($event->type == 'events') {
+            $status = validate_event_registration($event);
+            if ($status['status']) {
+              $form['submit']['#disabled'] = TRUE;
+              if ($status['hide']) {
+                $form['submit']['#access'] = FALSE;
+              }
+
+            }
+          }
+        }
+      }
+    }
+
+    if ($product->type == 'tracks_product') {
+      // Product type is event. Check that registration is allowed for this node.
+      if (sizeof($form_state['build_info']['args'][2]) > 0 && $form_state['build_info']['args'][2]['entity_type'] == 'node') {
+        $track = $form_state['build_info']['args'][2]['entity_id'];
+        if (get_events_by_track($track)) {
+          $event_nid = get_events_by_track($track);
+          $event = node_load($event_nid);
+          if ($event->type == 'events') {
+            $status = validate_event_registration($event);
+            if ($status['status']) {
+              $form['submit']['#disabled'] = TRUE;
+              if ($status['hide']) {
+                $form['submit']['#access'] = FALSE;
+              }
+            }
+          }
+        }
+      }
+    }
+
+
+    // Disable registration button at session listing page
+    if (is_numeric(arg(1)) && arg(0) == 'session-listing') {
+      $arg = arg(1);
+      $event = node_load($arg);
+      $status = validate_event_registration($event);
+      if ($status['status']) {
+        $form['submit']['#disabled'] = TRUE;
+        if ($status['hide']) {
+          $form['submit']['#access'] = FALSE;
+        }
+        $eventRegDisableFlag = TRUE;
+      }
+    }
+
+    // Disable registration button at track listing page
+    if (is_numeric(arg(1)) && arg(0) == 'track-listing') {
+      $arg = arg(1);
+      $event = node_load($arg);
+      $status = validate_event_registration($event);
+      if ($status['status']) {
+        $form['submit']['#disabled'] = TRUE;
+        if ($status['hide']) {
+          $form['submit']['#access'] = FALSE;
+        }
+        $eventRegDisableFlag = TRUE;
+      }
+    }
+
+    // TODO:Disable registration button on calendar/month/listing page
+    if (isset($form['product_id']) && !empty($form['product_id'])) {
+      $product_id = $form['product_id']['#value'];
+      $query_events = new EntityFieldQuery;
+      $query_events->entityCondition('entity_type', 'node', '=')
+        ->propertyCondition('type', 'events')
+        ->fieldCondition('field_product', 'product_id', $product_id, '=')
+        ->range(0, 1);
+      $result = $query_events->execute();
+      if (isset($result['node'])) {
+        $nid = array_keys($result['node']);
+        $nid = $nid[0];
+        $event = node_load($nid);
+        $status = validate_event_registration($event);
+        if ($status['status']) {
+          $form['submit']['#disabled'] = TRUE;
+          if ($status['hide']) {
+            $form['submit']['#access'] = FALSE;
+          }
+          $eventRegDisableFlag = TRUE;
+        }
+      }
+    }
+
+    /************* Register Now Button for Non-POC ******/
+    if (isset($form['product_id']) && !empty($form['product_id'])) {
+      $product_id = $form['product_id']['#value'];
+      if (validate_registration_for_poc($product_id)) {
+        $form['submit']['#disabled'] = TRUE;
+        $form['submit']['#access'] = FALSE;
+        $eventRegDisableFlag = TRUE;
+        //$form['submit']['#access'] = FALSE;
+      }
+    }
+
+  }
+  /**************** End ********/
+
+  /****Diabling Register button if capacity overflow***/
+  if (!$eventRegDisableFlag &&
+    isset($form['product_id']) &&
+    !empty($form['product_id']) && !empty($form_state['build_info']['args'][2]['entity_id'])
+  ) {
+
+    $product_id = $form['product_id']['#value'];
+    $totalOrders = 16; //(int) act_event_get_event_total_order_count($product_id);
+    $event = node_load($form_state['build_info']['args'][2]['entity_id']);
+
+    if (isset($event->field_capacity['und'][0]['value'])) {
+      $capacity = (int) $event->field_capacity['und'][0]['value'];
+    }
+    else {
+      $capacity = -1;
+    }
+
+    if ($capacity != -1 && $capacity <= $totalOrders) {
+      $form['submit']['#disabled'] = TRUE;
+      $form['info'] = array(
+        '#markup' => t('This event is full. Please ' . l('click here', 'mailto:admin@actiac.gov?subject=Waitlist request for ' . check_plain($event->title)) . ' to be included in the waitlist.'),
+        '#prefix' => '<div id="reg_info">',
+        '#suffix' => '</div>',
+      );
+    }
+  }
+
+
+  if ($form_id == 'commons_events_cancel_event_form') {
+    $form['submit']['#value'] = t('Cancel RSVP');
+  }
+
+  // Altering Contant us form "sent to" email id
+  if ($form_id == 'webform_client_form_106') {
+    $nid = check_plain(arg(1));
+    $node = node_load($nid);
+
+    $email = @$node->field_contact_us_email[LANGUAGE_NONE][0]['value'];
+
+    $form['submitted']['eventnid']['#default_value'] = $nid;
+    $form['submitted']['sendto']['#default_value'] = $email;
+  }
+
+  if ($form_id == 'privatemsg_new') {
+
+    $recipient = check_plain(arg(2));
+
+    if ($recipient == '' || !is_numeric($recipient)) {
+
+      if (isset($_GET['t'])) {
+        array_unshift($form['#validate'], "act_event_privatemsg_custom_validate");
+        $form['recipient']['#default_value'] = 'admin'; // on validate it would be override
+        hide($form['recipient']);
+      }
+
+    }
+  }
+
+  if ($form_id == 'events_node_form') {
+    $form['#validate'][] = 'act_event_form_validate';
+  }
+
+  if ($form_id == 'group_node_form') {
+    $form['#validate'][] = 'act_event_group_form_validate';
+    hide($form['options']['status']);
+  }
+
+}
+
+
+/*
+ * Function to validate email address for events
+ */
+function act_event_form_validate($form, &$form_state) {
+
+  $mail = check_plain($form_state['values']['field_contact_us_email'][LANGUAGE_NONE][0]['value']);
+
+  if (!valid_email_address($mail)) {
+    form_set_error('field_contact_us_email', t('The e-mail address %mail is not valid.', array('%mail' => $mail)));
+  }
+}
+
+/*
+ * Function to validate Leadership field, both should be filled up or can be empty 
+ */
+function act_event_group_form_validate($form, &$form_state) {
+
+  if (!empty($form_state['values']['field_leadership']) && $form_state['clicked_button']['#value'] == 'Save') {
+    foreach ($form_state['values']['field_leadership'][LANGUAGE_NONE] as $key => $leadrship_ref) {
+      if (!is_numeric($key)) {
+        continue;
+      }
+      if ((empty($leadrship_ref['field_position']['und'][0]['value']) xor empty($leadrship_ref['field_leader']['und'][0]['target_id']))) {
+        form_set_error('field_leadership', t('Position and Leader both are required. Please check any fields thats left empty.'));
+        break;
+      }
+    }
+  }
+}
+
+/*
+ * Function callback for custom filling user in Recipient field
+ */
+function act_event_privatemsg_custom_validate($form, &$form_state) {
+
+  global $user;
+
+  $type = isset($_GET['t']) ? check_plain($_GET['t']) : NULL;
+  $nid = isset($_GET['n']) ? check_plain($_GET['n']) : NULL;
+
+  $recipients = array();
+
+  if ($type == 'community') {
+
+    $view = views_get_view('og_members');
+    $view->set_display("block_1");
+    $view->set_arguments(array($nid));
+    $view->render();
+    $users = $view->result;
+
+    foreach ($users as $key => $value) {
+      $recipients[] = @$value->name . ' [user: ' . @$value->uid . ']';
+    }
+  }
+
+  if ($type == 'site') {
+    $query = db_select('users', 'users');
+    $query->condition('users.status', 1)
+      ->condition('users.uid', $user->uid, '<>')
+      ->fields('users', array('uid', 'name'));
+
+    $result = $query->execute()->fetchAll();
+    foreach ($result as $key => $value) {
+      $recipients[] = $value->name . ' [user: ' . $value->uid . ']';
+    }
+
+  }
+  $form_state['input']['recipient'] = implode(',', $recipients);
+  $form_state['values']['recipient'] = implode(',', $recipients);
+}
+
+/*
+ * Callback function for Event Links block
+ */
+function act_event_get_event_links($node) {
+
+  global $user;
+
+  if (is_object($node)) {
+    if ($node->type == 'events') {
+      /*       * ************ Event link page ****** */
+      // Count session
+      $view = views_get_view('event_session_track');
+      $view->set_display("page_1");
+      $view->set_arguments(array($node->nid));
+      $view->render();
+      $session = count($view->result);
+
+      // Count track
+      $view = views_get_view('event_session_track');
+      $view->set_display("page_2");
+      $view->set_arguments(array($node->nid));
+      $view->render();
+      $track = count($view->result);
+
+      // Count Meet a speaker
+      $meetspeaker = array();
+      $meetspeaker_count = '';
+      $view = views_get_view('event_profile');
+      $view->set_display("page");
+      $view->set_arguments(array($node->nid));
+      //$view->render();
+      //$meetspeaker_count = count($view->result); 
+      if (count($view->result) > 0) {
+        foreach ($view->result as $result) {
+          $meetspeaker[] = $result->node_field_data_field_session_reference_nid;
+        }
+        //dsm($meetspeaker);
+        $meetspeaker = array_filter($meetspeaker);
+        $meetspeaker_count = count($meetspeaker);
+      }
+
+
+      // Count agenda
+      $agenda_count = act_event_agenda_count($node);
+
+      // Count conference sponsors
+      $view = views_get_view('event_conference_sponsors');
+      $view->set_display("page_1");
+      $view->set_arguments(array($node->nid));
+      $view->render();
+      $conference_sponsors_count = count($view->result);
+
+      if ($conference_sponsors_count <= 0) {
+        // counting silver sponsor
+        $view = views_get_view('event_conference_sponsors');
+        $view->set_display("block_2");
+        $view->set_arguments(array($node->nid));
+        $view->render();
+        $conference_sponsors_count = count($view->result);
+      }
+
+      // getting custom links blocks
+      $customLinks = act_event_get_custom_link_data($node);
+    }
+  }
+  return theme('event_links', array(
+    'users' => $user,
+    'session_count' => $session,
+    'track_count' => $track,
+    'meetspeaker_count' => $meetspeaker_count,
+    'agenda_count' => $agenda_count,
+    'conference_sponsors_count' => $conference_sponsors_count,
+    'customLinks' => $customLinks
+  ));
+}
+
+/*
+ * Function to process custom links of event
+ */
+function act_event_get_custom_link_data($node) {
+
+  $customLinks = @$node->field_custom_links['und'];
+
+  if (!empty($customLinks)) {
+
+    foreach ($customLinks as $box) {
+      $boxids[$box['value']] = $box['value'];
+    }
+
+    $boxcontents = entity_load('field_collection_item', $boxids);
+
+
+    $box_header = array();
+
+    foreach ($boxcontents as $bxid => $box) {
+
+      $bxlinks = array();
+
+      $box_header[$bxid] = array('label' => $box->field_label_custom_links_box['und'][0]['value']);
+
+      foreach ($box->field_custom_links_box[LANGUAGE_NONE] as $box_link) {
+        $bxlinks[] = $box_link['value'];
+      }
+
+      $boxlinkcontent = entity_load('field_collection_item', $bxlinks);
+
+      foreach ($boxlinkcontent as $bxlid => $boxlink) {
+        $box_header[$bxid]['bxlinks'][$bxlid] = array(
+          'label' => $boxlink->field_label_custom_link['und'][0]['value'],
+          'link' => 'custom-links/' . $node->nid . '/' . $bxid . '/' . $bxlid
+        );
+      }
+    }
+
+    return $box_header;
+  }
+
+  return FALSE;
+
+}
+
+/*
+ * Menu callback
+ * Return Event Address block
+ */
+function act_event_get_event_address() {
+  global $user;
+  $detail = ''; //
+  $details = array();
+  $details = module_invoke('cck_blocks', 'block_view', 'body');
+  if (count($details) > 0) {
+    $detail = $details['content'];
+  }
+  
+  return theme('event_address', array('users' => $user, 'details' => $detail));
+}
+
+
+/*
+ * Menu callback
+ * Return Event Address block
+ */
+function act_event_get_event_bannertext() {
+	$field_event_banner_text = '';
+	if (arg(0) == 'node' && is_numeric(arg(1))) {
+	$nid = arg(1);
+	$node = node_load($nid);
+    $field_event_banner_text = field_get_items('node', $node, 'field_event_banner_text');
+    $field_event_banner_text = $field_event_banner_text[0]['value'];
+  }
+  return $field_event_banner_text;
+}
+
+
+
+/*
+ * Menu callback
+ * Return custom view, edit and administer group tabs on all event pages
+ */
+function act_event_tab() {
+  return theme('event_tabs');
+}
+
+
+/**
+ * Implements hook_commerce_checkout_pane_info().
+ *
+ * This is where we define the name of the pane, related information, and
+ * the base name of all the form builder functions used to present the
+ * pane.
+ */
+function act_event_commerce_checkout_pane_info() {
+  $panes['act_event_registration_badge'] = array(
+    'title' => t('Badge Registration'),
+    'base' => 'act_event_registration_badge_pane',
+    // The checkout page where this should be displayed by default.
+    'page' => 'checkout',
+    'weight' => -6,
+  );
+  return $panes;
+}
+
+
+/*
+* Hook hook_commerce_checkout_pane_info_alter($checkout_pane)
+*/
+function act_event_commerce_checkout_pane_info_alter(&$checkout_pane) {
+
+  global $user;
+
+  if (isset($checkout_pane['act_event_registration_badge'])) {
+
+    $checkout_pane['act_event_registration_badge']['enabled'] = 0;
+
+    $order = commerce_cart_order_load($user->uid);
+
+    if (is_object($order) && isset($order->order_id)) {
+
+      $line_items = sizeof($order->commerce_line_items) ? $order->commerce_line_items[LANGUAGE_NONE] : array();
+
+      $real_count = 0;
+      foreach ($line_items as $line_item_object) {
+
+        $line_item = commerce_line_item_load($line_item_object['line_item_id']);
+        $product_id = $line_item->commerce_product[LANGUAGE_NONE][0]['product_id'];
+        $product = commerce_product_load($product_id);
+
+        if ($product->type == 'product' || $product->type == 'session_product' || $product->type == 'tracks_product') {
+          $real_count++;
+        }
+      }
+      /*
+      if ($real_count == 1) {
+        $checkout_pane['act_event_registration_badge']['enabled'] = 1;
+      }
+      else {
+        $checkout_pane['act_event_registration_badge']['enabled'] = 0;
+      }*/
+    }
+  }
+}
+
+/**
+ * Form pane to show all available tickets so as to add theme in user cart.
+ */
+function act_event_registration_badge_pane_checkout_form($form, &$form_state, $checkout_pane, $order) {
+  return act_event_get_registration_badge_form($order);
+}
+
+/*
+function act_event_get_registration_badge_form ($order) {
+  
+  //global $user;
+  
+  $userprofiles[0] = '--select--';
+  
+  $user = user_load($order->uid);
+  
+  if(empty($user->field_organization)) return;
+    
+  $orgRef = $user->field_organization[LANGUAGE_NONE][0]['target_id'];
+  
+  // Extract POC of organization
+  $org_node = node_load($orgRef);
+  $poc_uid = @$org_node->field_organization_poc[LANGUAGE_NONE][0]['target_id'];
+  
+  if($user->uid != $poc_uid) return;
+  
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')
+        ->propertyCondition('status', 1)
+        ->fieldCondition('field_organization','target_id', $orgRef , '=');
+  $result = $query->execute();
+
+  if(isset($result['user']) && count($result['user']) > 0) {
+    $profiles = entity_load('user', array_keys($result['user']));
+
+    foreach ($profiles as $profile) {
+
+      $company = '';
+      if(!empty($user->field_organization[LANGUAGE_NONE])) {
+        $orgRef = $profile->field_organization[LANGUAGE_NONE][0]['target_id'];
+        $user_org = entity_load('node',array($orgRef));
+        $company = $user_org[$orgRef]->title;
+      }
+      $location = !empty($profile->field_user_address) ? $profile->field_user_address[LANGUAGE_NONE][0]['value'] : '';
+
+       $form['registration_badge_rec'][$profile->uid] = array(
+         '#type' => 'hidden',
+         '#attributes' => array( 'name' => $profile->name,
+                                 'company'=>$company,
+                                 'location'=>$location,
+                                 'id'=>'uid_'.$profile->uid,
+                                ),
+        );
+       $userprofiles[$profile->uid] = $profile->name;
+    }
+    
+    // Moves poc element to top of that array so it get default selected
+    $poc_name = $userprofiles[$poc_uid];
+    unset($userprofiles[$poc_uid]);
+    unset($userprofiles[0]);
+    $userprofiles = array(0=>'select',$poc_uid=>$poc_name) + $userprofiles;
+    
+  }
+  unset($users);
+    
+  $form['#tree'] = TRUE;
+  
+  for( $i=0; $i<100 ; $i++) {
+    
+      $form['registration_badge'][$i]['badgename'] = array(
+	   '#type' => 'select',
+	   '#title' => t('Name'),
+	   '#options' => $userprofiles,
+	   '#required' => FALSE,
+	   '#prefix' => '<div style="display:none" class="reg_badge_block" id="rb_'.$i.'">',
+	   '#attributes' => array('class' => array('reg-badge-name')),
+	  );
+
+      $form['registration_badge'][$i]['badgetitle'] = array(
+	   '#type' => 'textfield',
+	   '#title' => t('Title'),
+	   '#size' => 60,
+	   '#maxlength' => 128,
+	   '#required' => FALSE,
+	  );
+      
+      $form['registration_badge'][$i]['badgeorganization'] = array(
+       '#type' => 'textfield',
+       '#title' => t('Organization'),
+       '#size' => 60,
+       '#maxlength' => 128,
+       '#required' => FALSE,
+         '#attributes' => array( 'class' => array('company')),
+      );
+
+      $form['registration_badge'][$i]['badgelocation'] = array(
+       '#type' => 'textfield',
+       '#title' => t('Location'),
+       '#size' => 60,
+       '#maxlength' => 128,
+        '#attributes' => array( 'class' => array('location')),
+       '#required' => FALSE,
+      );
+
+      $form['registration_badge'][$i]['badgeregtype'] = array(
+       '#type' => 'textfield',
+       '#title' => t('Reg Type'),
+       '#default_value' =>'',
+       '#size' => 60,
+       '#maxlength' => 128,
+       '#required' => FALSE,
+      );
+
+      $form['registration_badge'][$i]['badgesource_code'] = array(
+       '#type' => 'textfield',
+       '#title' => t('Source Code'),
+       '#default_value' =>'',
+       '#size' => 60,
+       '#maxlength' => 128,
+       '#required' => FALSE,
+      );
+
+      $form['registration_badge'][$i]['reg_badge_remove_one'] = array(
+       '#type' => 'button',
+       '#value' => t('Remove'),
+        '#attributes' => array('onclick' => "return false;",'rbind'=>$i),
+        '#prefix' => '<div class="removebadge">',
+         '#suffix' => '</div></div>',
+      );
+      
+}
+
+  $form['reg_badge_add_more'] = array(
+   '#type' => 'button',
+   '#value' => t('Add more'),
+    '#attributes' => array('onclick' => "return false;",'rbind'=>'0'),
+     '#prefix' => '<div class="addmorebadge">',
+     '#suffix' => '</div>',
+  );
+  
+ 
+  return $form;
+}*/
+
+
+function act_event_get_registration_badge_form($order) {
+  //global $user;
+
+  $userprofiles[0] = '--select--';
+  $poc_uid_arr = array();
+  $user = user_load($order->uid);
+  if (!empty($user->field_organization)) {
+    $field_organization = field_get_items('user', $user, 'field_organization');
+    $orgRef = $field_organization[0]['target_id'];
+
+    // Extract POC of organization
+    $org_node = node_load($orgRef);
+
+    // POC updated by devendra
+    //dsm($org_node);
+    //$poc_uid = @$org_node->field_organization_poc[LANGUAGE_NONE][0]['target_id'];
+    if (!empty($org_node->field_organization_poc) && sizeof($org_node->field_organization_poc[LANGUAGE_NONE]) > 0) {
+      foreach ($org_node->field_organization_poc[LANGUAGE_NONE] as $k => $v) {
+        $poc_uid_arr[] = $v['target_id'];
+      }
+    }
+
+    //if($user->uid == $poc_uid){
+    if (in_array($user->uid, $poc_uid_arr)) { // POC updated by devendra
+      $query = new EntityFieldQuery();
+      $query->entityCondition('entity_type', 'user')
+        ->propertyCondition('status', 1)
+        ->fieldCondition('field_organization', 'target_id', $orgRef, '=');
+      $result = $query->execute();
+
+      if (isset($result['user']) && count($result['user']) > 0) {
+        $profiles = entity_load('user', array_keys($result['user']));
+
+        foreach ($profiles as $profile) {
+          $company = '';
+
+          if (!empty($user->field_organization[LANGUAGE_NONE])) {
+            $orgRef = $profile->field_organization[LANGUAGE_NONE][0]['target_id'];
+            $user_org = entity_load('node', array($orgRef));
+            $company = $user_org[$orgRef]->title;
+          }
+          $location = !empty($profile->field_user_address) ? $profile->field_user_address[LANGUAGE_NONE][0]['value'] : '';
+
+          $form['registration_badge_rec'][$profile->uid] = array(
+            '#type' => 'hidden',
+            '#attributes' => array(
+              'name' => $profile->name,
+              'company' => $company,
+              'location' => $location,
+              'id' => 'uid_' . $profile->uid,
+            ),
+          );
+          $userprofiles[$profile->uid] = $profile->name;
+        }
+
+        // Moves poc element to top of that array so it get default selected
+        /*$poc_name = $userprofiles[$poc_uid];
+        unset($userprofiles[$poc_uid]);
+        unset($userprofiles[0]);
+        $userprofiles = array(0 => 'select', $poc_uid => $poc_name ) + $userprofiles;*/
+        $poc_name = $userprofiles[$user->uid];
+        unset($userprofiles[$user->uid]);
+        unset($userprofiles[0]);
+        $userprofiles = array(0 => 'select', $user->uid => $poc_name) + $userprofiles;
+      }
+
+      unset($users);
+    }
+    else {
+
+      $location = !empty($user->field_user_address) ? $user->field_user_address[LANGUAGE_NONE][0]['value'] : '';
+
+      $form['registration_badge_rec'][$user->uid] = array(
+        '#type' => 'hidden',
+        '#attributes' => array(
+          'name' => $user->name,
+          'company' => '',
+          'location' => $location,
+          'id' => 'uid_' . $user->uid,
+        ),
+      );
+      $userprofiles[$user->uid] = $user->name;
+    }
+  }
+  else {
+
+    $location = !empty($user->field_user_address) ? $user->field_user_address[LANGUAGE_NONE][0]['value'] : '';
+
+    $form['registration_badge_rec'][$user->uid] = array(
+      '#type' => 'hidden',
+      '#attributes' => array(
+        'name' => $user->name,
+        'company' => '',
+        'location' => $location,
+        'id' => 'uid_' . $user->uid,
+      ),
+    );
+    $userprofiles[$user->uid] = $user->name;
+  }
+
+
+  $form['#tree'] = TRUE;
+
+  for ($i = 0; $i < 100; $i++) {
+
+    $form['registration_badge'][$i]['badgename'] = array(
+      '#type' => 'select',
+      '#title' => t('Name'),
+      '#options' => $userprofiles,
+      '#required' => FALSE,
+      '#prefix' => '<div style="display:none" class="reg_badge_block" id="rb_' . $i . '">',
+      '#attributes' => array('class' => array('reg-badge-name')),
+    );
+
+    $form['registration_badge'][$i]['badgetitle'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Title'),
+      '#size' => 60,
+      '#maxlength' => 128,
+      '#required' => FALSE,
+    );
+
+    $form['registration_badge'][$i]['badgeorganization'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Organization'),
+      '#size' => 60,
+      '#maxlength' => 128,
+      '#required' => FALSE,
+      '#attributes' => array('class' => array('company')),
+    );
+
+    /*$form['registration_badge'][$i]['badgelocation'] = array(
+     '#type' => 'textfield',
+     '#title' => t('Location'),
+     '#size' => 60,
+     '#maxlength' => 128,
+      '#attributes' => array( 'class' => array('location')),
+     '#required' => FALSE,
+    );
+
+    $form['registration_badge'][$i]['badgeregtype'] = array(
+     '#type' => 'textfield',
+     '#title' => t('Reg Type'),
+     '#default_value' =>'',
+     '#size' => 60,
+     '#maxlength' => 128,
+     '#required' => FALSE,
+    );
+
+    $form['registration_badge'][$i]['badgesource_code'] = array(
+     '#type' => 'textfield',
+     '#title' => t('Source Code'),
+     '#default_value' =>'',
+     '#size' => 60,
+     '#maxlength' => 128,
+     '#required' => FALSE,
+    );*/
+
+    $form['registration_badge'][$i]['reg_badge_remove_one'] = array(
+      '#type' => 'button',
+      '#value' => t('Remove'),
+      '#attributes' => array('onclick' => "return false;", 'rbind' => $i),
+      '#prefix' => '<div class="removebadge">',
+      '#suffix' => '</div></div>',
+    );
+
+  }
+
+  $form['reg_badge_add_more'] = array(
+    '#type' => 'button',
+    '#value' => t('Add more'),
+    '#attributes' => array('onclick' => "return false;", 'rbind' => '0'),
+    '#prefix' => '<div class="addmorebadge">',
+    '#suffix' => '</div>',
+  );
+
+
+  return $form;
+}
+
+
+/**
+ * pane: checkout form submission callback.
+ */
+function act_event_registration_badge_pane_checkout_form_submit($form, &$form_state, $checkout_pane, $order) {
+
+  if ($checkout_pane['pane_id'] == 'act_event_registration_badge' && isset($form_state['values']['act_event_registration_badge'])) {
+
+    $reg_badge_data = $form_state['values']['act_event_registration_badge']['registration_badge'];
+
+    foreach ($reg_badge_data as $key => $value) {
+      if ($value['badgename'] == 0) {
+        unset($reg_badge_data[$key]);
+      }
+    }
+
+    $order->data['reg_badge_data'] = $reg_badge_data;
+  }
+
+}
+
+
+/*
+ * Return Agenda counts
+ */
+function act_event_agenda_count($node) {
+
+  drupal_add_js(path_to_theme() . '/js/mytabs.js');
+
+  $data = array();
+
+  if (!empty($node->field_event_session)) {
+
+    $session_nodes = array();
+    $tracks_nodes = array();
+
+    // Extracting session nid referenced from event node
+    $sessions = $node->field_event_session[LANGUAGE_NONE];
+
+    foreach ($sessions as $session) {
+      $sess_ref = entity_load('field_collection_item', array($session['value']));
+
+      if (!empty($sess_ref[$session['value']]->field_session_reference[LANGUAGE_NONE])) {
+        $session_nodes[] = $sess_ref[$session['value']]->field_session_reference[LANGUAGE_NONE][0]['target_id'];
+      }
+
+      if (!empty($sess_ref[$session['value']]->field_track_reference)) {
+        $trackNid = @$sess_ref[$session['value']]->field_session_reference[LANGUAGE_NONE][0]['target_id'];
+        if (isset($tracks_nodes[$trackNid])) {
+          $tracks_nodes[] = $sess_ref[$session['value']]->field_track_reference[LANGUAGE_NONE][0]['target_id'];
+        }
+      }
+    }
+
+    // Sorting Session nodes as per requirement
+    if (!empty($session_nodes)) {
+      $sess_data = node_load_multiple($session_nodes);
+      foreach ($sess_data as $nid => $node) {
+
+        $sess_start_date = $node->field_session_time[LANGUAGE_NONE][0]['value'];
+        $sess_end_date = $node->field_session_time[LANGUAGE_NONE][0]['value2'];
+
+        if (isset($data[date('Y-m-d', $sess_start_date)][$sess_start_date])) {
+
+          if (is_object($data[date('Y-m-d', $sess_start_date)][$sess_start_date]['node'])) {
+            $temp = $data[date('Y-m-d', $sess_start_date)][$sess_start_date]['node'];
+            $data[date('Y-m-d', $sess_start_date)][$sess_start_date]['node'] = '';
+            $data[date('Y-m-d', $sess_start_date)][$sess_start_date]['node'][] = array(
+              'session' => $temp,
+              'track' => @$tracks_nodes[$temp->nid]
+            );
+
+          }
+          $data[date('Y-m-d', $sess_start_date)][$sess_start_date]['node'][] = array(
+            'session' => $node,
+            'track' => @$tracks_nodes[$node->nid]
+          );
+        }
+        else {
+          $data[date('Y-m-d', $sess_start_date)][$sess_start_date] = array(
+            'sess_end_date' => $sess_end_date,
+            'node' => $node
+          );
+        }
+
+      }
+    }
+    // sorting date
+    ksort($data);
+  }
+  return count($data);
+}
+
+/*
+ *Implementation of hook_views_pre_render()
+ * 
+ */
+function act_event_views_pre_render(&$view) {
+
+  if ($view->name == 'future_events_by_term' && $view->current_display == 'page') {
+    $tid = arg(1);
+    $page_title =
+    $term = taxonomy_term_load($tid);
+    $page_title = $term->name . ' Event Listing';
+    $view->set_title($page_title);
+  }
+
+  if ($view->name == "event_custom_links") {
+    if (count($view->result) > 0) {
+      $view->build_info['title'] = $view->result[0]->field_field_label_custom_link[0]['rendered']['#markup'];
+    }
+  }
+
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function act_event_block_view_alter(&$data, $block) {
+
+  if ($block->delta == 'events_silver_sponsors-block' || $block->delta == 'd47283901918990f53526564a6a952b8') {
+    if (is_numeric(arg(1))) {
+      $node = node_load(arg(1));
+      if (is_object($node) && $node->type == 'events') {
+        $field_label_silver_sponsors = '';
+        $field_label_silver_sponsors = field_get_items('node', $node, 'field_label_silver_sponsors');
+        $field_label_silver_sponsors = $field_label_silver_sponsors[0]['value'];
+        $field_label_silver_sponsors = (!empty($field_label_silver_sponsors)) ? $field_label_silver_sponsors : t('Thanks to our Silver Sponsors');
+        $data['subject'] = $field_label_silver_sponsors;
+      }
+    }
+
+  }
+
+  if ($block->delta == 'events_silver_sponsors-block_2' || $block->delta == 'events_silver_sponsors-block_3') {
+    if (is_numeric(arg(1))) {
+      $node = node_load(arg(1));
+      if (is_object($node) && $node->type == 'events') {
+        $field_label_gold_sponsors = '';
+        $field_label_gold_sponsors = field_get_items('node', $node, 'field_label_gold_sponsors');
+        $field_label_gold_sponsors = $field_label_gold_sponsors[0]['value'];
+        $field_label_gold_sponsors = (!empty($field_label_gold_sponsors)) ? $field_label_gold_sponsors : t('Thanks to our Gold Sponsors');
+        $data['subject'] = $field_label_gold_sponsors;
+      }
+    }
+
+  }
+
+  if ($block->delta == '19b2091b7d96cf30002b04fc851a3269') {
+    if (is_numeric(arg(1))) {
+      $nid = check_plain(arg(1));
+      $node = node_load($nid);
+      if (is_object($node) && $node->type == 'events') {
+        $field_label_platinum_sponsors = '';
+        $field_label_platinum_sponsors = field_get_items('node', $node, 'field_label_platinum_sponsors');
+        $field_label_platinum_sponsors = $field_label_platinum_sponsors[0]['value'];
+        $field_label_platinum_sponsors = (!empty($field_label_platinum_sponsors)) ? $field_label_platinum_sponsors : t('Platinum Sponsors');
+        $data['subject'] = $field_label_platinum_sponsors;
+      }
+    }
+
+  }
+
+  if ($block->delta == 'user-menu') {
+    $node = menu_get_object();
+    global $user;
+
+    if (is_object($node) && $node->type == 'group' && !empty($node->field_leadership['und'])) {
+      $status = _act_event_leadership_user_in_committe($user->uid, $node->nid);
+      if (!$status && isset($data['content'][2811])) {
+        unset($data['content'][2811]);
+      } // 2811 refer Send message to all i.e it will changed when someone recreate them.
+    }
+  }
+}
+
+/**
+ * Publish/Unpublish based on end date.
+ */
+function act_event_publish_unpublish($event) {
+  $field_show_date = field_get_items('node', $event, 'field_show_date');
+}
+
+
+/**
+ * Implementation of hook_views_pre_execute()
+ */
+function act_event_views_pre_execute(&$view) {
+  $time = date('Y-m-d');
+  unset($view->build_info['query']->alterTags['node_access']);
+  $query = $view->build_info['query'];
+  if ($view->name == 'calendar_listing' ||
+    $view->name == 'event_full_calender' ||
+    $view->name == 'events_full_calender' ||
+    ($view->name == 'events_by_events_terms' && $view->current_display == 'page') ||
+    $view->name == 'future_events_by_term'
+  ) {
+    $query->leftJoin("field_data_field_events_show_date", "field_data_field_events_show_date", "node.nid = field_data_field_events_show_date.entity_id");
+    $query->where("
+    (
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value), SEC_TO_TIME(-25200)), '%Y-%m-%d') <= '" . $time . "') AND
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value2), SEC_TO_TIME(-25200)), '%Y-%m-%d') >= '" . $time . "')
+	)
+                    
+	OR
+	
+	(
+	  (field_data_field_events_show_date.field_events_show_date_value IS NULL) AND
+	  (field_data_field_events_show_date.field_events_show_date_value2 IS NULL)
+	)
+	
+	OR
+	
+	(
+	  (field_data_field_events_show_date.field_events_show_date_value IS NULL) AND
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value2), SEC_TO_TIME(-25200)), '%Y-%m-%d') >= '" . $time . "')
+	)
+	
+	OR
+	
+	(
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value), SEC_TO_TIME(-25200)), '%Y-%m-%d') <= '" . $time . "') AND
+	  (field_data_field_events_show_date.field_events_show_date_value2 IS NULL)
+	)"
+
+    );
+  }
+
+
+  if ($view->name == 'event_category_listing' && $view->current_display == 'page') {
+    $query->leftJoin("field_data_field_events_show_date", "field_data_field_events_show_date", "node_taxonomy_index.nid = field_data_field_events_show_date.entity_id");
+    $query->where("
+    (
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value), SEC_TO_TIME(-25200)), '%Y-%m-%d') <= '" . $time . "') AND
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value2), SEC_TO_TIME(-25200)), '%Y-%m-%d') >= '" . $time . "')
+	)
+                    
+	OR
+	
+	(
+	  (field_data_field_events_show_date.field_events_show_date_value IS NULL) AND
+	  (field_data_field_events_show_date.field_events_show_date_value2 IS NULL)
+	)
+	
+	OR
+	
+	(
+	  (field_data_field_events_show_date.field_events_show_date_value IS NULL) AND
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value2), SEC_TO_TIME(-25200)), '%Y-%m-%d') >= '" . $time . "')
+	)
+	
+	OR
+	
+	(
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value), SEC_TO_TIME(-25200)), '%Y-%m-%d') <= '" . $time . "') AND
+	  (field_data_field_events_show_date.field_events_show_date_value2 IS NULL)
+	)"
+
+    );
+  }
+
+  if ($view->name == 'group_announcements' && $view->current_display == 'block_1') {
+    $query->leftJoin("field_data_field_events_show_date", "field_data_field_events_show_date", "node.nid = field_data_field_events_show_date.entity_id");
+    $query->where("
+    (
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value), SEC_TO_TIME(-25200)), '%Y-%m-%d') <= '" . $time . "') AND
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value2), SEC_TO_TIME(-25200)), '%Y-%m-%d') >= '" . $time . "')
+	)
+                    
+	OR
+	
+	(
+	  (field_data_field_events_show_date.field_events_show_date_value IS NULL) AND
+	  (field_data_field_events_show_date.field_events_show_date_value2 IS NULL)
+	)
+	
+	OR
+	
+	(
+	  (field_data_field_events_show_date.field_events_show_date_value IS NULL) AND
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value2), SEC_TO_TIME(-25200)), '%Y-%m-%d') >= '" . $time . "')
+	)
+	
+	OR
+	
+	(
+	  (DATE_FORMAT(ADDTIME(FROM_UNIXTIME(field_data_field_events_show_date.field_events_show_date_value), SEC_TO_TIME(-25200)), '%Y-%m-%d') <= '" . $time . "') AND
+	  (field_data_field_events_show_date.field_events_show_date_value2 IS NULL)
+	)"
+
+    );
+  }
+
+}
+
+/*
+ * Implementation of hook_module_implements_alter()
+ */
+function act_event_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'query_node_access_alter') {
+    $group = $implementations['act_event'];
+    unset($implementations['act_event']);
+    $implementations['act_event'] = $group;
+  }
+}
+
+/**
+ * Implements hook_query_TAG_alter().
+ */
+function act_event_query_node_access_alter($query, $type) {
+  $view = $query->getMetaData('view');
+  if ($view && ($view->name == 'event_category_listing' || $view->name == 'events_by_events_terms' || $view->name == 'future_events_by_term')) {
+    $conditions = & $query->conditions();
+    foreach (element_children($conditions) as $key) {
+      $condition = & $conditions[$key];
+      if ($condition['operator'] == 'EXISTS') {
+        $delete = FALSE;
+        $subquery_conditions = & $condition['value']->conditions();
+        foreach (element_children($subquery_conditions) as $subquery_key) {
+          $subquery_condition = & $subquery_conditions[$subquery_key];
+          if (!empty($subquery_condition['field']) && is_string($subquery_condition['field']) && $subquery_condition['field'] == 'node_field_data_field_key_speaker_profile.nid = na.nid') {
+            $delete = TRUE;
+            break;
+          }
+        }
+        if ($delete) {
+          unset($conditions[$key]);
+          continue;
+        }
+      }
+    }
+  }
+}
+
+/*
+ * function to get event id by track id
+ * @para int $track_id
+ *   Tracker nid
+ * @return int $event_nid 
+ */
+function get_events_by_track($track_id) {
+  $query = db_select('field_data_field_event_session', 'event_session');
+  $query->addJoin('INNER', 'field_data_field_track_reference', 'track_reference', 'event_session.field_event_session_value = track_reference.entity_id');
+  $query->addField('event_session', 'entity_id');
+  $query->condition('event_session.bundle', 'events');
+  $query->condition('track_reference.field_track_reference_target_id', $track_id);
+  $event_nid = $query->execute()->fetchField();
+  return $event_nid;
+}
+
+
+/*
+ * function to get event id by session id
+ * @para int $session_id
+ *   Session nid
+ * @return int $event_nid 
+ */
+function get_events_by_session($session_id) {
+  $query = db_select('field_data_field_event_session', 'event_session');
+  $query->addJoin('INNER', ' field_data_field_session_reference', 'session_reference', 'event_session.field_event_session_value = session_reference.entity_id');
+  $query->addField('event_session', 'entity_id');
+  $query->condition('event_session.bundle', 'events');
+  $query->condition('session_reference.field_session_reference_target_id', $session_id);
+  $event_nid = $query->execute()->fetchField();
+  return $event_nid;
+}
+
+/*
+ * function to get vallidate if register button would be disabled for current user
+ * @para int $event
+ *   event nid
+ * @return boolean (true/false)
+ */
+function validate_event_registration($event) {
+  global $user;
+  $disabled = FALSE;
+  $status = array('status' => FALSE,);
+
+  $field_do_not_allow_registration = field_get_items('node', $event, 'field_do_not_allow_registration');
+  $field_do_not_allow_registration = $field_do_not_allow_registration[0]['value'];
+
+  $field_govt_invited = field_get_items('node', $event, 'field_govt_invited');
+  $field_govt_invited = $field_govt_invited[0]['value'];
+
+  if ($field_do_not_allow_registration) {
+    $disabled = TRUE;
+    $status = array('status' => $disabled, 'hide' => TRUE,);
+  }
+  elseif ($field_govt_invited && !user_access('register for events marked govt')) {
+    // User is not from the govt.
+    // Check if the user is a part of this group.
+    if (!og_is_member('node', $event->nid, 'user', $user, array(OG_STATE_ACTIVE))) {
+      $disabled = TRUE;
+      $status = array('status' => $disabled, 'hide' => FALSE,);
+    }
+  }
+  return $status;
+}
+
+
+/**
+ * Implements hook_views_api().
+ */
+function act_event_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'act_event') . '/include',
+  );
+}
+
+/**
+ * Provide a form API element exposed as a Registration entity setting.
+ *
+ * @param array $settings
+ *   Existing settings values.
+ *
+ * @return array
+ *   A FAPI array for a registration setting.
+ */
+function act_event_registration_entity_settings($settings) {
+  //dsm($settings);
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function act_event_menu_alter(&$items) {
+  $items['node/%entity_object/registrations']['access callback'] = MENU_CALLBACK;
+}
+
+
+/*
+ * If the user is not a POC of any organization and he has registered for an event already,
+ * then don't show him the Register button on the event page
+ * @para int $product_id
+ *   event nid
+ * @return boolean (true/false)
+ */
+function validate_registration_for_poc($product_id) {
+  global $user;
+  $disabled = FALSE;
+  if (act_event_product_is_purchased($product_id) && !act_event_user_is_poc()) {
+    //If the user is not a POC of any organization and he has registered for an event already,
+    //then don't show him the Register button on the event page
+    $disabled = TRUE;
+  }
+  return $disabled;
+}
+
+
+/*
+ * Function to get check is current login user is POC of any organization
+ * @return boolean
+ *   if the user is a POC of any organization return true else false
+ */
+function act_event_user_is_poc($uid = '') {
+  global $user;
+  if ($uid == '') {
+    $uid = $user->uid;
+  }
+  $nids = '';
+  $nid = '';
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'organization')
+    ->propertyCondition('status', 1)
+    ->fieldCondition('field_organization_poc', 'target_id', $uid, '=')
+    ->range(0, 1);
+  $result = $query->execute();
+  if (isset($result['node'])) {
+    $nids = array_keys($result['node']);
+    $nid = $nids[0];
+    if ($nid) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+
+/*
+ * list of products bought by current user 
+ * @para int $product_id
+ *   product id
+ * @return boolean
+ *   if product has been purchased by user then true else false
+ */
+function act_event_product_is_purchased($product_id = '') {
+  global $user;
+  $purchased = array();
+  $view = views_get_view('list_of_products_bought_by_the_user');
+  $view->set_display("page");
+  $view->set_arguments(array($user->uid));
+  $view->render();
+  if (count($view->result) > 0) {
+    foreach ($view->result as $result) {
+      $purchased[] = $result->commerce_product_field_data_commerce_product_product_id;
+    }
+    $purchased = array_filter($purchased);
+    $purchased = array_unique($purchased);
+    if ($product_id) {
+      if (in_array($product_id, $purchased)) {
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+/*
+ * function to get total count of successfully placed order of event product
+ */
+function act_event_get_event_total_order_count($pid) {
+
+  $count = 0;
+
+  if ($pid != '') {
+
+    $query = db_select('commerce_order', 'cord');
+    $query->join('commerce_line_item', 'li', 'cord.order_id = li.order_id');
+    $query->join('field_data_commerce_product', 'prod', 'li.line_item_id = prod.entity_id');
+    $query->condition('prod.commerce_product_product_id', $pid, '=')
+      ->condition('cord.status', 'completed', '=')
+      ->groupBy('cord.uid');
+
+    $query->fields('cord', array('uid'));
+
+    $count = $query->execute()->rowCount();
+
+  }
+
+  return $count;
+}
+
+/*
+ * Function to find whether $uid is leadership in community having  $committe_nid
+ */
+function _act_event_leadership_user_in_committe($uid, $committe_nid) {
+
+  $query = db_select('field_data_field_leadership', 'field_data_field_leadership');
+  $query->join('field_data_field_leader', 'field_data_field_leader', 'field_data_field_leader.entity_id = field_data_field_leadership.field_leadership_value');
+  $query->condition('field_data_field_leadership.entity_id', $committe_nid, '=');
+  $query->condition('field_data_field_leader.field_leader_target_id', $uid, '=');
+
+  $query->fields('field_data_field_leader', array('field_leader_target_id'));
+
+  return $query->execute()->rowCount();
+}
+
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function act_event_form_search_block_form_alter(&$form, &$form_state) {
+  //$form['#validate']['act_event_search_validate'] = array();
+}

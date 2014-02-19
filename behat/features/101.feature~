@@ -1,0 +1,16 @@
+Feature: 100-Create features for ACT-IAC project
+  In order to check if user has access the site
+  As a various different roles
+  I need to be able login and create content
+
+  @javascript
+  Scenario: Authenticated User as staff role can access Update from NetForum at user profile page
+    Given I am on "/"
+    Then I fill in "username" as "mark@samblanet.com"
+    Then I fill in password "password" as "password"
+    Then I press button "Log in"
+    Then I should be redirected to "user/27104/dashboard"
+    Then I should be redirected to "user/29567"
+    Then I should see "Update from NetForum"
+    
+

@@ -1,0 +1,11 @@
+h2 {
+	font-size: 1.3em;
+}
+
+.ui-accordion .ui-accordion-header a {
+	font-size: 0.8em;
+}
+
+#section-header {
+	background-color: white;
+}

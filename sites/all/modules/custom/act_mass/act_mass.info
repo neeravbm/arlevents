@@ -1,0 +1,6 @@
+name = Organic Groups Mass User Add
+package = "Organic groups"
+description = Allows mass-adding of users to an organic group.
+core = 7.x
+dependencies[] = og
+

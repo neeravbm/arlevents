@@ -1,0 +1,260 @@
+<?php
+/**
+ * @file
+ * OG Mass Invite People
+ *
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function act_mass_menu() {
+  $items = array();
+  $items['group/%/%/admin/people/massinvite'] = array(
+    'page callback' => 'drupal_get_form',
+    'title' => 'Add multiple members',
+    'page arguments' => array('_act_mass_invite_users_form', 1, 2),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
+    'access callback' => 'act_mass_invite_user_access_group',
+    'access arguments' => array('mass invite people', 1, 2),
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_og_ui_get_group_admin()
+ */
+function act_mass_og_ui_get_group_admin($group_type, $gid) {
+  $items = array();
+  if (og_user_access($group_type, $gid, 'mass invite people')) {
+    $items['og_mass_invite_people'] = array(
+      'title' => t('Mass Invite People'),
+      'description' => t('Mass Invited users will be created and notified by email.'),
+      'href' => 'admin/people/massinvite',
+    );
+  }
+  return $items;
+}
+
+/**
+ * Check if entity is a group, and user has permission - Access.
+ */
+function act_mass_invite_user_access_group($perm, $group_type, $gid) {
+  $group = entity_load_single($group_type, $gid);
+  if (!$group || !og_is_group($group_type, $group)) {
+    return FALSE;
+  }
+
+  // Extract the group's bundle.
+  list(, , $bundle) = entity_extract_ids($group_type, $group);
+  // Verify the bundle has roles
+  if (!og_roles($group_type, $bundle, $gid)) {
+    return FALSE;
+  }
+
+  $entity_info = entity_get_info($group_type);
+  if (!$group_type || !$entity_info) {
+    // Not a valid entity type.
+    return FALSE;
+  }
+  return og_is_group($group_type, $gid) && og_user_access($group_type, $gid, $perm);
+}
+
+
+/**
+ * Implement hook_og_permission().
+ */
+function act_mass_og_permission() {
+  $items = array();
+  $items['mass invite people'] = array(
+    'title' => t('Mass Invite people'),
+    'description' => t('Users can invite other users to the group.'),
+    'default role' => array(OG_ADMINISTRATOR_ROLE),
+  );
+  return $items;
+}
+
+/**
+ * Form for email text field
+ */
+function _act_mass_invite_users_form($form, &$form_state, $group_type, $gid) {
+  og_set_breadcrumb($group_type, $gid, array(l(t('Group'), "$group_type/$gid/group")));
+  $group = entity_load_single($group_type, $gid);
+  $label = entity_label($group_type, $group);
+  list(,, $bundle) = entity_extract_ids($group_type, $group);
+
+  $form['group_type'] = array('#type' => 'value', '#value' => $group_type);
+  $form['gid'] = array('#type' => 'value', '#value' => $gid);
+
+  $form['og_mass_invite'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Invite system existing users to %group', array('%group' => $label)),
+  );
+  $form['og_mass_invite']['massinvitee'] = array(
+    '#type' => 'textarea',
+    '#title' => t('User email(s)'),
+    '#description' => t('Use commas or new lines to split email addresses. The users will be invited as members of this group.'),
+    '#required' => TRUE,
+  );
+  $form['og_mass_invite']['message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Request Message'),
+    '#description' => t('Request Message'),
+    '#required' => TRUE,
+  );
+  
+  $form['og_mass_invite']['state'] = array(
+    '#type' => 'value',
+    '#value' => OG_STATE_ACTIVE,
+  );
+  
+  // Get all the non-default roles.
+  if ($og_roles = og_roles($group_type, $bundle, $gid, FALSE, FALSE)) {
+    $form['og_mass_invite']['roles'] = array(
+      '#type' => 'checkboxes',
+      '#options' => $og_roles,
+      '#title' => t('Roles'),
+    );
+  }
+
+  $field_names = og_get_group_audience_fields('user', 'user', $group_type);
+  $field_name = !empty($form_state['values']['field_name']) ? $form_state['values']['field_name'] : key($field_names);
+
+  if (count($field_names) > 1) {
+    $form['og_mass_invite']['field_name'] = array(
+      '#type' => 'select',
+      '#title' => t('Field name'),
+      '#options' => $field_names,
+      '#default_value' => $field_name,
+      '#description' => t('Select the field name, the group membership should be registered in.'),
+    );
+  }
+  else {
+    // There is only a single field name, so just pass it as a value.
+    $form['og_mass_invite']['field_name'] = array(
+      '#type' => 'value',
+      '#value' => $field_name,
+    );
+  }
+
+  $form_state['field_name'] = $field_name;
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Invite user(s)'));
+ 
+  return $form;
+  
+}
+
+
+
+/**
+ * _act_mass_users_form - Validation handler
+ */
+function _act_mass_invite_users_form_validate($form, &$form_state) {
+  $group_type = $form_state['values']['group_type'];
+  $gid = $form_state['values']['gid'];
+  $invitee_emails = preg_split('/\s*[,\n]\s*/', $form_state['values']['massinvitee']);
+  $error_message = array();
+  $error = 0;
+  foreach ($invitee_emails as $invitee_email) {
+    $account = user_load_by_mail($invitee_email);
+    $params = array('%name' => format_username($account));
+    if (!valid_email_address($invitee_email)) {
+	    $error++; 		
+      $error_message[] = t('Invalid email address @email.', array('@email' => $invitee_email));
+    }
+    elseif (!user_load_by_mail($invitee_email)) {
+      $error++;
+      $error_message[] = t('User email @email does not already exists in the system.',array('@email' => $invitee_email));
+    }
+    /*elseif (og_get_membership($group_type, $gid, 'user', $account->uid)) {
+			$error++;
+      $error_message[] = t('User %name is already subscribed to group.', $params);
+      //form_set_error('massinvitee', t('User %name is already subscribed to group.', $params));
+    }*/
+  }
+  
+  if($error > 0){
+		 $output = theme('item_list', array('items' => $error_message));
+	   form_set_error('massinvitee', $output);   
+	 }
+  $form_state['invitee_emails'] = $invitee_emails;
+}
+
+
+/**
+ * _act_invite_people_users_form - Submit handler
+ */
+function _act_mass_invite_users_form_submit($form, &$form_state) {
+  $group_type = $form_state['values']['group_type'];
+  $gid = $form_state['values']['gid'];
+  $message = $form_state['values']['message'];
+  $invitee_emails = $form_state['invitee_emails'];
+  $state = $form_state['values']['state'];
+  $field_name = $form_state['field_name'];
+  $group = entity_load_single($group_type, $gid);
+  $group_name = entity_label($group_type, $group);
+  $from = 'act-iac@actgov.org';
+  // Add group membership form.
+  $values = array();
+
+  foreach ($invitee_emails as $invitee_email) {
+		// load user by email and return $account object.
+		$account = user_load_by_mail($invitee_email);
+		if (!og_get_membership($group_type, $gid, 'user', $account->uid)) {
+			// Add group membership form. We still don't have the user or state.
+			$og_membership = og_membership_create($group_type, $gid, 'user', 0, $field_name, $values);
+
+			// load user by email and return $account object.
+			$account = user_load_by_mail($invitee_email);
+			
+			// Ungroup user, in case they were already registered.
+			og_ungroup($group_type, $gid, 'user', $account);
+			
+			// Add user to group.
+			$og_membership->etid = $account->uid;
+			$og_membership->state = $state;
+			$og_membership->save();
+			
+				// Assign roles.
+				if (!empty($form_state['values']['roles'])) {
+					foreach ($form_state['values']['roles'] as $rid) {
+						og_role_grant($group_type, $gid, $og_membership->etid, $rid);
+					}
+			  }
+		}
+    // Offer invitee user account object in form_state.
+    $form_state['account'][] = $account;
+    $params = array(
+			'account' => $account,
+			'group_name' => $group_name,
+			'group_type' => $group_type,
+			'gid' => $gid,
+			'state' => $state,
+			'message' => $message,
+		);
+		drupal_mail('act_mass', 'act_mass_welcome_email', $account->mail, user_preferred_language($account), $params, $from, $send = TRUE);
+  
+    drupal_set_message(t('%user has been invited to this group.', array('%user' => format_username($account))));
+  }
+}
+
+
+/**
+ * Implements hook_mail().
+ */
+function act_mass_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'act_mass_welcome_email':
+      global $base_url;
+      $message['subject'] = t('Welcome to @group_name', array('@group_name' => $params['group_name']));
+      $message['body'][] = t('Hi, @name!', array('@name' => format_username($params['account'])));
+      $message['body'][] = $params['message'];
+      $message['body'][] = t('You are invited to !link.', array('!link' => $base_url . '/user/login?group_redirect=1&destination=' . $params['group_type'] . '/' . $params['gid']));
+      $message['body'][] = t('- @site_name', array('@site_name' => variable_get('site_name', 'ACT-IAC')));
+      break;
+  }
+}
+

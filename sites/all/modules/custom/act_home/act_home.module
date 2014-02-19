@@ -1,0 +1,311 @@
+<?php
+/*
+ *@file
+ * ACT Home
+*/
+
+
+/*
+ * Implementing hook_menu(); 
+*/
+function act_home_menu() {
+    $items = array();
+    $items['community'] = array(
+		'title' => t('Community Page'),
+		'description' => t('Community Page'),
+		'page callback' => 'act_home_community_page',
+		'access callback' => 'user_access', 
+                'access arguments' => array('administer om maximenu'),
+		'weight' => -7,
+		'type' => MENU_CALLBACK,
+   );
+   $items['events'] = array(
+		'title' => t('Events Page'),
+		'description' => t('Events Page'),
+		'page callback' => 'act_home_events_page',
+		'access callback' => 'user_access', 
+                'access arguments' => array('administer om maximenu'),
+		'weight' => -7,
+		'type' => MENU_CALLBACK,
+   );
+   $items['professional-development'] = array(
+		'title' => t('Professional Development Page'),
+		'description' => t('Professional Development Page'),
+		'page callback' => 'act_home_professional_development_page',
+		'access callback' => 'user_access', 
+                'access arguments' => array('administer om maximenu'),
+		'weight' => -7,
+		'type' => MENU_CALLBACK,
+   );
+   $items['membership'] = array(
+		'title' => t('Membership Page'),
+		'description' => t('Membership Page'),
+		'page callback' => 'act_home_membership_page',
+		'access callback' => 'user_access', 
+                'access arguments' => array('administer om maximenu'),
+		'weight' => -7,
+		'type' => MENU_CALLBACK,
+   );
+   $items['about-us'] = array(
+		'title' => t('About Us'),
+		'description' => t('About Us Page'),
+		'page callback' => 'act_home_aboutus_page',
+		'access callback' => 'user_access', 
+                'access arguments' => array('administer om maximenu'),
+		'weight' => -7,
+		'type' => MENU_CALLBACK,
+   );
+   $items['knowledge-bank'] = array(
+		'title' => t('Knowledge Bank Page'),
+		'description' => t('Knowledge Bank Page'),
+		'page callback' => 'act_home_knowledge_bank_page',
+		'access callback' => 'user_access', 
+                'access arguments' => array('administer om maximenu'),
+		'weight' => -7,
+		'type' => MENU_CALLBACK,
+   );
+   $items['job-center'] = array(
+		'title' => t('Job Center Page'),
+		'description' => t('Job Center Page'),
+		'page callback' => 'act_home_job_center_page',
+		'access callback' => 'user_access', 
+                'access arguments' => array('administer om maximenu'),
+		'weight' => -7,
+		'type' => MENU_CALLBACK,
+   );
+   $items['suggestion-box'] = array(
+		'title' => t('Suggestion Box Page'),
+		'description' => t('Suggestion Box Page'),
+		'page callback' => 'act_home_suggestion_box_page',
+		'access callback' => 'user_access', 
+                'access arguments' => array('administer om maximenu'),
+		'weight' => -7,
+		'type' => MENU_CALLBACK,
+   );
+   $items['homepage'] = array(
+		'title' => t('ACT Home'),
+		'description' => t('ACT Home'),
+		'page callback' => 'act_home_page',
+		'access callback' => TRUE, 
+                'weight' => -7,
+		'type' => MENU_CALLBACK,
+   );
+  return $items;
+}
+
+
+function act_home_community_page(){
+	$output = '';
+	$block1 = module_invoke('block', 'block_view', 14);
+	$block2 = module_invoke('block', 'block_view', 15);
+    $output .= $block1['content'];
+	$output .= $block2['content'];
+  return $output;
+}
+
+function act_home_events_page(){
+	$output = '';
+	$block1 = module_invoke('block', 'block_view', 14);
+	$block2 = module_invoke('block', 'block_view', 15);
+        $output .= $block1['content'];
+	$output .= $block2['content'];
+  return $output;
+}
+
+function act_home_membership_page(){
+	$block1 = module_invoke('block', 'block_view', 14);
+	$block2 = module_invoke('block', 'block_view', 15);
+        $output = $block1['content'];
+	$output .= $block2['content'];
+  return $output;
+}
+
+function act_home_aboutus_page(){
+	$output = '';
+	$block1 = module_invoke('block', 'block_view', 14);
+	$block2 = module_invoke('block', 'block_view', 15);
+        $output .= $block1['content'];
+	$output .= $block2['content'];
+  return $output;
+}
+
+function act_home_professional_development_page(){
+	$output = '';
+	$block1 = module_invoke('block', 'block_view', 14);
+	$block2 = module_invoke('block', 'block_view', 15);
+        $output .= $block1['content'];
+	$output .= $block2['content'];
+  return $output;
+}
+
+function act_home_knowledge_bank_page(){
+	$output = '';
+	$block1 = module_invoke('block', 'block_view', 14);
+	$block2 = module_invoke('block', 'block_view', 15);
+        $output .= $block1['content'];
+	$output .= $block2['content'];
+  return $output;
+}
+
+function act_home_job_center_page(){
+	$block1 = module_invoke('block', 'block_view', 14);
+	$block2 = module_invoke('block', 'block_view', 15);
+        $output = $block1['content'];
+	$output .= $block2['content'];
+  return $output;
+}
+
+function act_home_suggestion_box_page(){
+	$output = '';
+	$block1 = module_invoke('block', 'block_view', 14);
+	$block2 = module_invoke('block', 'block_view', 15);
+        $output .= $block1['content'];
+	$output .= $block2['content'];
+  return $output;
+}
+
+
+function act_home_page(){
+  return '';	
+}
+
+/*
+ * Implemeting hook_block_info()
+ */
+function act_home_block_info() {
+  $blocks = array();
+  $blocks['strategic_initiatives'] = array(
+    'info' => t('Strategic Initiatives'),
+    'status' => TRUE,
+    'weight' => 0,
+    'region' => -1,
+  );
+  $blocks['what_i_want_to_do'] = array(
+    'info' => t('What I want to do ...'),
+    'status' => TRUE,
+    'weight' => 0,
+    'region' => -1,
+  );
+  return $blocks;
+}
+
+/*
+ * Implemeting hook_block_view()
+ */
+function act_home_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'strategic_initiatives':
+      $block['subject'] = t('Strategic Initiatives');
+      $block['content'] = strategic_initiatives_display_contents();
+      break;
+    case 'what_i_want_to_do':
+      $block['subject'] = NULL;
+      $block['content'] = what_i_want_todo_display_contents();
+      break;
+    }
+  return $block;
+}
+
+
+/*
+ * Implemeting hook_theme()
+ */
+function act_home_theme() {
+  return array(
+    'strategic_initiatives' => array(
+       'template' => 'theme/strategic-initiatives',
+       'variables' => array('title' => NULL, 'terms' => NULL, 'results' => NULL),
+     ),
+  );
+}
+
+
+function strategic_initiatives_display_contents(){
+  $view = views_get_view('strategic_initiatives');
+  $view->set_display("block");
+  $view->render();  
+  $counter = count($view->result);
+  $results = $view->result;
+  $terms = $view->result;
+  
+  $title = t('Strategic Initiatives');
+  $build['strategic'] = array(
+    '#theme' => 'strategic_initiatives',
+    '#title' => $title,
+    '#terms' => $terms,
+    '#results' => $results,
+  );
+  $build['strategic']['#attached']['library'][] = array('system', 'ui.accordion');
+  $build['strategic']['#attached']['js'][] = array('data' => '(function($){$(function() { $("#accordion").accordion(); })})(jQuery);', 'type' => 'inline');
+  $output = drupal_render($build);
+  return $output;
+}
+
+/*
+ * Implemeting hook_views_post_execute()
+ */
+function act_home_views_post_execute(&$view) {
+  if ($view->name == 'future_events_by_term' && !empty($view->result) && count($view->result)==1) {
+    drupal_goto('node/' . $view->result[0]->nid);
+  }
+
+  if(isset($_GET['sd'])) {
+
+	if($view->name == "event_custom_links") {
+		dsm($view);
+		dsm($view->display['page']);
+	}  	
+
+  }
+
+
+
+}
+
+
+function what_i_want_todo_display_contents(){
+   return drupal_get_form('what_i_want_todo');
+}
+
+
+function what_i_want_todo(){
+  $options = array('' => '-None-');
+  $view = views_get_view('what_i_want_todo');
+  $view->set_display("block"); 
+  $view->render();   
+  $results = $view->result;
+  
+  if(sizeof($results) > 0){
+	 foreach($results as $result){
+	   $options[$result->nid] = $result->node_title;	 
+	 }  
+  }
+  
+  $form['todo_title'] = array(
+    '#type' => 'select',
+    '#title' => t('Quicklinks to...'),
+    '#options' => $options,
+    '#attributes' => array('onchange' => 'this.form.submit();'),
+  );	
+
+  $form['submit'] = array(
+	  '#type' => 'submit',
+	  '#title' => t('GO'),
+	  '#value' => 'GO',
+  );
+  
+  return $form;
+}
+
+
+function what_i_want_todo_submit($form, &$form_state){
+	$nid = $form_state['values']['todo_title'];
+  
+  if(!empty($nid)) {
+    $node = node_load($nid);
+    $field_todo_url = field_get_items('node', $node, 'field_todo_url');
+      $field_todo_url = $field_todo_url[0]['url'];
+      $form_state['redirect'] = $field_todo_url;    
+  }
+}

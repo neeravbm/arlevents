@@ -1,0 +1,480 @@
+/********************** Home page event slider *************/
+#zone-eventslider-wrapper {
+  background:url("../images/blueline_bg.png") repeat-x scroll 0 0 transparent;
+  margin-top:10px;
+}
+.views-field-field-events-banner {
+    float: left;
+}
+/****************** Full Layout in Inner Page **************/
+
+.node-type-innerpage .bodysummary{
+  border-bottom:1px solid #CCCCCC;
+}
+
+.node-type-innerpage .field-name-field-professional-name .field-label{
+  display:none;
+}
+
+.node-type-innerpage .innerpage {
+  border:0;
+  border-bottom:1px solid #CCCCCC;
+}
+
+.node-type-innerpage .lastpage {
+  border:0;
+}
+
+/************** Two Column Layout ********/
+
+.node-type-innerpage .innerpage-standard .col {
+  width: 49%;
+  /*min-height:500px;*/
+}
+
+.node-type-innerpage .innerpage-standard .evencol {
+   border:0;
+   border-right:1px solid #CCCCCC;
+}
+
+.node-type-innerpage .innerpage-standard .oddcol {
+  width: 49%;
+  border:0;
+}
+
+.node-type-innerpage .innerpage-standard .lastcol {
+  border:0;
+}
+
+
+.node-type-innerpage .innerpage-standard .col .summary{
+  margin: 30px 0;
+  
+}
+
+.node-type-innerpage .innerpage .left{
+    float: left;
+    width: 14%;
+}
+
+.node-type-innerpage .innerpage .right {
+  float: right;
+  width: 83%;
+  text-align:justify;
+}
+
+/*********** Home Event Slider ********/
+
+#region-eventslider-first, #region-eventslider-third{
+  display:block;
+}
+
+/************ Home Page Strategic Initiatives block **********/
+
+#tabs-titles{
+  float:left;
+  margin-right:40px;
+  background: #213F7D;
+  width: 17%;
+}
+
+.front #tabs-titles{
+  float:left;
+  margin-right:15px;
+  background: #213F7D;
+  width: 25%;
+  font-size: 0.8em;
+}
+
+#tabs-titles div{
+  cursor:pointer;
+  color:#fff;
+  height: 45px;
+  padding: 10px;
+  border-bottom: 1px solid #FFFFFF;
+  font-weight:bolder;
+  background:#009EDF;
+  border: 1px solid white;
+}
+
+#tabs-titles div.current{
+  background:url('../images/leftblueselectd_arrow.png')  no-repeat right center;
+  margin: 0;
+  width: 94%;
+  border-left: none;
+}
+
+
+#tabs-titles div a {
+  color:#fff;
+  text-decoration:none;
+}
+
+
+#tabs-contents{
+    background:#F2F2F2;
+    margin-left:100px;
+    padding:5px;
+}
+
+.front #tabs-contents{
+    background:#FFFFFF;
+    margin-left:205px;
+    padding: 0 5px 5px 5px;
+}
+
+#tabs-contents div{
+    display:none;
+}
+#tabs-contents div:first-child{
+    display:block;
+}
+#tabs-contents table {
+    border: none;
+    width: 89%;
+}
+#tabs-contents .block_title {
+    font-size: 20px;
+    font-weight: normal;
+    margin-bottom: 0;
+    padding: 10px 0;
+    color:#3B3B3B;
+}
+
+#tabs-contents table tr td{
+    color:#3D3D3D;
+    /*text-align:justify;*/
+}
+
+#tabs-contents table tr.even td {
+    background:#F2F2F2;
+}
+
+#tabs-contents table tr.even, #tabs-contents table tr.odd {
+    border-bottom:none;
+}
+
+.front .homeaccordion{
+  display:none;
+}
+
+.front .tabonhome{
+  display:block;
+}
+
+
+/*************** My account and logout header links ********/
+#block-act-userprofile-userlogout {
+  float:right;
+  font-size:1em;
+  width:auto;
+}
+
+
+/************ Cart Page Style *********/
+.page-cart #zone-content h1#page-title {
+  background:#4D7BBA url("../images/cart.png") no-repeat scroll 5px 12px;
+  color: #FFFFFF;
+  font-size: 1.4em;
+  font-weight: normal;
+  padding: 10px 10px 10px 6%;
+  margin:20px 0px 0;
+}
+
+.page-cart #edit-actions #edit-continue-shopping{
+  border-radius:0;
+  padding:10px 50px;
+  background:#6F6F6F;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  background:#6F6F6F url("../images/cart.png") no-repeat scroll 5px 0;
+}
+
+.page-cart #zone-content #edit-actions input#edit-submit{
+  border-radius:0;
+  padding:10px 50px;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  background:#4D7BBA url("../images/cart.png") no-repeat scroll 5px 0;
+}
+
+.page-cart #edit-actions input#edit-checkout{
+  border-radius:0;
+  padding:10px 50px;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  background:#4D7BBA url("../images/pencil.png") no-repeat scroll 10px 5px;
+}
+
+.view-commerce-cart-form {
+  border:1px solid #D9D2D2;
+}
+
+.page-cart #region-content .block .content {
+  padding:0px;
+  margin:0px;
+}
+
+.page-cart .commerce-line-item-views-form table tr td {
+  color:#9B9999;
+}
+
+.page-cart .commerce-line-item-views-form table tr td a,
+.page-cart .commerce-line-item-views-form table tr td a:hover {
+  color:#777575;
+}
+
+.page-cart #region-sidebar-second .block-views .content {
+  border:1px solid #CCCCCC;
+}
+
+/************ checkout Page Style *********/
+.page-checkout .street-block .form-item-customer-profile-billing-commerce-customer-address-und-0-thoroughfare,
+.page-checkout .street-block .form-item-customer-profile-billing-commerce-customer-address-und-0-premise {
+  float:none;
+}
+
+.page-checkout #addressfield-wrapper input {
+   max-width: 100%;
+   padding: 0 5px;
+}
+
+#edit-account{
+  color:#817E7A;
+}
+
+.page-checkout-complete h1#page-title {
+  display:none !important;
+}
+
+.page-checkout h1#page-title {
+  display:block;
+}
+
+#commerce-checkout-form-checkout fieldset, 
+#commerce-checkout-form-checkout fieldset legend{
+  width:100%;
+}
+
+.page-checkout #commerce-checkout-form-checkout #edit-account .fieldset-legend:before{
+  /*content:'1';*/
+  color:#6F6F6F;
+  background: #FFFFFF;
+  -webkit-border-radius: 30px;
+  -moz-border-radius: 30px;
+  border-radius: 30px;
+  behavior: url(PIE.htc);
+  width: 100px;
+  height: 100px;
+  padding:5px;
+  margin:5px;
+}
+
+
+.page-checkout #commerce-checkout-form-checkout #edit-act-event-registration-badge .fieldset-legend:before{
+  /*content:'2';*/
+  color:#6F6F6F;
+  background: #FFFFFF;
+  -webkit-border-radius: 30px;
+  -moz-border-radius: 30px;
+  border-radius: 30px;
+  behavior: url(PIE.htc);
+  width: 100px;
+  height: 100px;
+  padding:5px;
+  margin:5px;
+}
+
+.page-checkout #commerce-checkout-form-checkout #edit-customer-profile-billing .fieldset-legend:before{
+  /*content:'3';*/
+  color:#6F6F6F;
+  background: #FFFFFF;
+  -webkit-border-radius: 30px;
+  -moz-border-radius: 30px;
+  border-radius: 30px;
+  behavior: url(PIE.htc);
+  width: 100px;
+  height: 100px;
+  padding:5px;
+  margin:5px;
+}
+
+.page-checkout #commerce-checkout-form-checkout #edit-commerce-payment .fieldset-legend:before{
+  /*content:'4';*/
+  color:#6F6F6F;
+  background: #FFFFFF;
+  -webkit-border-radius: 30px;
+  -moz-border-radius: 30px;
+  border-radius: 30px;
+  behavior: url(PIE.htc);
+  width: 100px;
+  height: 100px;
+  padding:5px;
+  margin:5px;
+}
+
+.page-checkout #commerce-checkout-form-checkout #edit-commerce-coupon .fieldset-legend:before{
+  /*content:'5';*/
+  color:#6F6F6F;
+  background: #FFFFFF;
+  -webkit-border-radius: 30px;
+  -moz-border-radius: 30px;
+  border-radius: 30px;
+  behavior: url(PIE.htc);
+  width: 100px;
+  height: 100px;
+  padding:5px;
+  margin:5px;
+}
+
+.page-checkout .fieldset-legend {
+  background:#6F6F6F no-repeat scroll 10px 12px !important;
+  color: #FFFFFF;
+  font-size: 1.4em;
+  font-weight: normal;
+  padding: 10px 10px 10px 0;
+  margin:20px 0px 0;
+  width:100%;
+}
+
+
+.page-checkout #commerce-checkout-form-checkout fieldset label:after, 
+.page-checkout #commerce-checkout-form-review fieldset label:after{
+ content:':';
+} 
+
+.page-checkout #commerce-checkout-form-checkout fieldset label, 
+.page-checkout #commerce-checkout-form-review fieldset label {
+  float: left;
+  width: 20%;
+  color:#817E7A;
+  margin-right: 10px;
+  text-align: right;
+  font-weight: normal;
+}
+
+.page-checkout #addressfield-wrapper input {
+   padding: 0 5px;
+}
+
+.page-checkout #addressfield-wrapper .addressfield-container-inline > div.form-item {
+  float:none;
+}
+
+.page-checkout #addressfield-wrapper .locality-block > div.form-item{
+  margin-bottom:0;
+  margin-top:0;
+}
+
+.page-checkout #addressfield-wrapper > div.form-item{
+  margin-right:0px;
+}
+
+.page-checkout textarea, 
+.page-checkout select , 
+.page-checkout input[type="text"]{
+  max-width: 100%;
+}
+
+.page-checkout #payment-details .description, 
+.page-checkout #edit-commerce-coupon .description{
+  display:none;
+}
+
+/************** Compelition Page ********/
+
+#commerce-checkout-form-complete{
+  width:100%;
+  float:left;
+  border:1px solid #D9D2D2;
+}
+
+#commerce-checkout-form-checkout fieldset,
+#commerce-checkout-form-checkout fieldset legend{
+  width:100%;
+}
+
+#commerce-checkout-form-complete fieldset, 
+#commerce-checkout-form-complete fieldset legend{
+  width:100%;
+}
+
+.page-checkout #commerce-checkout-form-complete legend span {
+  background:#4D7BBA;
+  color: #FFFFFF;
+  font-size: 1.5em;
+  font-weight: normal;
+  float:left;
+  padding: 10px;
+  width:98%;
+  margin:0 0 10px 0;
+}
+
+.page-checkout .checkout-completion-message {
+  padding: 40px;
+  text-align: center;
+}
+
+.page-checkout .checkout-completion-message a{
+  background:#4D7BBA;
+  color: #FFFFFF;
+  font-size: 1.5em;
+  font-weight: normal;
+  padding:1% 2%;
+  text-decoration:none;
+}
+
+/**************** Latest Event ******/
+.page-latest-events .events-addtocart{
+  float:left;
+  margin:10px 0 0 15%;
+}
+
+/************ strategic initiatives template *********/
+.field-name-field-strategic-image {
+  border: 1px solid #CCCCCC;
+  float: left;
+  margin: 0 10px 0 0;
+  padding: 5px;
+}
+
+.field-name-field-strategic-image img {
+  width:auto;
+}
+
+.front #zone-preface-wrapper #zone-preface {
+  margin-top: 10px;
+  background-size: 100%;
+}
+
+
+
+.field-collection-container .field-items .field-item {
+  float: left;
+  width: 44%;
+}
+
+#block-block-19, #block-block-21 {
+  width:45%;
+  float:left;
+}
+
+/******** Events Body Details ********/
+#block-cck-blocks-field-events-banner .field-name-field-events-banner .field-items img{
+  width:292px;
+  height:106px;
+}
+
+
+#block-cck-blocks-field-events-banner {
+  float: left;
+  margin-bottom: 25px;
+  margin-right: 10px;
+}
+
+

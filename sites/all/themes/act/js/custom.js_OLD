@@ -1,0 +1,73 @@
+(function ($) {
+
+  Drupal.behaviors.header_menu = {
+    resize: function(context, settings) { 
+	   //$( "#accordion" ).accordion();
+	   
+       if(window.innerWidth <= 1000) {
+         $("#block-block-12 a").html("<b>Login</b>");
+	     $("#block-block-11 a").html("<b>Register</b>");
+	  } else {
+	     $("#block-block-12 a").html("Login as<br><span>Member</span>");
+	     $("#block-block-11 a").html("Become a<br><span>Member</span>");
+	  }
+       
+     if(window.innerWidth > 800 && $('.col').length > 2) {
+       var highestCol = Math.max( $('.col:even').height(),$('.col:odd').height());
+       $('.col').height(highestCol);  
+     }
+     
+    },
+    attach: function(context, settings) {
+        $(".col:odd").addClass('oddcol');
+        $(".col:even").addClass("evencol");
+        $(".col:last").addClass("lastcol");
+        $(".col:first").addClass("firstcol");
+        $(".innerpage:odd").addClass("oddpage");
+        $(".innerpage:even").addClass("evenpage");
+        $(".innerpage:last").addClass("lastpage");
+        $(".innerpage:first").addClass("firstpage");
+        //$( "#accordion" ).accordion();
+      //$(".innerpage:odd").css("background-color", "#EFF0F1");
+      //$(".innerpage:even").css("background-color", "#E1E6F4");
+
+      //$(".col:odd").css("background-color", "#EFF0F1");
+      //$(".col:even").css("background-color", "#E1E6F4");
+        
+       
+
+      var searchString = "Search";
+      $('#block-search-form .form-text').focus(function() {searchFocusNew(this, searchString);});
+      $('#block-search-form .form-text').blur(function() {searchBlurNew(this, searchString);});
+      
+      function searchFocusNew(input, str_value){
+	if(input.value == str_value){input.value ="";}
+      }
+      function searchBlurNew(input, str_value){
+	if(input.value == ""){input.value = str_value;}
+      }
+      $("#region-branding .block-menu .menu").hide();
+      $('#region-branding .block-menu .block-title').click(function(){
+        $("#region-branding .block-menu .menu").toggle('slow');
+        return false;
+      });
+				
+      $('.search-link').click(function(){
+        $('#block-search-form').toggle('slow');
+        var searchtxt = $('#block-search-form .custom-search-box').val();
+	    if(searchtxt != '' && searchtxt != null){
+	       $('#search-block-form').submit();
+        }
+	    return false; 
+      });
+      
+      Drupal.behaviors.header_menu.resize(context);
+      
+     }
+  }
+})(jQuery);
+
+
+(function($) {
+	$(window).resize(function() {Drupal.behaviors.header_menu.resize('body')});
+})(jQuery);

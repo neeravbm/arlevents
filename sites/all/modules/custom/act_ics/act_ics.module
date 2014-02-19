@@ -1,0 +1,224 @@
+<?php
+/*
+ * File created by ankur.dubey@ebizontek.com
+ * Pupose: To provide multiple event node downloadable in ics format
+ *         
+ */
+/**
+ * Implements hook_init().
+ */
+function act_ics_init() {
+      
+  drupal_add_library('system', 'ui.accordion');
+  drupal_add_css(drupal_get_path('module','act_ics') . '/act_ics.css');	
+  drupal_add_js(drupal_get_path('module','act_ics') . '/act_ics.js');	
+  
+}
+
+/**
+ * Implements hook_menu().
+ */
+function act_ics_menu() {
+  $items = array();
+
+  $items['actics/%/%/%'] = array(
+    'page callback' => 'act_ics_download_ics',
+    'page arguments' => array(1,2,3),
+   	'access callback' => TRUE,
+    'access arguments' => array('access content'),
+  );
+ 
+  return $items;
+}
+
+/*
+ * hook_menu_alter
+ * Function to control visibility of member menu tab that must visible on group page
+ */
+function act_ics_menu_alter(&$items) { 
+     // $items['admin/views/ajax/autocomplete/user']['page callback'] = 'act_ics_member_autocomplete';
+      $items['autocomplete_filter/%/%/%']['page callback'] = 'act_ics_member_autocomplete';
+} 
+
+/*
+ * Callback function override view' function for autocomplete task
+ */
+function act_ics_member_autocomplete($filter_name, $view_name, $display_name, $string = '') {
+  
+  // Execute default view callback if we are not requested required view 
+  if(!($view_name == 'og_members' && $display_name == 'page_1')) {
+    return views_autocomplete_filter($filter_name, $view_name, $display_name, $string);
+  }
+  
+  // The user enters a comma-separated list of user name. We only autocomplete the last name.
+  $array = drupal_explode_tags($string);
+
+  $gid = $_SESSION['group_id'];
+  
+  // Fetch last name
+  $last_string = trim(array_pop($array));
+  $matches = array();
+ 
+  if ($last_string != '') {
+    $prefix = count($array) ? implode(', ', $array) . ', ' : '';
+
+    if (strpos('anonymous', strtolower($last_string)) !== FALSE) {
+      $matches[$prefix . 'Anonymous'] = 'Anonymous';
+    }
+
+    $or = db_or();
+    $or->condition('fname.field_name_first_value', db_like($last_string) . '%', 'LIKE');
+    $or->condition('lname.field_name_last_value',  db_like($last_string) . '%', 'LIKE');
+    
+    $result = db_select('users', 'u');
+    $result->leftJoin('og_membership', 'og_membership', 'og_membership.etid = u.uid');
+    $result->leftJoin('field_data_field_name_first', 'fname', 'fname.entity_id = og_membership.etid');
+    $result->leftJoin('field_data_field_name_last', 'lname', 'lname.entity_id = fname.entity_id');
+    $result->fields('u', array('uid', 'name'));
+    $result->fields('fname', array('field_name_first_value'));
+    $result->fields('lname', array('field_name_last_value'))
+      ->condition('og_membership.entity_type', 'user')
+      ->condition('og_membership.gid', $gid)
+      ->condition($or)
+      ->range(0, 10);
+    
+    $result = $result->execute()->fetchAll();
+    
+    foreach ($result as $acc) {
+      $new[$acc->uid] = $acc->field_name_first_value.' '.$acc->field_name_last_value;
+    }
+    
+    foreach ($new as $account) {
+      $n = $account;
+      // Commas and quotes in terms are special cases, so encode 'em.
+      if (strpos($account, ',') !== FALSE || strpos($account, '"') !== FALSE) {
+        $n = '"' . str_replace('"', '""', $account) . '"';
+      }
+      $matches[$prefix . $n] = check_plain($account);
+    }
+  }
+
+  drupal_json_output($matches);
+}
+
+
+/*
+ * hook_form_alter
+ * Function to set group id in session for function act_ics_member_autocomplete
+ */
+function act_ics_form_alter(&$form, &$form_state, $form_id) {
+    if ($form_id == 'views_exposed_form') {
+        $_SESSION['group_id'] = check_plain(arg(1));
+    }
+}
+/**
+ * Outputs an ICS file containing event information for the selected entity.
+ * Called by hook_menu.
+ *
+ * @param $entity
+ * @param $field_name
+ */
+function act_ics_download_ics($type,$uid,$datestr) {
+  
+  $result = _actics_get_event_by_date($datestr, check_plain($type), $uid );
+  $output = '';
+  // Get entity type from the current path
+  $entity_type  =   'node';
+  $field_name   =   'field_date';
+  
+  if(count($result) > 0) {
+  
+    $output = 'BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//hacksw/handcal//NONSGML v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+';
+    
+    foreach ($result as $entity) {
+        
+        $entity = node_load($entity->nid);
+        
+        list($entity_id) = entity_extract_ids($entity_type, $entity);
+        
+        $info = addtocal_extract_event_info($entity_type, $entity, $entity_id, $field_name);
+       
+        $rfc_dates = addtocal_rfc_3339_date($info['start'], $info['start']);
+        
+        $output .= 'BEGIN:VEVENT
+UID:' . $entity_type . '-' . $entity_id . '@' . $_SERVER['HTTP_HOST'] . '
+DTSTAMP:' . $rfc_dates['start'] . '
+DTSTART:' . $rfc_dates['start'] . '
+DTEND:' . $rfc_dates['end'] . '
+SUMMARY:' . $info['title'] . '
+DESCRIPTION: ' . $info['description'] . ' - ' . url($info['url'], array('absolute' => TRUE)) . '
+LOCATION:' . $info['location'] . '
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+';
+    }
+    
+    $output .= 'END:VCALENDAR';
+    
+  }
+  
+  drupal_add_http_header('Content-Type', 'application/calendar; charset=utf-8');
+
+  // Set the filename.
+  $filename = 'actics';//preg_replace('/[\x00-\x1F]/u', '_', strip_tags($entity->title));
+  drupal_add_http_header('Content-Disposition', 'attachment; filename="' . $filename . '.ics"');
+
+  print $output;
+  exit();
+}
+
+/*
+ * Callback function to provide events node id based on all or rsvp parameter
+ */
+function _actics_get_event_by_date ($datetime = '',$action = 'all', $uid = '') {
+  
+    if($datetime == ''){
+      $datetime = date('Y-m-d');
+    }
+  
+    $start = date('Y-m-01',  strtotime($datetime));
+    $end   = date('Y-m-31',  strtotime($datetime));
+    
+    $date = '';
+   
+    if($action == 'rsvp'){
+      $query = db_select('registration', 'registration');
+      $query->addJoin('LEFT', 'node', 'node_registration', 'registration.entity_id = node_registration.nid');
+      $query->addJoin('INNER', 'users', 'users_registration', 'registration.user_uid = users_registration.uid');
+      $query->addJoin('LEFT', 'field_data_field_date', 'node_registration__field_data_field_date', 'node_registration.nid = node_registration__field_data_field_date.entity_id');
+      $query->addField('node_registration', 'nid');
+      $query->addField('node_registration', 'title');
+      $query->addField('node_registration__field_data_field_date', 'field_date_value');
+      $query->condition('registration.author_uid', $uid);
+      $query->condition('node_registration__field_data_field_date.field_date_value', array($start, $end), 'BETWEEN');
+  
+    } else {
+      $query = db_select('node', 'node');
+      $query->addJoin('INNER', 'field_data_field_date', 'eventdate', 'node.nid = eventdate.entity_id');
+      $query->addField('node', 'nid');
+      $query->addField('eventdate', 'field_date_value');
+      $query->addField('node', 'title');
+      $query->condition('node.type', 'event');
+      $query->condition('eventdate.field_date_value', array($start, $end), 'BETWEEN');
+	}
+  
+  return $query->execute()->fetchAll();
+}
+
+
+/**
+ * Implements hook_views_api().
+ */
+function act_ics_views_api() {
+  return array(
+          'api' => 3,
+          'path' => drupal_get_path('module', 'act_ics') ,
+  );
+}

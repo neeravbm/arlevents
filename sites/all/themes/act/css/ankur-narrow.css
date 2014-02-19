@@ -1,0 +1,34 @@
+/******** ACT Event Home ***************/
+.context-groups.node-type-events #block-views-19b2091b7d96cf30002b04fc851a3269 {
+    float: right;
+    width: 34%;
+}
+
+.context-groups.node-type-events .block-cck-blocks-body {
+    float: left;
+}
+
+.page-user #block-block-2 {
+    margin-bottom: 15px;
+}
+
+/*.gInner div.field-item {
+    width: 50%;
+    display: inline-block;
+}*/
+
+/********Calendar (dashboard) *****/
+#actics_addtocal {
+  padding-left: 39%;
+  font-size: 0.85em;
+}
+
+.pretty-calendar-month {
+    margin-top: 46px;
+    font-size: 0.76em;
+}
+
+/*** All-members ***/
+.page-all-members .view-display-id-page_2 td div {
+	width: 30%;
+}

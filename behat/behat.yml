@@ -1,0 +1,27 @@
+default:
+  extensions:
+    Behat\MinkExtension\Extension:
+      goutte:    ~
+      sahi: ~
+      selenium2: ~
+      base_url: http://actlocal.com/
+      javascript_session: sahi
+      files_path: assets
+  formatter:
+    name: html
+    parameter:
+      name: html
+      output_path: /home/vishal/Dropbox/sites/drupal_test/behat/test.html
+
+phantomjs:
+    extensions:
+        Behat\MinkExtension\Extension:
+            base_url: http://localhost/
+            goutte: ~
+            selenium2:
+                wd_host: "http://localhost:8643/wd/hub"
+    formatter:
+      name: html
+      parameter:
+        name: html
+        output_path: /home/vishal/Dropbox/sites/drupal_test/behat/test.html

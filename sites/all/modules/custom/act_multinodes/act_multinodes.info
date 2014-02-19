@@ -1,0 +1,6 @@
+name = ACT Multinodes
+description = Create document nodes etc.
+core = 7.x
+version = 7.x-2.0
+package = ACT Custom
+file = act_multinodes.module

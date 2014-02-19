@@ -1,0 +1,29 @@
+Feature: 100-Create features for ACT-IAC project
+  In order to check if user has access the site
+  As a various different roles
+  I need to be able login and access content
+
+  @javascript
+  Scenario:  Do not allow anyone other than the community member to “Attend” the meeting of committees that are private.
+    Given I am on "/"
+    Then I fill in "username" as "member.act@gmail.com"
+    Then I fill in password "password" as "laca21@89"
+    Then I press button "Log in"
+    Then I should be redirected to "user/1/dashboard"
+    Then I click "Planning and Architecture Shared Interest Group"
+    Then I should be redirected to "node/9598"
+    Then I should see "Test Meeting"
+    # logout user
+    Then I click "Logout"
+    Then I should be redirected to "user/logout"
+    Given I am on "/"
+    Then I fill in "username" as "normal.act@gmail.com"
+    Then I fill in password "password" as "admin123"
+    Then I press button "Log in"
+    Then I should be redirected to "user/27120/dashboard"
+    Then I click "Planning and Architecture Shared Interest Group"
+    Then I should be redirected to "node/9598"
+    Then I should not see "Test Meeting"
+    
+    
+    

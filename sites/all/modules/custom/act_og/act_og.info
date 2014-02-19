@@ -1,0 +1,7 @@
+name = ACT Organic Group
+description = ACT Organic group extension.
+core = 7.x
+version = 7.x-2.0
+package = ACT Custom
+file = act_og.module
+dependencies[] = og

@@ -1,0 +1,239 @@
+/* calendar styles */
+.block-calendar {
+  width: 182px;
+}
+#calendar-body {
+  position: relative;
+  width: 182px;
+}
+.pretty-calendar-week .calendar-value,
+.calendar-daynames .calendar-value {
+  color: #999;
+  cursor: default;
+  display: block;
+  float: left;
+  font-family: Arial, Tahoma, sans;
+  font-size: 12px;
+  height: 19px;
+  line-height: 12px;
+  padding: 7px 0 0;
+  text-align: center;
+  width: 26px;
+}
+.calendar-daynames .calendar-value .third-letter {
+  display: none;
+}
+.pretty-calendar-week a {
+  cursor: pointer;
+  text-decoration: none;
+}
+.pretty-calendar-week a .calendar-value {
+  color: #000;
+  cursor: pointer;
+  font-weight: bold;
+}
+.pretty-calendar-week a:hover div {
+  background: url("days.png") no-repeat 0 -26px;
+  color: #fff;
+}
+.pretty-calendar-week .pretty-calendar-today .calendar-value {
+  background: url("days.png") no-repeat 0 0;
+}
+.pretty-calendar-week a:hover .pretty-calendar-today .calendar-value {
+  background: url("days.png") no-repeat 0 -52px;
+  color: #fff;
+}
+
+.pretty-calendar-day,
+.pretty-calendar-weekend {
+  background: url("grid.png") no-repeat 0 0;
+  display: block;
+  float: left;
+  height: 26px;
+  width: 26px;
+}
+.pretty-calendar-last {
+  background: url("grid.png") no-repeat 0 -26px;
+}
+.calendar-daynames .pretty-calendar-day,
+.calendar-daynames .pretty-calendar-weekend {
+  background: url("grid.png") no-repeat 0 -52px;
+  text-shadow: 1px 1px 0px #fff;
+  text-transform: capitalize;
+}
+.calendar-daynames .pretty-calendar-last {
+  background: none;
+}
+
+.pretty-calendar-month {
+  background: transparent url("bar.png") no-repeat 0 0;
+  clear: both;
+  display: block;
+  height: 27px;
+  margin: 2px 0 5px;
+  text-align: center;
+  width: 182px;
+}
+.pretty-calendar-month a:hover div {
+  background: none;
+}
+.pretty-calendar-month .month-title {
+  float: left;
+  font-family: Tahoma, Arial, sans;
+  font-size: 12px;
+  padding-top: 5px;
+  position: relative;
+  text-align: center;
+  text-shadow: 1px 1px 0px #fff;
+  width: 140px;
+  z-index: 3;
+}
+.pretty-calendar-month .calendar-prev,
+.pretty-calendar-month .calendar-next {
+  background: transparent url("arrows.png") no-repeat 0 0;
+  cursor: pointer;
+  height: 16px;
+  margin-top: 5px;
+  width: 16px;
+}
+.pretty-calendar-month .calendar-prev {
+  float: left;
+  margin-left: 5px;
+}
+.pretty-calendar-month a:hover .calendar-prev {
+  background: url("arrows.png") no-repeat 0 -16px;
+}
+.pretty-calendar-month .calendar-next {
+  background: url("arrows.png") no-repeat 0 -32px;
+  float: right;
+  margin-right: 5px;
+}
+.pretty-calendar-month a:hover .calendar-next {
+  background: url("arrows.png") no-repeat 0 -48px;
+}
+
+/* calendar loader styles */
+.calendar_loader {
+  bottom: 22px;
+  height: 0px;
+  left: 28px;
+  position: absolute;
+  width: 0px;
+  z-index: 2;
+}
+.calendar_loader div {
+  background: url("ajax-loader.gif") no-repeat;
+  height: 15px;
+  width: 128px;
+}
+
+/* tooltip styles */
+#tiptip_holder {
+  display: none;
+  left: 0;
+  position: absolute;
+  top: 0;
+  z-index: 99999;
+}
+#tiptip_holder.tip_top {
+  padding-bottom: 5px;
+}
+#tiptip_holder.tip_bottom {
+  padding-top: 5px;
+}
+#tiptip_holder.tip_right {
+  padding-left: 5px;
+}
+#tiptip_holder.tip_left {
+  padding-right: 5px;
+}
+#tiptip_content {
+  -moz-border-radius: 3px;
+  -moz-box-shadow: 0 0 3px #999;
+  -webkit-border-radius: 3px;
+  -webkit-box-shadow: 0 0 3px #999;
+  background-color: rgb(215,220,225);
+  border: 1px solid rgba(0,0,0,0.25);
+  border-radius: 3px;
+  box-shadow: 0 0 3px #999;
+  color: #333;
+  font-size: 11px;
+  padding: 4px 8px;
+  text-shadow: 0 0 1px #fff;
+}
+#tiptip_arrow,
+#tiptip_arrow_inner {
+  border-color: transparent;
+  border-style: solid;
+  border-width: 6px;
+  height: 0;
+  position: absolute;
+  width: 0;
+}
+#tiptip_holder.tip_top #tiptip_arrow {
+  border-top-color: #fff;
+  border-top-color: rgba(255,255,255,0.35);
+}
+#tiptip_holder.tip_bottom #tiptip_arrow {
+  border-bottom-color: #fff;
+  border-bottom-color: rgba(255,255,255,0.35);
+}
+#tiptip_holder.tip_right #tiptip_arrow {
+  border-right-color: #fff;
+  border-right-color: rgba(255,255,255,0.35);
+}
+#tiptip_holder.tip_left #tiptip_arrow {
+  border-left-color: #fff;
+  border-left-color: rgba(255,255,255,0.35);
+}
+#tiptip_holder.tip_top #tiptip_arrow_inner {
+  border-top-color: rgb(215,220,225);
+  margin-left: -6px;
+  margin-top: -7px;
+}
+#tiptip_holder.tip_bottom #tiptip_arrow_inner {
+  border-bottom-color: rgb(215,220,225);
+  margin-left: -6px;
+  margin-top: -5px;
+}
+#tiptip_holder.tip_right #tiptip_arrow_inner {
+  border-right-color: rgb(215,220,225);
+  margin-left: -5px;
+  margin-top: -6px;
+}
+#tiptip_holder.tip_left #tiptip_arrow_inner {
+  border-left-color: rgb(215,220,225);
+  margin-left: -7px;
+  margin-top: -6px;
+}
+#tiptip_content ul {
+  font-size: 11px;
+  list-style: none;
+  margin: 0;
+  padding: 5px 10px;
+}
+#tiptip_content ul li {
+  margin: 0;
+  padding: 0;
+}
+#tiptip_content a {
+  text-decoration: underline;
+}
+#tiptip_content .tooltip_summary {
+  border-top: 1px dotted #bbb;
+  margin: 0.4em 0.2em;
+  padding: 0;
+  text-align: right;
+}
+
+/* tooltip loader styles */
+.tooltip_loader {
+  height: 15px;
+  padding: 8px 16px;
+  width: 128px;
+}
+.tooltip_loader div {
+  background: url("ajax-loader.gif") no-repeat;
+  height: 15px;
+  width: 128px;
+}

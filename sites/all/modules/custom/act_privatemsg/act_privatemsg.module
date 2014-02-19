@@ -1,0 +1,39 @@
+<?php
+/*
+ *@file
+ * ACT Private Message
+*/
+
+
+/*
+ * 	Implemenation of hook_form_alter()
+ */
+function act_privatemsg_form_alter(&$form, &$form_state, $form_id){
+  if ($form_id == 'privatemsg_new') {
+	$form['privatemsg']['recipient']['#attributes']['style'] = 'display: none';
+    $form['privatemsg']['recipient']['#title'] = t('');
+	
+	$form['privatemsg']['massmessage'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Mass messages'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#weight' => -10,
+      );
+	
+	$form['privatemsg']['massmessage']['all_members'] = array(
+		'#type' => 'radios',
+		'#title' => t('Chose Members'),
+		'#default_value' => 0,
+		'#options' => array(
+		  '0' => 'All members of site',
+		  '1' => 'All members of community',
+		 ),
+		'#weight' => -1,
+		'#required' => FALSE,
+		'#description' => t('Choose if you would like to send message to site members/community members '),
+	  );
+	  
+	  
+	}
+}

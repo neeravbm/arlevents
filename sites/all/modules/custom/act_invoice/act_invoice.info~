@@ -1,0 +1,6 @@
+name = ACT-IAC Invoice
+package = "ACT custom"
+description = Manage membership renewal.
+core = 7.x
+dependencies[] = commerce
+

@@ -1,0 +1,728 @@
+/******** Maximenu ****************/
+.om-maximenu.om-maximenu-block.om-maximenu-row ul.om-menu li.om-leaf {
+    float: left;
+    position:static;
+    border:1px solid #1C427A;
+    text-align: center;
+    width: 14%;
+    font-size: 13px;
+}
+
+.om-maximenu-content {
+    text-align: left;
+}
+
+.om-maximenu.om-maximenu-block ul.om-menu li.om-leaf {
+    float: left;
+}
+.om-maximenu ul.om-menu li.open {
+    background: #782323;
+    color: #ffffff;
+}
+.om-maximenu-bubble .om-maximenu-middle {
+    background: #FFFFFF;
+    border: 3px solid #782323;
+}
+.om-maximenu-bubble .om-maximenu-middle-right {
+    background: none;
+    height: auto;
+    margin-right: 0;
+    padding:0px;
+}
+.om-maximenu-bubble .om-maximenu-top-left, .om-maximenu-bubble .om-maximenu-top-right {
+    background: none;
+    height: auto;
+}
+.om-maximenu .om-maximenu-content .om-maximenu-middle .block {
+    display: inline-block;
+    vertical-align: top;
+    float: left;
+    width: 21%;
+    margin:0 15px 0 0;
+}
+.om-maximenu-bubble .om-maximenu-top, .om-maximenu-bubble .om-maximenu-middle-left {
+    background: none;
+    height: auto;
+    margin:0;
+}
+.om-maximenu.om-maximenu-block ul.om-menu {
+width: 100%;
+}
+.om-maximenu-bubble.om-maximenu-block .om-maximenu-content {
+    padding: 5px 0 0;
+    top: 25px;
+    width:99.5%;
+}
+.om-maximenu-bubble .om-maximenu-arrow {
+    background: none;
+}
+.om-maximenu-middle .block h2 {
+    color: #333333;
+    font-family: 'AvenirNextRegular';
+    font-size: 0.875em;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+.om-maximenu ul.om-menu li.open p {
+    color: #333333;
+}
+.om-maximenu .om-maximenu-open {
+    display: none;
+}
+#zone-header .block-title {
+    display: none;
+}
+
+/********* Keynote Speakers **************/
+
+.page-keynote-speaker .field-name-field-profile-picture .field-label,
+.page-keynote-speaker .field-name-field-profile-designation .field-label {
+    display: none;
+}
+
+.keynote-speaker.tabbedContent .media-tab {
+  float: right;
+  text-align: right;
+  width:14%;  
+}
+
+.keynote-speaker.tabbedContent .media-tab .eventprint {
+  float: left;
+}
+
+.keynote-speaker.tabbedContent .media-tab .eventmailto {
+  float: right;
+}
+
+.keynote-speaker.tabbedContent .media-tab .eventprint a,
+.keynote-speaker.tabbedContent .media-tab .eventmailto a {
+  padding: 0;
+}
+
+.page-keynote-speaker #speaker_session  {
+    width: 175px;
+}
+.page-keynote-speaker #speaker_sess_icon {
+    float: left;
+}
+.page-keynote-speaker #speaker_session_info {
+    margin-left: 35px;
+}
+
+/******** ACT Events - Speaker Block *******/
+.node-type-events .block-views-event-profile-block-1 {
+    float: left;
+    width: 34%;
+}
+.node-type-events .block-views-event-profile-block-1 .views-field-field-profile-picture-1 img  {
+    height: auto;
+    width: 100%;
+}
+
+/******** ACT Events - *******/
+#event_venue_container #event_date {
+    margin-top: 18px;
+    width: 212px;
+}
+#event_venue_container .venue-cal-icon {
+    float: left;
+}
+#event_venue_container .venue-cal-info,#event_venue_container .venue-info {
+    margin-left: 35px;
+}
+#event_media {
+    margin-top: 15px;
+}
+.venue-icon {
+    float: left;
+}
+#event_venue_container .venue-icon.ven-fb-icon {
+    padding-left: 35px;
+}
+#event_venue_container #event_register_btn {
+    clear: both;
+}
+
+.context-groups .block-field-logo {
+    position: absolute;
+    z-index: 1;
+    left: 30px;
+    top: 83px;
+}
+
+.context-groups .block-field-logo img {
+    width: 100%;
+    height: auto;
+}
+
+.context-groups .block-field-logo .block-title {
+    display: none;
+}
+
+/******** ACT Events - Event Links Block **********/
+
+.block-act-event-eventlinks .event-links-item {
+    border-bottom: 1px solid #ccc;
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+}
+.block-act-event-eventlinks .el-icon {
+    float: left;
+    padding-top: 4px;
+}
+#event-links-container {
+    line-height: 1.2em;
+}
+
+.block-act-event-eventlinks .el-link, .el-sub-link {
+    padding-bottom: 10px;
+    margin-left: 45px;
+}
+.block-act-event-eventlinks .el-link, .el-sub-link a {
+    text-decoration: none;
+}
+.block-act-event-eventlinks .el-link {
+    padding-bottom: 10px;
+    padding-top: 10px;
+    font-size: 1.2em;
+    margin-left: 45px;
+    color:#0062A0;
+}
+
+/******* ACT Event - Track Description *******/
+.page-track-description #region-content .block .content {
+    padding: 0;
+    margin: 0;
+}
+
+
+/******* ACT Event - Agenda *******/
+.page-agenda .agenda-sessions .weekdayname {
+    height: 18px;
+}
+.page-agenda .agenda-sessions .weekdate {
+    height: 18px;
+    font-size: 0.875em;
+}
+.page-agenda .agenda-sessions .gTabs a {
+    color: #333333;
+}
+.agenda-sessions.tabbedContent .gTabs {
+    background: white;
+}
+.agenda-sessions.tabbedContent .gTabs {
+    height: 55px;
+}
+.agenda-sessions.tabbedContent .gTabs li {
+    width: 13%;
+}
+.agenda-sessions.tabbedContent .gTabs li.selected a {
+    height: 55px;
+    background: #4677b9;
+    color: white;
+}
+.agenda-sessions.tabbedContent .gContent {
+    padding: 0;
+}
+.agenda-sessions.tabbedContent .gContent .selected {
+    border: 1px solid #ccc;
+    border-top: 4px solid #4677b9;
+}
+.agenda-sessions .gContent .session_item {
+    padding: 25px;
+    border-bottom: 1px solid #ccc;
+}
+.agenda-sessions .gContent .session_item_title {
+    font-weight: bold;
+    padding-top: 5px;
+    font-size: 1em;
+    line-height: 1.2em;
+}
+.agenda-sessions .gContent .tabContentHeader {
+    background: #000;
+    color: white;
+    padding: 11px;
+    font-size: 1.063em;
+}
+.agenda-sessions .sess_link a {
+    font-style: italic;
+    font-size: 0.750em;
+    font-weight: normal;
+}
+.agenda-sessions .session_moderators, .agenda-sessions .session_speakers {
+    padding-top: 15px;
+}
+.agenda-sessions .sess_sp_title {
+    font-weight: bold;
+}
+.agenda-sessions .breakout_room {
+    width: 10%;
+    padding-top: 2px;
+    font-size: 1em;
+}
+.agenda-sessions .breakout_track_info,.agenda-sessions .breakout_room  {
+    display: inline-block;
+    vertical-align: top;
+}
+.agenda-sessions .breakout_track_info {
+    width: 85%;
+}
+.agenda-sessions .breakout_block {
+    padding-top: 18px;
+}
+.agenda-sessions .sess_track_subtitle {
+    font-size: 0.875em;
+    font-style: italic;
+}
+.agenda-sessions .sess_track_url {
+    font-size: 0.813em;
+    font-style: italic;
+    font-weight: normal;
+}
+.page-agenda #event_address {
+    margin-top: 30px;
+}
+.page-agenda #event_agenda {
+    padding-top: 20px;
+}
+.page-agenda #event_register_btn, .page-agenda #event_media {
+    display: none;
+}
+.page-agenda .agenda-sessions.tabbedContent .gTabs li.media-tab {
+    float: right;
+    width: 128px;
+    padding-top: 10px;
+}
+.page-agenda .agenda-sessions.tabbedContent .gTabs li.media-tab a {
+    width: 60px;
+    padding: 0;    
+}
+.page-keynote-speaker section.block-19b2091b7d96cf30002b04fc851a3269,.page-agenda section.block-19b2091b7d96cf30002b04fc851a3269 {
+    margin-left: 35px;
+    margin-right: 35px;
+}
+
+/********* Conference Sponsors *************/
+.page-conference-sponsors .block .block-title, .page-conference-sponsors .view-events-silver-sponsors .block .block-title {
+    background: none;
+    color: #333333;
+    font-weight: normal;
+}
+
+.view-event-conference-sponsors .views-row, .page-conference-sponsors .block .view-events-silver-sponsors  .views-row {
+    display: inline-block;
+    float: left;
+    border: 1px solid #ccc;
+    margin-top: 8px;
+}
+.page-conference-sponsors .view-event-conference-sponsors .views-row {
+    min-height: 248px;
+    width: 248px;
+    margin: 0 1em 1em 0.5em;
+}
+
+.page-conference-sponsors #block-system-main .content {
+    padding: 0;
+}
+.view-event-conference-sponsors .sp_description, .view-display-id-block_3 .sp_description {
+    width: 230px;
+}
+.view-event-conference-sponsors .sp_logo, .view-display-id-block_3 .sp_logo {
+    text-align: center;
+    background: white;
+    padding: 12px;
+}
+.view-event-conference-sponsors .sp_title, .view-display-id-block_3 .sp_title {
+    text-align: center;
+    font-size: 21px;
+}
+/***************Meet the Speakers **********/
+.view-event-profile .sp_block {
+    display: inline-block;
+    margin-left: 10%;
+    margin-top: 2%;
+    width: 155px;
+    min-height: 196px;
+    vertical-align: top;
+}
+.view-event-profile .sess_title, .view-event-moderators .sess_title {
+    font-size: 1.063em;
+    font-weight: bolder;
+    padding-top: 30px;
+}
+.view-event-profile .views-row {
+    margin-top: 5px;
+}
+
+/******** ACT Event Home ***************/
+.context-groups.node-type-events #block-views-19b2091b7d96cf30002b04fc851a3269 {
+    float: none;
+    width: 50%;
+}
+
+.node-type-events #block-views-19b2091b7d96cf30002b04fc851a3269 .views-row {
+    width: 130px;
+    height: 125px;
+    border: 1px solid #ccc;
+    text-align: center;
+    vertical-align: middle;
+    box-shadow: 1px 3px 1px #ccc;
+    padding: 0;
+    margin: 0;
+    margin-bottom: 10px;
+    margin-right: 6px;
+}
+
+.node-type-events #block-views-19b2091b7d96cf30002b04fc851a3269 .block-title {
+  background: none;
+  color: #333;
+  font-weight: lighter;
+  float:left;
+  width:100%;
+}
+
+.field-collection-view .field-name-field-sp-silver-description,
+.field-collection-view .field-name-field-sp-silver-title  {
+    display: none;
+}
+
+/************Event Links **********/
+#event-links-container .el-icon.home img {
+   width: 30px;
+}
+
+/******** Page Latest Events************/
+.page-latest-events .views-field-field-logo {
+    position: absolute;
+}
+.page-latest-events .view-event-category-listing .views-field-view {
+    position: absolute;
+}
+
+/******* Sidebar Follow us *********/
+.region-sidebar-first-inner #block-menu-menu-follow-on li a#menu-feed {
+    background: url('../images/rss.png') no-repeat;
+}
+.region-sidebar-first-inner #block-menu-menu-follow-on li a#linkedin {
+    background: url('../images/rss.png') no-repeat;
+}
+.region-sidebar-first-inner #block-menu-menu-follow-on li a#twitter {
+    background: url('../images/twitter.png') no-repeat;
+}
+.region-sidebar-first-inner #block-menu-menu-follow-on li a#facebook {
+    background: url('../images/fb.png') no-repeat;
+}
+
+
+
+/********* Page Cart *********/
+.page-cart #zone-preface-wrapper #zone-preface {
+    background: none;
+}
+.page-cart #zone-preface .region-preface-first {
+    width: auto;
+}
+.page-cart #zone-preface .region-preface-first .view .views-row{
+    display: inline-block;
+    vertical-align: top;
+}
+.page-cart #zone-preface .region-preface-first .view .views-row .view {
+    padding-left: 10px;
+    width: 210px;
+}
+/******** Annoucement, Spotlight Block ********/
+#zone-headercontent-wrapper {
+	margin-bottom: 10px;
+}
+#zone-headercontent section.block-2 .content, #zone-headercontent section.block-3 .content, #zone-headercontent section.block-57 .content {
+    height: 120px;
+    overflow-y: auto;
+}
+
+
+.view-group-announcements .views-row {
+    clear: both;
+    padding-bottom: 40px;
+}
+.view-group-announcements .views-field-delete-node,
+.view-group-announcements .views-field-edit-node,
+.view-groups-quick-links .views-field-delete-node,
+.view-groups-quick-links .views-field-edit-node,
+.view-act-forum-topic .views-field-delete-node,
+.view-act-forum-topic .views-field-edit-node,
+.view-display-id-block_1 .views-field-edit-node,
+.view-display-id-block_1 .views-field-delete-node{
+    float: right;
+    display: inline-block;
+    padding-right: 5px;
+    font-size: 13px;
+}
+
+.view-group-announcements .add-document,
+.view-groups-quick-links .add-document,
+.view-act-forum-topic .add-document,
+.view-group-documentation-library .add-document,
+.view-display-id-block_1 .view-all-members,
+.view-display-id-block_1 .add-document{
+    float: right;
+    clear: both;
+    font-size: 1em;
+    margin-top: 6px;
+    margin-right:3px;
+}
+
+.view-act-forum-topic .views-row {
+    padding: 15px 20px 15px 20px;
+    width: 240px;
+}
+
+.view-group-announcements .views-field-body p {
+    margin-bottom: 4px;
+}
+
+/******** Public profile ********/
+.page-user-public-profile .user_info {
+    float: left;
+}
+.page-user-public-profile .user_social_links .field div {
+    display: inline-block;
+}
+
+/********** Checkout Page *************/
+.addmorebadge {
+    margin-left: 21%;
+}
+.removebadge {
+    text-align: right;
+    margin-right: 32%;
+}
+#edit-account-username, .act_event_registration_badge #rb_0, .customer_profile_billing .field-type-addressfield,
+#edit-commerce-payment-payment-method, .form-item-commerce-coupon-coupon-code {
+    padding-top: 10px;
+}
+
+
+/*** ShareThis ******/
+.sharethis-wrapper .shprint {
+    background: url('../images/print.jpg') no-repeat;
+    height: 32px;
+    width: 32px;
+    cursor: pointer;
+}
+.sharethis-wrapper .sh_print_large {
+    padding: 3px;
+}
+
+/************* About us page - Member list **********/
+.view-event-member-list caption {
+    display: none;
+}
+ .node-published ul.inline li {
+padding: 0;
+}
+
+/********Event member list*******/
+.view-event-member-list .view-content table {
+    margin-bottom: 0;
+}
+
+/******* Contact us ******/
+.page-contact-us .block-webform .block-title {
+    display: none;
+}
+
+
+/****** Strategy Focus area***/
+
+.block-strategic-initiatives .focus p {
+    margin-bottom: 8px;
+}
+
+.block-strategic-initiatives tr:hover td,
+.block-strategic-initiatives tr.even:hover td.active,
+.block-strategic-initiatives tr.odd:hover td.active {
+    background: none;
+}
+
+.page-user .flag-abuse_user {
+    display: none;
+}
+
+/******** Commons flag ********/
+.flag-commons-follow-group .flag-unflagged-message {
+    display: none!important;
+}
+
+/****** Sub-community block***/
+.view-display-id-block_1 ul li.views-row {
+    margin-left: 0;
+}
+
+.node-type-webform .webform-client-form {
+    clear: both;
+}
+
+/*.gContent img {
+    width: 100%;
+    height: auto;
+} */
+
+.node-type-event .events-attendees-title h3 {
+    font-size: 1.3em;
+}
+
+/*.gInner div.field-item {
+    width: 100%;    
+}*/
+
+.field-collection-container .action-links-field-collection-add,
+.field-collection-container .field-collection-view-links {
+    display: none;
+}
+
+#badge-manage .badge-section {
+    display: inline-block;
+    width: 370px;
+    vertical-align: top;
+    border: 1px solid #333333;
+    margin-right: 15px;
+    margin-top: 10px;
+    background-color: #EEE;
+}
+
+#badge-manage .badge-section select {
+    min-width: 230px;
+}
+#badge-manage .form-item {
+    text-align: center;
+}
+
+#badge-manage .badge-sect-title {
+    background-color: #333333;
+    padding: 10px;
+    color: white;
+}
+.badge-section-group {
+    float: left;
+}
+#badge-manage .badge-section-group .badge-section {
+    display: block;
+}
+#badge-manage .badge-title {
+    background-color: #333333;
+    color: white;
+    padding: 10px;
+}
+#badge-manage .badge-body {
+    padding: 18px;
+}
+
+#badge-manage .save {
+    text-align: center;
+    padding-top: 15px;
+}
+#badge-manage .save input {
+    background: #333;
+    color: white;
+    padding: 10px;
+    border-radius: 0;
+    width: 175px;
+    font-weight: normal;
+    text-shadow: none;
+}
+#badge-eventinfo {
+	padding: 10px;
+	background-color: #eee;
+}
+
+.frnd_info .frnd_org {
+    font-size: 0.7em;
+}
+
+.page-user-dashboard .view-commons-events-event-attendee-list .view-footer {
+	clear: both;
+	padding-top: 15px;
+}
+
+.view-id-arl_badge_users .view-arl-user-info .view-content,
+.view-id-arl_badge_users .view-arl-event-info .view-content {
+	margin-top: 0;
+}
+
+/**** User Org Info tab **/
+#roster_info {
+	margin-top: 20px;
+}
+
+/*** All-members ***/
+.page-all-members .view-display-id-page_2 td div {
+	display: inline-block;
+	vertical-align: middle;
+	width: auto;
+	min-height: 35px;
+	padding: 4px 3px;
+}
+.page-all-members .view-display-id-page_2 .view-header table {
+	margin-bottom: 0;
+}
+
+.view-og-nodes .view-header {
+	margin-bottom: 25px;
+}
+
+.view-og-nodes .poll {
+	margin-bottom: 15px;
+}
+
+.view-og-nodes .poll .vote-form {
+	text-align: left;
+}
+.view-og-nodes .poll .vote-form .choices {
+	margin: 0;
+}
+
+.page-user .view-display-id-page_2 .views-field-picture {
+	float: none;
+}
+
+#region-sidebar-second .view-commons-activity-streams-activity.view-display-id-block_1 div.content {
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.view-display-id-page_1 th {
+	text-align: left;
+}
+.view-display-id-page_1 .views-field-name a {
+	display: table;
+}
+
+.view-event-moderators {
+	margin-left: 20px;
+}
+
+.view-event-moderators .view-content {
+	margin-top: 25px;
+}
+
+#block-views-event-moderators-block {
+	margin-bottom: 25px;
+}
+
+#block-views-event-moderators-block .view-content div {
+	display: inline-block;
+	max-width: 200px;
+	float:left;
+}
+
+.page-user-edit .field-name-og-user-node {
+	display: none;
+}
+
+.page-node-add-documents .field-name-og-group-ref,
+.page-node-add-announcements .field-name-og-group-ref {
+	display: none;
+}
+

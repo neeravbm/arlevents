@@ -1,0 +1,459 @@
+/******** Maximenu ****************/
+.om-maximenu.om-maximenu-block.om-maximenu-row ul.om-menu li.om-leaf {
+    float: left;
+    position:static;
+}
+.om-maximenu.om-maximenu-block ul.om-menu li.om-leaf {
+    float: left;
+}
+.om-maximenu ul.om-menu li.open {
+    background: #782323;
+    color: #ffffff;
+}
+.om-maximenu-bubble .om-maximenu-middle {
+    background: #FFFFFF;
+    border: 3px solid #782323;
+}
+.om-maximenu-bubble .om-maximenu-middle-right {
+    background: none;
+    height: auto;
+    margin-right: 0;
+    padding:0px;
+}
+.om-maximenu-bubble .om-maximenu-top-left, .om-maximenu-bubble .om-maximenu-top-right {
+    background: none;
+    height: auto;
+}
+.om-maximenu .om-maximenu-content .om-maximenu-middle .block {
+    display: inline-block;
+    vertical-align: top;
+    float: left;
+    width: 24%;
+    margin:0 15px 0 0;
+}
+.om-maximenu-bubble .om-maximenu-top, .om-maximenu-bubble .om-maximenu-middle-left {
+    background: none;
+    height: auto;
+    margin:0;
+}
+.om-maximenu.om-maximenu-block ul.om-menu {
+width: 100%;
+}
+.om-maximenu-bubble.om-maximenu-block .om-maximenu-content {
+    padding: 5px 0 0;
+    top: 25px;
+    width:99.5%;
+}
+.om-maximenu-bubble .om-maximenu-arrow {
+    background: none;
+}
+.om-maximenu-middle .block h2 {
+    color: #333333;
+    font-family: 'ArchivoNarrowRegular';
+    font-size: 0.875em;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+.om-maximenu .om-maximenu-open {
+    display: none;
+}
+#zone-header .block-title {
+    display: none;
+}
+
+/********* Keynote Speakers **************/
+
+.page-keynote-speaker .field-name-field-profile-picture .field-label,
+.page-keynote-speaker .field-name-field-profile-designation .field-label {
+    display: none;
+}
+
+.keynote-speaker.tabbedContent .media-tab {
+    float: right;
+    text-align: right;
+}
+
+.page-keynote-speaker #speaker_session  {
+    width: 175px;
+}
+.page-keynote-speaker #speaker_sess_icon {
+    float: left;
+}
+.page-keynote-speaker #speaker_session_info {
+    margin-left: 35px;
+}
+
+/******** ACT Events - Speaker Block *******/
+.node-type-events .block-views-event-profile-block-1 {
+    float: left;
+    width: 34%;
+}
+.node-type-events .block-views-event-profile-block-1 .views-field-field-profile-picture-1 img  {
+    height: auto;
+    width: 100%;
+}
+
+/******** ACT Events - *******/
+#event_venue_container #event_date {
+    margin-top: 18px;
+    width: 212px;
+}
+#event_venue_container .venue-cal-icon {
+    float: left;
+}
+#event_venue_container .venue-cal-info,#event_venue_container .venue-info {
+    margin-left: 35px;
+}
+#event_media {
+    margin-top: 15px;
+}
+.venue-icon {
+    float: left;
+}
+#event_venue_container .venue-icon.ven-fb-icon {
+    padding-left: 35px;
+}
+#event_venue_container #event_register_btn {
+    clear: both;
+}
+
+.context-groups .block-field-logo {
+    position: absolute;
+    z-index: 1;
+    left: 30px;
+    top: 83px;
+}
+
+.context-groups .block-field-logo img {
+    width: 100%;
+    height: auto;
+}
+
+.context-groups .block-field-logo .block-title {
+    display: none;
+}
+
+/******** ACT Events - Event Links Block **********/
+
+.block-act-event-eventlinks .event-links-item {
+    border-bottom: 1px solid #ccc;
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+}
+.block-act-event-eventlinks .el-icon {
+    float: left;
+    padding-top: 4px;
+}
+#event-links-container {
+    line-height: 1.2em;
+}
+
+.block-act-event-eventlinks .el-link, .el-sub-link {
+    padding-bottom: 10px;
+    margin-left: 45px;
+}
+.block-act-event-eventlinks .el-link {
+    padding-bottom: 10px;
+    padding-top: 10px;
+    font-size: 1.2em;
+    margin-left: 45px;
+}
+
+/******* ACT Event - Track Description *******/
+.page-track-description #region-content .block .content {
+    padding: 0;
+    margin: 0;
+}
+
+
+/******* ACT Event - Agenda *******/
+.page-agenda .agenda-sessions .weekdayname {
+    height: 18px;
+}
+.page-agenda .agenda-sessions .weekdate {
+    height: 18px;
+    font-size: 0.875em;
+}
+.page-agenda .agenda-sessions .gTabs a {
+    color: #333333;
+}
+.agenda-sessions.tabbedContent .gTabs {
+    background: white;
+}
+.agenda-sessions.tabbedContent .gTabs {
+    height: 55px;
+}
+.agenda-sessions.tabbedContent .gTabs li {
+    width: 13%;
+}
+.agenda-sessions.tabbedContent .gTabs li.selected a {
+    height: 55px;
+    background: #4677b9;
+    color: white;
+}
+.agenda-sessions.tabbedContent .gContent {
+    padding: 0;
+}
+.agenda-sessions.tabbedContent .gContent .selected {
+    border: 1px solid #ccc;
+    border-top: 4px solid #4677b9;
+}
+.agenda-sessions .gContent .session_item {
+    padding: 25px;
+    border-bottom: 1px solid #ccc;
+}
+.agenda-sessions .gContent .session_item_title {
+    font-weight: bold;
+    padding-top: 5px;
+    font-size: 1em;
+    line-height: 1.2em;
+}
+.agenda-sessions .gContent .tabContentHeader {
+    background: #000;
+    color: white;
+    padding: 11px;
+    font-size: 1.063em;
+}
+.agenda-sessions .sess_link a {
+    font-style: italic;
+    font-size: 0.750em;
+    font-weight: normal;
+}
+.agenda-sessions .session_moderators, .agenda-sessions .session_speakers {
+    padding-top: 15px;
+}
+.agenda-sessions .sess_sp_title {
+    font-weight: bold;
+}
+.agenda-sessions .breakout_room {
+    width: 10%;
+    padding-top: 2px;
+    font-size: 1em;
+}
+.agenda-sessions .breakout_track_info,.agenda-sessions .breakout_room  {
+    display: inline-block;
+    vertical-align: top;
+}
+.agenda-sessions .breakout_track_info {
+    width: 85%;
+}
+.agenda-sessions .breakout_block {
+    padding-top: 18px;
+}
+.agenda-sessions .sess_track_subtitle {
+    font-size: 0.875em;
+    font-style: italic;
+}
+.agenda-sessions .sess_track_url {
+    font-size: 0.813em;
+    font-style: italic;
+    font-weight: normal;
+}
+.page-agenda #event_address {
+    margin-top: 30px;
+}
+.page-agenda #event_agenda {
+    padding-top: 20px;
+}
+.page-agenda #event_register_btn, .page-agenda #event_media {
+    display: none;
+}
+.page-agenda .agenda-sessions.tabbedContent .gTabs li.media-tab {
+    float: right;
+    width: 128px;
+    padding-top: 10px;
+}
+.page-keynote-speaker section.block-19b2091b7d96cf30002b04fc851a3269,.page-agenda section.block-19b2091b7d96cf30002b04fc851a3269 {
+    margin-left: 35px;
+    margin-right: 35px;
+}
+
+/********* Conference Sponsors *************/
+.page-conference-sponsors .block .block-title {
+    background: none;
+    color: #333333;
+    font-weight: normal;
+}
+
+.view-event-conference-sponsors .views-row {
+    display: inline-block;
+    padding-left: 10px;
+    float: left;
+    border: 1px solid #ccc;
+    margin-top: 8px;
+}
+.page-conference-sponsors .view-event-conference-sponsors .views-row {
+    min-height: 248px;
+}
+
+.page-conference-sponsors #block-system-main .content {
+    padding: 0;
+}
+.view-event-conference-sponsors .sp_description {
+    width: 230px;
+}
+.view-event-conference-sponsors .sp_logo {
+    text-align: center;
+    background: white;
+    padding: 12px;
+}
+.view-event-conference-sponsors .sp_title {
+    text-align: center;
+    font-size: 21px;
+}
+/***************Meet the Speakers **********/
+.view-event-profile .sp_block {
+    display: inline-block;
+    margin-left: 10%;
+    margin-top: 2%;
+    width: 155px;
+    min-height: 196px;
+    vertical-align: top;
+}
+.view-event-profile .sess_title {
+    font-size: 1.063em;
+    font-weight: bolder;
+    padding-top: 30px;
+}
+.view-event-profile .views-row {
+    margin-top: 5px;
+}
+
+/******** ACT Event Home ***************/
+.context-groups.node-type-events #block-views-19b2091b7d96cf30002b04fc851a3269 {
+    float: none;
+    width: 100%;
+}
+
+.node-type-events #block-views-19b2091b7d96cf30002b04fc851a3269 .views-row {
+    width: 130px;
+    height: 125px;
+    border: 1px solid #ccc;
+    text-align: center;
+    vertical-align: middle;
+    box-shadow: 1px 3px 1px #ccc;
+    padding: 0;
+    margin: 0;
+    margin-bottom: 10px;
+    margin-right: 6px;
+}
+.node-type-events #block-views-19b2091b7d96cf30002b04fc851a3269 .block-title {
+    background: none;
+    color: #333;
+    font-weight: lighter;
+}
+
+.field-collection-view .field-name-field-sp-silver-description,
+.field-collection-view .field-name-field-sp-silver-title  {
+    display: none;
+}
+
+/************Event Links **********/
+#event-links-container .el-icon.home img {
+   width: 30px;
+}
+
+/******** Page Latest Events************/
+.page-latest-events .views-field-field-logo {
+    position: absolute;
+}
+.page-latest-events .view-event-category-listing .views-field-view {
+    position: absolute;
+}
+
+/******* Sidebar Follow us *********/
+.region-sidebar-first-inner #block-menu-menu-follow-on li a#menu-feed {
+    background: url('../images/rss.png') no-repeat;
+}
+.region-sidebar-first-inner #block-menu-menu-follow-on li a#linkedin {
+    background: url('../images/rss.png') no-repeat;
+}
+.region-sidebar-first-inner #block-menu-menu-follow-on li a#twitter {
+    background: url('../images/twitter.png') no-repeat;
+}
+.region-sidebar-first-inner #block-menu-menu-follow-on li a#facebook {
+    background: url('../images/fb.png') no-repeat;
+}
+
+
+/********* Page Cart *********/
+.page-cart #zone-preface-wrapper #zone-preface {
+    background: none;
+}
+.page-cart #zone-preface .region-preface-first {
+    width: auto;
+}
+.page-cart #zone-preface .region-preface-first .view .views-row{
+    display: inline-block;
+    vertical-align: top;
+}
+.page-cart #zone-preface .region-preface-first .view .views-row .view {
+    padding-left: 10px;
+    width: 210px;
+}
+/******** Annoucement, Spotlight Block ********/
+#zone-headercontent section.block-2 .content, #zone-headercontent section.block-3 .content {
+    height: 125px;
+    overflow-y: auto;
+}
+
+
+.view-group-announcements .views-row {
+    clear: both;
+    padding-bottom: 40px;
+}
+.view-group-announcements .views-field-delete-node,
+.view-group-announcements .views-field-edit-node,
+.view-groups-quick-links .views-field-delete-node,
+.view-groups-quick-links .views-field-edit-node {
+    float: right;
+    display: inline-block;
+    padding-right: 5px;
+    font-size: 13px;
+}
+
+.view-group-announcements .add-document,
+.view-groups-quick-links .add-document,
+.view-group-documentation-library .add-document {
+    float: right;
+    clear: both;
+    font-size: 14px;
+    margin-top: 6px;
+}
+
+.view-group-announcements .views-field-body p {
+    margin-bottom: 4px;
+}
+
+/******** Public profile ********/
+.page-user-public-profile .user_info {
+    float: left;
+}
+.page-user-public-profile .user_social_links .field div {
+    display: inline-block;
+}
+
+/********** Checkout Page *************/
+.addmorebadge {
+    margin-left: 21%;
+}
+.removebadge {
+    text-align: right;
+    margin-right: 32%;
+}
+
+/******** Private Message **********/
+.page-messages .form-item-recipient {
+    display: none;
+}
+/*** ShareThis ******/
+.sharethis-wrapper .shprint {
+    background: url('../images/print.jpg') no-repeat;
+    height: 32px;
+    width: 32px;
+}
+.sharethis-wrapper .sh_print_large {
+    padding: 3px;
+}

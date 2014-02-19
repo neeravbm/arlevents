@@ -1,0 +1,618 @@
+/* This file will hold styles that are loaded using the same media query as the normal grid. */
+/* If you are using the default media queries provided by Omega, these styles will also
+ *  apply to the widescreen layout unless they are overridden by the widescreen styles. */
+
+.myprofile-right {
+  float: right;
+  width: 30%;
+  margin-left: 10px;
+}
+
+.myprofile-top {
+  width: 68%;
+}
+
+.triple li {
+  width:50%;
+}
+
+#block-views-interests-block .item-list ul li, #block-views-my-interests-block .item-list ul li {
+  margin: 0 0 0.25em 0;
+}
+
+/************* Tabs by devendra************/
+
+.ui-tabs {
+	zoom: 1;
+}
+
+.ui-tabs .ui-tabs-nav {
+	list-style: none;
+	position: relative;
+	padding: 0;
+	margin: 50px 0 0;
+	background:#203b6a;
+	width:100%;
+	float:left;
+	height:40px;
+}
+
+.ui-tabs .ui-tabs-nav div {
+	position: relative;
+	float: left;
+	margin: 0;
+	padding: 0;
+
+}
+
+.ui-tabs .ui-tabs-nav div a {
+	display: block;
+	padding: 10px 20px;
+    border-bottom-color: #ccc;
+	outline: none;
+	background: #203B6A;
+	border-right: 2px #162742 solid;
+    color:#fff;
+	text-decoration:none;
+}
+
+.ui-tabs .ui-tabs-nav div a:hover, 
+.ui-tabs .ui-tabs-nav div.active a {
+    background: #162742;
+}
+
+.ui-tabs .ui-tabs-nav div.active {
+     background:url('../images/arrow.png') no-repeat center bottom;
+     padding-bottom:7px;
+}
+
+.ui-tabs .ui-tabs-nav div.ui-tabs-selected a {
+	padding: 10px 20px 12px 20px;
+	background: #fff;
+	border-bottom-style: none;
+}
+.ui-tabs .ui-tabs-nav div.ui-tabs-selected a,
+.ui-tabs .ui-tabs-nav div.ui-state-disabled a,
+.ui-tabs .ui-tabs-nav div.ui-state-processing a {
+	cursor: default;
+}
+.ui-tabs .ui-tabs-nav div a,
+.ui-tabs.ui-tabs-collapsible .ui-tabs-nav div.ui-tabs-selected a {
+	cursor: pointer;
+}
+
+.ui-tabs .tabcontent{
+	display: block;
+	clear: both;
+    padding: 10px 0;
+}
+
+.ui-tabs .ui-tabs-hide {
+	display: none;
+}
+
+
+/******** Profile Bottom ******/
+
+.profile-bottom .image {
+    float:left;
+    margin-top: 15px;
+}
+
+.profile-bottom .title {
+    font-size: 20px;
+    font-weight: normal;
+    margin-bottom: 0;
+    padding: 10px 0 0;
+}
+
+.profile-bottom .description {
+    float: right;
+    width: 85%;
+}
+/*
+.page-user #zone-postscript {
+    background:white;
+    margin-left: 6.3%;
+    margin-right: auto;
+    padding-bottom:20px;
+} 
+*/
+
+/************** My ACT-IAC Page *******/
+
+.content-top  {
+    padding: 20px 0;
+    color:#3B3B3B;
+    font-size: 20px;
+    font-weight: normal;
+}
+
+.content-top .first {
+    float:left;
+    border-right:2px solid #E1E1E1;
+    padding-right:20px;
+    margin-right:20px;
+}
+
+.content-top .last {
+    float:right;
+    background:#4D7BBA;
+    border-radius:6px;
+    padding:0 20px;
+    font-size: 15px;
+}
+
+.content-top .last a{
+    text-decoration:none;
+    color:#fff;
+}
+
+
+.clear {clear:both;}
+
+/********* Vertical tabs ********/
+/*
+#tabs-titles.myactiac{
+    float:left;
+    margin-right:40px;
+    background: #203B6A;
+    width: 25%;
+    display: block;
+}
+#tabs-titles.myactiac li{
+    cursor:pointer;
+    list-style:none;
+    color:#fff;
+    height: 40px;
+    padding: 10px;
+    border-bottom: 1px solid #FFFFFF;
+    font-weight:bolder;
+    background:#4D7BBA;
+}
+
+#tabs-titles.myactiac li.current{
+   background:#203B6A url('../images/arrow_vertical.png')  no-repeat top right;
+}
+
+
+#tabs-contents.myactiac{
+    background:#F2F2F2;
+    margin-left:25%;
+    padding:5px;
+    width: 73.5%;
+}
+#tabs-contents.myactiac li{
+    display:none;
+}
+#tabs-contents.myactiac li:first-child{
+    display:block;
+}
+#tabs-contents.myactiac table {
+    border: none;
+    width: 89%;
+}
+#tabs-contents.myactiac .block_title {
+    font-size: 20px;
+    font-weight: normal;
+    margin-bottom: 0;
+    padding: 10px 0;
+    color:#3B3B3B;
+}
+
+#tabs-contents.myactiac table tr td{
+    color:#3D3D3D;
+}
+
+#tabs-contents.myactiac table tr.even td {
+    background:#F2F2F2;
+}
+
+#tabs-contents.myactiac table tr.even, #tabs-contents.myactiac table tr.odd {
+    border-bottom:none;
+}
+*/
+
+#tabs-titles{
+  float:left;
+  margin-right:40px;
+  background: #203B6A;
+  width: 17%;
+}
+
+.front #tabs-titles{
+  float:left;
+  margin-right:40px;
+  background: #203B6A;
+  width: 12%;
+}
+
+#tabs-titles div{
+  cursor:pointer;
+  color:#fff;
+  height: 40px;
+  padding: 10px;
+  border-bottom: 1px solid #FFFFFF;
+  font-weight:bolder;
+  background:#4D7BBA;
+}
+
+#tabs-titles div.current{
+  background:url('../images/leftblueselectd_arrow.png')  no-repeat right center;
+  margin: 0 0 0 5%;
+  width: 86%;
+}
+
+
+#tabs-titles div a {
+  color:#fff;
+  text-decoration:none;
+}
+
+
+#tabs-contents{
+    background:#F2F2F2;
+    margin-left:100px;
+    padding:5px;
+}
+
+.front #tabs-contents{
+    background:#FFFFFF;
+    margin-left:100px;
+    padding:5px;
+}
+
+#tabs-contents div{
+    display:none;
+}
+#tabs-contents div:first-child{
+    display:block;
+}
+#tabs-contents table {
+    border: none;
+    width: 89%;
+}
+#tabs-contents .block_title {
+    font-size: 20px;
+    font-weight: normal;
+    margin-bottom: 0;
+    padding: 10px 0;
+    color:#3B3B3B;
+}
+
+#tabs-contents table tr td{
+    color:#3D3D3D;
+}
+
+#tabs-contents table tr.even td {
+    background:#F2F2F2;
+}
+
+#tabs-contents table tr.even, #tabs-contents table tr.odd {
+    border-bottom:none;
+}
+
+/********** Ready to Join Reward Zone? ********/
+#readytojoin .left, #readytojoin .right {
+    width:45%;
+}
+
+#readytojoin .left {
+  border-right: 2px solid #EBDEDE;
+  border-bottom:none;
+}
+
+#readytojoin .right {
+  float:left;
+}
+
+.triple li {
+  width:49%;
+}
+
+/*********** Header ***********/
+#user-login-form .form-type-textfield, #user-login-form .form-type-password{
+  width:45%;
+}
+
+#zone-branding #block-system-main-menu {
+  display:none;
+}
+
+.navigation, #om-maximenu-maximenu{
+  display:block;
+}
+
+#block-block-11 {
+  background: none repeat scroll 0 0 #782323;
+  border-radius: 10px 10px 10px 10px;
+  padding: 10px 25px;
+  margin:10px;
+}
+
+/******** Search *********/
+
+#block-search-form {
+  display: block;
+}
+
+#block-search-form .block-title {
+  display:block;
+}
+
+#block-search-form .form-type-textfield input{
+  border-radius:5px;
+  height:28px;
+  background:none;
+  position:static;
+  display:inline;
+  margin:0 2px;
+  width:65%;
+}
+
+#block-search-form .form-actions {
+  display: inline;
+}
+
+/********* Menu ********/
+#region-branding .block-menu{
+  display:none;
+}
+
+#block-block-11, #block-block-12, #region-branding .block-menu{
+  width:7%;
+}
+
+
+/********* Event node page ********/
+.page-user .friend_block .frnd_info{
+  width:65%;
+}
+
+.page-user-dashboard .friend_block .frnd_info{
+  width:60%;
+}
+
+
+.page-node.node-type-group .friend_block .frnd_info{
+  width:65%;
+}
+
+/************ Login Page *******/
+#user-login .form-item-name input, #user-login .form-item-pass input{
+  width:70%;
+}
+
+/********** Home Page ******/
+#block-block-22 ul li{
+  display: inline;
+  margin: 25px 0;
+  width: 32%;
+  float:left;
+}
+
+.project-title {
+  border-bottom: 1px solid #333333;
+  color: #333333;
+  font-family: 'archivo_narrowregular';
+  font-size: 24px;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
+}
+
+.front #tabs-contents table tr td{
+  vertical-align:top;
+}
+
+.front #tabs-contents .block_title {
+    font-size: 20px;
+    font-weight: normal;
+    margin-bottom: 0;
+    padding: 0 0 10px 0;
+    color:#3B3B3B;
+}
+
+
+
+/************ Cart Page Style *********/
+.page-cart h1#page-title {
+  background:#4D7BBA url("../images/cart.png") no-repeat scroll 5px 12px;
+  color: #FFFFFF;
+  font-size: 2em;
+  font-weight: normal;
+  padding: 10px 10px 10px 5%;
+  margin:20px 20px 0;
+}
+
+.page-cart #edit-actions #edit-continue-shopping{
+  border-radius:0;
+  padding:10px 50px;
+  background:#6F6F6F;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  background:#6F6F6F url("../images/cart.png") no-repeat scroll 5px 0;
+}
+
+.page-cart #edit-actions input{
+  border-radius:0;
+  padding:10px 50px;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  background:#4D7BBA url("../images/cart.png") no-repeat scroll 5px 0;
+}
+
+.view-commerce-cart-form {
+  border:1px solid #D9D2D2;
+}
+
+.page-cart #region-content .block .content {
+  padding-top:0px;
+  margin-top:0px;
+}
+
+.page-cart .commerce-line-item-views-form table tr td {
+  color:#9B9999;
+}
+
+.page-cart .commerce-line-item-views-form table tr td a,
+.page-cart .commerce-line-item-views-form table tr td a:hover {
+  color:#777575;
+}
+
+/************ checkout Page Style *********/
+
+.page-checkout h1#page-title {
+  display:none;
+}
+
+#commerce-checkout-form-checkout fieldset, 
+#commerce-checkout-form-checkout fieldset legend{
+  width:100%;
+}
+
+.page-checkout #commerce-checkout-form-checkout legend span {
+  background:#6F6F6F;
+  color: #FFFFFF;
+  font-size: 1.5em;
+  font-weight: normal;
+  float:left;
+  padding: 10px;
+  width:98%;
+  margin:0 0 10px 0;
+  
+}
+
+.page-checkout .commerce_coupon .form-submit{
+  border-radius:0;
+  padding:10px 50px;
+  background:#4D7BBA;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+  margin:20px 0;
+}
+
+
+.page-checkout .checkout-buttons .checkout-continue{
+  border-radius:0;
+  padding:10px 50px;
+  background:#6F6F6F;
+  color:#FFFFFF;
+  font-weight:normal;
+  text-shadow:none;
+}
+
+
+.page-checkout #commerce-checkout-form-checkout fieldset label, 
+.page-checkout #commerce-checkout-form-review fieldset label {
+  float: left;
+  width: 20%;
+  color:#817E7A;
+}
+
+.page-checkout #addressfield-wrapper input {
+   max-width: 100%;
+   padding: 0 5px;
+}
+
+.page-checkout #addressfield-wrapper .addressfield-container-inline > div.form-item {
+  float:none;
+}
+
+.page-checkout #addressfield-wrapper .locality-block > div.form-item{
+  margin-bottom:0;
+  margin-top:0;
+}
+
+.page-checkout #addressfield-wrapper > div.form-item{
+  margin-right:0px;
+}
+
+
+/************** Compelition Page ********/
+#commerce-checkout-form-complete{
+  width:100%;
+  float:left;
+  border:1px solid #D9D2D2;
+}
+
+#commerce-checkout-form-complete fieldset, 
+#commerce-checkout-form-complete fieldset legend{
+  width:100%;
+}
+
+.page-checkout #commerce-checkout-form-complete legend span {
+  background:#4D7BBA;
+  color: #FFFFFF;
+  font-size: 1.5em;
+  font-weight: normal;
+  float:left;
+  padding: 10px;
+  width:98%;
+  margin:0 0 10px 0;
+}
+
+.page-checkout .checkout-completion-message {
+  padding: 40px;
+  text-align: center;
+}
+
+.page-checkout .checkout-completion-message a{
+  background:#4D7BBA;
+  color: #FFFFFF;
+  font-size: 1.5em;
+  font-weight: normal;
+  padding:10px 50px;
+  text-decoration:none;
+}
+
+
+#block-menu-menu-group-menus ul{
+  float:left;
+  width:100%;
+  list-style:none;
+  background:#000000;
+}
+
+#block-menu-menu-group-menus ul li{
+  float:left;
+  list-style:none;
+  margin: 10px 29px;
+}
+
+#block-menu-menu-group-menus ul li a{
+  text-decoration:none;
+  color:#FFFFFF;
+}
+
+/****************** Two Col Layout in Inner Page **************/
+
+.page-node .innerpage-standard .col {
+  width: 50%;
+}
+
+.page-node .innerpage-standard .col .summery{
+  margin: 30px 0;
+  /*padding: 0 25%;*/
+}
+
+/*.page-node .bodysummery {
+  padding: 0 25%;
+}*/
+
+
+.page-node .innerpage .left{
+    float: left;
+    width: 14%;
+}
+
+.page-node .innerpage .right {
+  float: right;
+  width: 83%;
+  text-align:justify;
+}
+
+

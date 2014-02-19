@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * @file
+ * The module file
+ *
+ * This module makes it possible to remove certain ip's blocked in flood
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function flood_unblock_menu() {
+  $items['admin/config/system/flood-unblock'] = array(
+    'title' => 'Flood unblock',
+    'description' => 'List all user blocked by the flood table.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('flood_unblock_settings'),
+    'access arguments' => array('access flood unblock'),
+  );
+  return $items;
+}
+
+/**
++ * Implements hook_permission().
++ */
+function flood_unblock_permission() {
+  return array(
+    'access flood unblock' => array(
+      'title' => t('Access the flood unblock module'),
+      ),
+    );
+}
+
+function flood_unblock_settings() {
+  $form = array();
+  $form['flood_unblock'] = array(
+    '#type' => 'select',
+    '#title' => t('Clear which type of flood'),
+    '#required' => TRUE,
+    '#options' => array(
+      'ip' => t('Clear ip blocks'),
+      'user' => t('Clear user blocks'),
+    ),
+  );
+  $form['flood_unblock_ip'] = array(
+    '#type' => 'textfield',
+    '#title' => t('What ip address should be cleared'),
+    '#required' => FALSE,
+    '#description' => t('If this field is empty all ip addresses will be cleared'),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Clear flood'),
+  );
+  return $form;
+}
+
+function flood_unblock_settings_validate($form, &$form_state) {
+  $ip = $form_state['values']['flood_unblock_ip'];
+  if (!empty($ip)) {
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+      form_set_error('flood_unblock_ip', t('The ip address is not valid'));
+    }
+  }
+}
+
+function flood_unblock_settings_submit($form, &$form_state) {
+  switch ($form_state['values']['flood_unblock']) {
+    case 'ip':
+      $type = 'failed_login_attempt_ip';
+      break;
+    case 'user':
+      $type = 'failed_login_attempt_user';
+      break;
+  }
+  $ip = NULL;
+  if (!empty($form_state['values']['flood_unblock_ip'])) {
+    $ip = $form_state['values']['flood_unblock_ip'];
+  }
+  flood_unblock_clear_event($type, $ip);
+}
+
+
+function flood_unblock_clear_event($type, $ip) {
+  $query = db_delete('flood')
+    ->condition('event', $type);
+  if (isset($ip)) {
+    $query->condition('identifier', '%' . $ip, 'LIKE');
+  }
+  $query->execute();
+  drupal_set_message(t('Flood cleared'));
+}

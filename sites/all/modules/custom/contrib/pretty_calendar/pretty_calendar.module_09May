@@ -1,0 +1,710 @@
+<?php
+
+/**
+ * @file
+ * Simple nice calendar module that displays the materials by date.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function pretty_calendar_menu() {
+  $items = array();
+  $items['calendar/%/%/%'] = array(
+    'title' => 'All activities for the day',
+    'page callback' => 'pretty_calendar_day_nodes',
+    'page arguments' => array(1, 2, 3),
+    'access arguments' => array('access content'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['calendar_get/%/%/%'] = array(
+    'title' => 'Calendar',
+    'page callback' => 'pretty_calendar_content_loader',
+    'page arguments' => array(1,2,3),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['calendar_links/%/%/%'] = array(
+    'title' => 'Calendar',
+    'page callback' => 'pretty_calendar_links_loader',
+    'page arguments' => array(1, 2, 3),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['calendar'] = array(
+    'title' => 'Calendar',
+    'page callback' => 'pretty_calendar_node_list',
+    'access arguments' => array('access content'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -50,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function pretty_calendar_theme() {
+  $hooks = array(
+    'pretty_calendar' => array(
+      'template' => 'pretty-calendar',
+      'variables' => array(
+        'daynames' => NULL,
+        'content' => NULL,
+        'month_prev' => NULL,
+        'month_next' => NULL,
+        'month_name' => NULL,
+		'month_current' => NULL,
+		'action' => NULL,
+		'uid' => NULL,
+      ),
+    ),
+    'pretty_calendar_week' => array(
+      'template' => 'pretty-calendar-week',
+      'variables' => array(
+        'days' => NULL,
+        'delta' => NULL,
+        'current' => NULL,
+      ),
+    ),
+    'pretty_calendar_day' => array(
+      'template' => 'pretty-calendar-day',
+      'variables' => array(
+        'number' => NULL,
+        'date' => NULL,
+        'delta' => NULL,
+        'class' => NULL,
+        'count' => NULL,
+        'using_tooltip' => NULL,
+        'is_empty' => NULL,
+        'my_date' => NULL,
+		'action' => NULL,
+		'uid' => NULL,
+      ),
+    ),
+  );
+  return $hooks;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function pretty_calendar_block_info() {
+  $blocks['calendar']['info'] = t('Calendar');
+  $blocks['calendar']['properties']['administrative'] = TRUE;
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function pretty_calendar_block_configure($delta = '') {
+  $form['pretty_calendar_page_title'] = array(
+    '#type' => 'textfield',
+    '#size' => 128,
+    '#maxlength' => 128,
+    '#title' => t('Calendar page title'),
+    '#default_value' => variable_get('pretty_calendar_page_title', t('Activities calendar')),
+    '#description' => t('Choose a title for page that will display all calendar nodes.'),
+  );
+
+  $node_types = node_type_get_types();
+  $node_type_options = array();
+  $node_type_options[''] = t('All node types');
+  foreach ($node_types as $node_type) {
+    $node_type_options[$node_type->type] = $node_type->name;
+  }
+
+  // Search themes.
+  $themes = array();
+  $theme_path = drupal_get_path('module', 'pretty_calendar') . '/themes/';
+  if ($handle = opendir($theme_path)) {
+    // Check for directory, calendar.css.
+    while (FALSE !== ($dir = readdir($handle))) {
+      if (is_dir($theme_path . $dir) &&
+        file_exists($theme_path . $dir . '/calendar.css')) {
+        $themes[$dir] = $dir;
+      }
+    }
+    closedir($handle);
+  }
+  $form['pretty_calendar_theme'] = array(
+    '#type' => 'select',
+    '#options' => $themes,
+    '#title' => t('Theme'),
+    '#default_value' => variable_get('pretty_calendar_theme', 'round'),
+    '#description' => t('Select calendar appearance.'),
+  );
+
+  $form['pretty_calendar_node_type'] = array(
+    '#type' => 'checkboxes',
+    '#options' => $node_type_options,
+    '#multiple' => TRUE,
+    '#title' => t('Node type'),
+    '#default_value' => explode(',', variable_get('pretty_calendar_node_type', '')),
+    '#description' => t('Select node type.'),
+  );
+  $form['pretty_calendar_node_invert'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Invert selection.'),
+    '#default_value' => variable_get('pretty_calendar_node_invert', FALSE),
+  );
+
+  // Search date fields.
+  $fields = field_info_fields();
+  $fields_options[''] = t('Node creation date');
+
+  $date_module = module_exists('date');
+  if ($date_module) {
+    $field_desc = t('Select field that contains the date of the event. By default, nodes will be selected by date of creation.');
+    foreach ($fields as $field_type => $field_data) {
+      if ($field_data['module'] == 'date') {
+        $fields_options[$field_type] = $field_type;
+      }
+    }
+    if (count($fields_options) == 1) {
+      $field_desc = '<span style="color:red; font-weight:bold;">' . t('There are no date fields') . '</span>';
+    }
+  }
+  else {
+    $field_desc = '<span style="color:red; font-weight:bold;">' . t('<a href="http://drupal.org/project/date" target="_blank">Date</a> module is not installed') . '</span>';
+  }
+
+  $form['pretty_calendar_field_date'] = array(
+    '#type' => 'select',
+    '#options' => $fields_options,
+    '#disabled' => !$date_module,
+    '#title' => t('Date field'),
+    '#default_value' => variable_get('pretty_calendar_field_date', ''),
+    '#description' => $field_desc,
+  );
+  $form['pretty_calendar_title_words'] = array(
+    '#type' => 'textfield',
+    '#size' => 64,
+    '#maxlength' => 64,
+    '#title' => t('Event headings'),
+    '#default_value' => variable_get('pretty_calendar_title_words', t('story,stories')),
+    '#description' => t('Choose a name for the events that will be displayed in the calendar when mouse hover on date. For example, "12 events". Enter a comma-separated words for numbers (for example, "event, events").'),
+  );
+  $form['pretty_calendar_node_per_page'] = array(
+    '#type' => 'select',
+    '#options' => drupal_map_assoc(array(5, 10, 15, 20, 25, 30, 40, 50, 80, 100)),
+    '#title' => t('Number of nodes per page'),
+    '#default_value' => variable_get('pretty_calendar_node_per_page', '20'),
+  );
+  $form['pretty_calendar_preload_tooltips'] = array(
+    '#type' => 'radios',
+    '#options' => array(
+      '+' => t('Display links to nodes by day.'),
+      '-' => t('Display the amount of nodes by day.'),
+    ),
+    '#title' => t('Tooltip type'),
+    '#default_value' => variable_get('pretty_calendar_preload_tooltips', '-'),
+  );
+  $form['pretty_calendar_tooltip_count'] = array(
+    '#type' => 'select',
+    '#options' => drupal_map_assoc(array(1, 2, 3, 4, 5, 8, 10, 15, 20)),
+    '#title' => t('Number of links in the tooltip'),
+    '#default_value' => variable_get('pretty_calendar_tooltip_count', '5'),
+    '#description' => t('Specify the number of links in the tooltip (if links display selected for tooltip display type).'),
+  );
+  $form['pretty_calendar_separate_languages'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Separate nodes by language'),
+    '#default_value' => variable_get('pretty_calendar_separate_languages', FALSE),
+    '#description' => t('If checked nodes will be selected in the language in which they were created.'),
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function pretty_calendar_block_save($delta = '', $edit = array()) {
+  variable_set('pretty_calendar_page_title', $edit['pretty_calendar_page_title']);
+  variable_set('pretty_calendar_theme', $edit['pretty_calendar_theme']);
+  variable_set('pretty_calendar_node_type', implode(",", $edit['pretty_calendar_node_type']));
+  variable_set('pretty_calendar_node_invert', $edit['pretty_calendar_node_invert']);
+  variable_set('pretty_calendar_field_date', $edit['pretty_calendar_field_date']);
+  variable_set('pretty_calendar_node_per_page', $edit['pretty_calendar_node_per_page']);
+  variable_set('pretty_calendar_title_words', $edit['pretty_calendar_title_words']);
+  variable_set('pretty_calendar_preload_tooltips', $edit['pretty_calendar_preload_tooltips']);
+  variable_set('pretty_calendar_tooltip_count', $edit['pretty_calendar_tooltip_count']);
+  variable_set('pretty_calendar_separate_languages', $edit['pretty_calendar_separate_languages']);
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function pretty_calendar_block_view($delta = '') {
+  $theme = variable_get('pretty_calendar_theme', 'round');
+
+  $m = date('m');
+  $y = date('Y');
+
+  if (arg(0) == 'calendar') {
+    if (arg(1) > 0) {
+      $y = (int) arg(1);
+    }
+    if (arg(2) > 0) {
+      $m = (int) arg(2);
+    }
+  }
+
+  if (arg(0) == 'node' && arg(1) > 0) {
+    $types = explode(',', variable_get('pretty_calendar_node_type', ''));
+    $use_all = in_array('', $types);
+    $node = node_load(arg(1));
+    if ($use_all || (in_array($node->type, $types) && !$use_all)) {
+      $m = date('m', $node->created);
+      $y = date('Y', $node->created);
+    }
+  }
+
+  $path = drupal_get_path('module', 'pretty_calendar');
+  $block['subject'] = t('Calendar');
+  $block['content'] = array(
+    '#markup' => '<div id="calendar-body">'
+    . pretty_calendar_block_content(mktime(0, 0, 0, $m, 1, $y))
+    . '</div>',
+    '#attached' => array(
+      'js' => array($path . '/pretty_calendar.js'),
+      'css' => array($path . '/themes/' . $theme . '/calendar.css'),
+    ),
+  );
+  return $block;
+}
+
+/**
+ * Rendering calendar block content.
+ *
+ * @param int $month
+ *   Timestamp of selected month.
+ *
+ * @return string
+ *   Rendered block content.
+ */
+function pretty_calendar_block_content($month, $action = 'all', $uid = '') {
+  global $language;
+
+  // Format month array.
+  // Get month timestamp.
+  $month = mktime(0, 0, 0, date('m', $month), 1, date('Y', $month));
+  // Get number of days in the given month.
+  $dayofmonth = date('t', $month);
+  $day_count = 1;
+  $num = 0;
+  // Fill first week.
+  // Days of previous month in beginning of the week will be skipped.
+  for ($i = 0; $i < 7; $i++) {
+    // Get mumeric representation of the day of the week.
+    $dayofweek = date('w', mktime(0, 0, 0, date('m', $month), $day_count, date('Y', $month)));
+    $dayofweek = $dayofweek - 1;
+    if ($dayofweek == -1) {
+      $dayofweek = 6;
+    }
+    if ($dayofweek == $i) {
+      $week[$num][$i] = $day_count;
+      $day_count++;
+    }
+    else {
+      // Leave blank value of the day in previous month.
+      $week[$num][$i] = "";
+    }
+  }
+  // Fill other weeks.
+  while (TRUE) {
+    $num++;
+    for ($i = 0; $i < 7; $i++) {
+      $week[$num][$i] = $day_count;
+      $day_count++;
+      if ($day_count > $dayofmonth) {
+        break;
+      }
+    }
+    if ($day_count > $dayofmonth) {
+      break;
+    }
+  }
+
+  // Get names of the days.
+  $daynames = array();
+  for ($i = 1; $i <= 7; $i++) {
+    $daynames[] = format_date(mktime(0, 0, 0, 1, $i, 2001), 'custom', 'D', NULL, $language->language);
+  }
+
+  // Get month name. Add context to t() for extended translation.
+  $month_name = t(format_date($month, 'custom', 'F', NULL, 'en'), array(), array('context' => 'Nominative')) . ' ' . date('Y', $month);
+  $field_name = variable_get('pretty_calendar_field_date', '');
+  $node_type = variable_get('pretty_calendar_node_type', '');
+  $use_tooltips = variable_get('pretty_calendar_preload_tooltips', '-');
+  $use_tooltips = $use_tooltips == '-' ? FALSE : TRUE;
+
+  $output = '';
+
+  // Get all nides for selected month.
+  $day_nids = array();
+  for ($i = 1; $i < 32; $i++) {
+    $day_nids[$i] = 0;
+  }
+  $nids = pretty_calendar_select_month_nodes($month);
+  if (isset($nids['error'])) {
+    $output .= '<center><span style="color:red">' . t('database error') . '</span></center>';
+  }
+  else {
+    foreach ($nids as $row) {
+      $field_name = variable_get('pretty_calendar_field_date', '');
+      if ($field_name != '') {
+        $field_name .= '_value';
+      }
+      if (isset($row->$field_name)) {
+        $day_nids[(int) date('d', strtotime($row->$field_name))]++;
+      }
+      elseif (isset($row->created)) {
+        $day_nids[(int) date('d', $row->created)]++;
+      }
+    }
+  }
+
+  // Format theme array.
+  $days = array();
+  for ($i = 0; $i < count($week); $i++) {
+    for ($j = 0; $j < 7; $j++) {
+      $day = !empty($week[$i][$j]) ? $week[$i][$j] : '';
+      $cls = '';
+      // Define cell classes.
+      if ($j > 4) {
+        $cls = 'pretty-calendar-weekend';
+      }
+      else {
+        $cls = 'pretty-calendar-day';
+      }
+      if ($j == 6) {
+        $cls .= ' pretty-calendar-last';
+      }
+      if ($day == date('d') && date('m.Y') == date('m.Y', $month)) {
+        $cls .= ' pretty-calendar-today';
+      }
+
+      // YYYY/MM/DD format for links.
+      $days_date = '';
+      if (!empty($day)) {
+        $days_date = date('Y/m', $month) . '/' . ($day > 9 ? $day : '0' . $day);
+      }
+      
+      // YYYY-MM-DD format for links.
+      $my_date = '';
+      if (!empty($day)) {
+        $my_date = date('Y-m', $month) . '-' . ($day > 9 ? $day : '0' . $day);
+      }
+     
+      $days[] = theme('pretty_calendar_day', array(
+        //'number' => l($day,"javascript:calendar_data('".$my_date."', '".$action."', '".$uid."')",array('fragment' => '','external'=>true)),
+        'number' => $day,
+        'date' => $days_date,
+        'delta' => $j + 1,
+        'class' => $cls,
+        'count' => !empty($day) ? $day_nids[$day] : 0,
+        'using_tooltip' => $use_tooltips,
+        'is_empty' => empty($day),
+		'my_date' => $my_date,
+		'action' => $action,
+		'uid' => $uid,
+      ));
+    }
+    $output .= theme('pretty_calendar_week', array(
+      'days' => $days,
+      'delta' => $i + 1,
+      'current' => mktime(0, 0, 0, date('m', $month), 1, date('Y', $month)),
+    ));
+    $days = array();
+  }
+
+  return theme('pretty_calendar', array(
+      'daynames' => $daynames,
+      'content' => $output,
+      'month_prev' => mktime(0, 0, 0, date('m', $month) - 1, 1, date('Y', $month)),
+      'month_next' => mktime(0, 0, 0, date('m', $month) + 1, 1, date('Y', $month)),
+      'month_name' => $month_name,
+	  'month_current' => mktime(0, 0, 0, date('m', $month), 1, date('Y', $month)),
+	  'action' => $action,
+	  'uid' => $uid,
+  ));
+}
+
+/**
+ * AJAX response for calendar navigation.
+ *
+ * @param int $month
+ *   Timestamp of selected month.
+ *
+ * @return string
+ *   Rendered block content.
+ */
+function pretty_calendar_content_loader($month,$action,$uid) {
+  header('Content-Type: text/html; charset=utf-8');
+  print pretty_calendar_block_content((int) $month,$action,$uid);
+  drupal_exit();
+}
+
+/**
+ * AJAX response for preloading node links.
+ *
+ * @param int $year
+ *   Selected year in "YYYY" format.
+ *
+ * @param int $month
+ *   Selected month in "MM" format.
+ *
+ * @param int $day
+ *   Selected day in "DD" format.
+ *
+ * @return string
+ *   Rendered list of links.
+ */
+function pretty_calendar_links_loader($year, $month, $day) {
+  header('Content-Type: text/html; charset=utf-8');
+
+  $date = mktime(0, 0, 0, (int) $month, (int) $day, (int) $year);
+  $result = pretty_calendar_select_nodes($date, TRUE);
+  if (count($result) == 0) {
+    print 'Error';
+    drupal_exit();
+  }
+
+  $tooltip_count = variable_get('pretty_calendar_tooltip_count', '5');
+  $counter = 0;
+  $list = array();
+  foreach ($result as $row) {
+    $list['items'][] = l($row->title, 'node/' . $row->nid);
+    $counter++;
+    if ($counter >= $tooltip_count) {
+      break;
+    }
+  }
+  print theme('item_list', $list);
+  $more_links = count($result) - $tooltip_count;
+  if ($more_links > 0) {
+    $links = pretty_calendar_plural($more_links);
+    print '<p class="tooltip_summary">' .
+      l(t('more @count', array('@count' => $links)), "calendar/$year/$month/$day") .
+      '</p>';
+  }
+
+  drupal_exit();
+}
+
+/**
+ * Extended plural values.
+ *
+ * To translate names we should set some values or leave "story,stories'.
+ * Then we can use "1 story", "@count stories", "@count[2] stories" on
+ * "/admin/config/regional/translate/translate" page.
+ *
+ * @param int $count
+ *   Number.
+ *
+ * @return string
+ *   Formatted plural value. For example, "17 events".
+ */
+function pretty_calendar_plural($count) {
+  $words = explode(',', variable_get('pretty_calendar_title_words', t('story,stories')));
+  if (!isset($words[0]) || !isset($words[1])) {
+    $words = explode(',', 'story,stories');
+  }
+  return format_plural($count, '1 ' . $words[0], '@count ' . $words[1]);
+}
+
+/**
+ * Select nodes for selected date.
+ *
+ * @param int $date
+ *   Date timestamp.
+ *
+ * @param bool $links_only
+ *   Boolean value. If "TRUE", returned result will be contain pager element.
+ *
+ * @return array|DatabaseStatementInterface
+ *   By dependency of $links_only value, result will be array or query result.
+ */
+function pretty_calendar_select_nodes($date = 0, $links_only = FALSE) {
+  global $language;
+  $field_name = variable_get('pretty_calendar_field_date', '');
+  $node_types = explode(',', variable_get('pretty_calendar_node_type', ''));
+
+  // Check if field was deleted.
+  if (field_info_field($field_name) == '') {
+    $field_name = '';
+  }
+
+  // Select nodes without date field.
+  $select = db_select('node', 'n')
+    ->fields('n', array('nid', 'title', 'created'))
+    ->condition('n.status', 1);
+  // Multilanguage condition.
+  if (variable_get('pretty_calendar_separate_languages', FALSE)) {
+    $select->condition('n.language', $language->language);
+  }
+  // Check date.
+  if ($date > 0) {
+    if ($field_name == '') {
+      $select
+        ->condition('created', $date, '>=')
+        ->condition('created', $date + 86400, '<');
+    }
+    else {
+      $select->distinct();
+      $select->leftJoin('field_data_' . $field_name, 'fd', 'fd.entity_id = n.nid');
+      $select->fields('fd', array($field_name . '_value'));
+      $select->where('DATE(' . $field_name . '_value) = :date', array(':date' => date('Y.m.d', $date)));
+    }
+  }
+  // Check types.
+  if ($node_types[0] != '') {
+    if (variable_get('pretty_calendar_node_invert', FALSE)) {
+      $select->condition('n.type', $node_types, 'NOT IN');
+    }
+    else {
+      $select->condition('n.type', $node_types, 'IN');
+    }
+  }
+  $select->orderBy('n.sticky', 'DESC')
+    ->orderBy('n.created', 'DESC');
+
+  if (!$links_only) {
+    $select->extend('PagerDefault')
+      ->limit(variable_get('pretty_calendar_node_per_page', '20'))
+      ->addTag('node_access');
+    return $select->execute()->fetchCol();
+  }
+  else {
+    $select->addTag('node_access');
+    $result = array();
+    foreach ($select->execute() as $row) {
+      $result[] = $row;
+    }
+    return $result;
+  }
+}
+
+/**
+ * Select all month nodes.
+ *
+ * @param int $date
+ *   Timestamp of selected month.
+ *
+ * @return array
+ *   Nids array for the given month.
+ */
+function pretty_calendar_select_month_nodes($date = 0) {
+  global $language;
+  $field_name = variable_get('pretty_calendar_field_date', '');
+  $node_types = explode(',', variable_get('pretty_calendar_node_type', ''));
+
+  // Check if field was deleted.
+  if (field_info_field($field_name) == '') {
+    $field_name = '';
+  }
+
+  // Select nodes without date field.
+  $select = db_select('node', 'n')
+    ->fields('n', array('nid', 'title', 'created'))
+    ->condition('n.status', 1);
+  // Multilanguage condition.
+  if (variable_get('pretty_calendar_separate_languages', FALSE)) {
+    $select->condition('n.language', $language->language);
+  }
+  // Check date.
+  if ($date > 0) {
+    if ($field_name == '') {
+      $select
+        ->condition('created', mktime(0, 0, 0, date('m', $date), 1, date('Y', $date)), '>=')
+        ->condition('created', mktime(0, 0, 0, date('m', $date) + 1, 1, date('Y', $date)), '<');
+    }
+    else {
+      $select->distinct();
+      $select->leftJoin('field_data_' . $field_name, 'fd', 'fd.entity_id = n.nid');
+      $select->fields('fd', array($field_name . '_value'));
+      $select->where('DATE_FORMAT(fd.' . $field_name . '_value, \'%Y%m\') = :stamp', array(':stamp' => date('Ym', $date)));
+    }
+  }
+  // Check types.
+  if ($node_types[0] != '') {
+    if (variable_get('pretty_calendar_node_invert', FALSE)) {
+      $select->condition('n.type', $node_types, 'NOT IN');
+    }
+    else {
+      $select->condition('n.type', $node_types, 'IN');
+    }
+  }
+  $select->addTag('node_access');
+
+  $result = array();
+
+  try {
+    foreach ($select->execute() as $row) {
+      $result[] = $row;
+    }
+  }
+  catch (Exception $e) {
+    $result['error'] = $e;
+  }
+
+  return $result;
+}
+
+/**
+ * Display page with selected day nodes.
+ *
+ * @param int $year
+ *   Selected year in "YYYY" format.
+ *
+ * @param int $month
+ *   Selected month in "MM" format.
+ *
+ * @param int $day
+ *   Selected day in "DD" format.
+ *
+ * @return string
+ *   Rendered page content.
+ */
+function pretty_calendar_day_nodes($year, $month, $day) {
+  global $language;
+
+  $date = mktime(0, 0, 0, (int) $month, (int) $day, (int) $year);
+  $output = '';
+  if ($date) {
+    $output .= '<h3>' . format_date($date, 'custom', 'd F Y', NULL, $language->language) . '</h3>';
+  }
+  $output .= pretty_calendar_node_list($date);
+
+  return $output;
+}
+
+/**
+ * Display page with nodes by date.
+ *
+ * @param int $date
+ *   Timestamp of selected month.
+ *
+ * @return string
+ *   Rendered page content.
+ */
+function pretty_calendar_node_list($date = 0) {
+  $nids = pretty_calendar_select_nodes($date);
+  if (!empty($nids)) {
+    $nodes = node_load_multiple($nids);
+    $build = node_view_multiple($nodes);
+    $build['pager'] = array(
+      '#theme' => 'pager',
+      '#weight' => 5,
+    );
+    drupal_set_title(variable_get('pretty_calendar_page_title', t('Activities calendar')));
+  }
+  else {
+    drupal_set_title(t('No activities was found'));
+  }
+
+  return drupal_render($build);
+}

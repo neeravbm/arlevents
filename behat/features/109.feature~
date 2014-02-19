@@ -1,0 +1,29 @@
+Feature: 100-Create features for ACT-IAC project
+  In order to check if user has access the site
+  As a various different roles
+  I need to be able login and create content
+
+  @javascript
+  Scenario: Authenticated User as admin or staff can access tab Administer Group.
+    Given I am on "/"
+    Then I fill in "username" as "admin"
+    Then I fill in password "password" as "laca21@89"
+    Then I press button "Log in"
+    Then I should be redirected to "user/1/dashboard"
+    Then I click "Planning and Architecture Shared Interest Group"
+    Then I should be redirected to "node/9598"
+    Then I should see "Administer Group"
+    # logout user
+    Then I click "Logout"
+    Then I should be redirected to "user/logout"
+    Given I am on "/"
+    Then I fill in "username" as "staff@gmail.com"
+    Then I fill in password "password" as "admin123"
+    Then I press button "Log in"
+    Then I should be redirected to "user/27120/dashboard"
+    Then I click "Planning and Architecture Shared Interest Group"
+    Then I should be redirected to "node/9598"
+    Then I should see "Administer Group"
+    
+    
+    

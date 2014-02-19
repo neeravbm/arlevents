@@ -1,0 +1,40 @@
+/* This file will hold styles that are loaded using the same media query as the wide grid. */
+
+.myprofile .certificate {
+  float: left;
+  width: 60%;
+}
+
+#user_privacy_form {
+    padding-top: 25px;
+}
+
+.myprofile .user_status::after {
+  clear:both;
+}
+
+.front .container-12 .grid-7 {
+  width: 660px;
+}
+
+/***** Search ********/
+
+.search-form {
+  margin-top:0px;
+}
+
+#block-search-form {
+  display:block;
+}
+
+/********* Navigation Menu ****/
+
+.navigation {
+  display:block;
+}
+
+/********* Events List ********/
+.page-latest-events .view-event-category-listing .views-row .views-field-field-logo {
+  top: 26px;
+  left: 33px;
+}

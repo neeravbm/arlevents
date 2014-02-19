@@ -1,0 +1,35 @@
+<?php
+
+function arl_badge_install() {
+
+}
+
+function arl_badge_mymodule_uninstall() {
+
+}
+
+
+function arl_badge_schema() {
+
+	$schema= array();
+  	$schema["arl_badge_userlist"] =  array(
+  		'description' => 'User List for badge generation',
+  		'fields' => array(
+   			'user_id'       => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+    		'cust_key'      => array('type' => 'varchar','length' => 40,'not null' => TRUE, 'default' => ''),
+    		'evt_key'  		=> array('type' => 'varchar','length' => 40,'not null' => TRUE,'default' => ''),
+    		'print_date'    => array('type' => 'int', 'not null' => TRUE, 'default' => 0)),
+  			'primary key' 	=> array('user_id')
+  	);
+  	$schema["arl_badge_scans"] =  array(
+  		'description' => 'List of badge scans',
+  		'fields' => array(
+  		  	'scan_id'       => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+   			'user_id'       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+    		'scan_location' => array('type' => 'varchar','length' => 40,'not null' => FALSE,'default' => ''),
+    		'scan_date'     => array('type' => 'int', 'not null' => TRUE, 'default' => 0)),
+  			'primary key' 	=> array('scan_id')
+  	);
+
+  return $schema;     
+}

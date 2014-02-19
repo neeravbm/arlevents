@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * Install and uninstall functions for the Pretty Calendar module
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function pretty_calendar_uninstall() {
+  variable_del('pretty_calendar_theme');
+  variable_del('pretty_calendar_node_type');
+  variable_del('pretty_calendar_node_invert');
+  variable_del('pretty_calendar_field_date');
+  variable_del('pretty_calendar_title_words');
+  variable_del('pretty_calendar_node_per_page');
+  variable_del('pretty_calendar_page_title');
+  variable_del('pretty_calendar_preload_tooltips');
+  variable_del('pretty_calendar_tooltip_count');
+  variable_del('pretty_calendar_separate_languages');
+  cache_clear_all('variables', 'cache');
+}

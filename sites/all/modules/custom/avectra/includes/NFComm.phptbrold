@@ -1,0 +1,661 @@
+<?php
+
+require_once('xwebSecureClient.class.php');
+require_once('Payment.php');
+
+//define ("XWEBUSER", "ACTDrupalCMSxweb");
+//define ("XWEBPASS", "Du9Xw3Ac$$");
+//define ("SOAPURL", "https://members.actgov.org/netFORUMACTDev/xweb/secure/netForumXML.asmx?WSDL");
+//define ("SOAPURL", "https://members.actgov.org/xweb/secure/netForumXML.asmx?WSDL");  //production server
+
+
+
+class NFComm {
+	
+	private $nfxweb;
+	private $debug;
+	
+	/******************************************************************/
+	public function __construct($soapURL, $xwebUser, $xwebPass) {
+		
+		// Create the connection object
+		$this->nfxweb = new xwebSecureClient($soapURL, Array('trace'=>true, //turning on trace=true will let us grab the headers and responses
+						'exceptions'=>true,
+						'connection_timeout'=>60,
+						'xwebUserName'=>$xwebUser,
+						'xwebUserPass'=>$xwebPass));
+	}
+	
+	/******************************************************************/
+	private function printDebug($exception) {
+			if ($this->debug == true) {
+			echo "<pre>";
+			print "Exception contents:\n";
+			print_r($exception);
+			echo "</pre>";
+		}
+	}
+	
+	/******************************************************************/
+	public function setDebug($debug) {
+		if ($debug == true) {
+			$this->debug = true;
+		} else {
+			$this->debug = false;
+		}
+	}
+	
+	/******************************************************************/
+	public function getQuery($table, $columns, $where, $order) {
+		
+		try {
+			$arr = Array('szObjectName'=>$table, 'szColumnList'=>$columns, 'szWhereClause'=>$where, 'szOrderBy'=>$order);
+	
+			$response = $this->nfxweb->GetQuery($arr);
+
+			return $response;
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+	}
+	
+	/******************************************************************/
+	public function webLogin($user, $pass) {
+		
+		$arr = Array('LoginOrEmail'=>$user, 'password'=>$pass);
+	
+		$response = $this->nfxweb->WEBWebUserLogin($arr);
+
+		return $response;
+	}
+	
+	public function WEBCentralizedShoppingCartMembershipOpenInvoiceGet($key)
+	{
+		$arr = Array('Key'=>$key);
+		//var_dump($arr);
+		$response = $this->nfxweb->WEBCentralizedShoppingCartMembershipOpenInvoiceGet($arr);
+		//var_dump($response);
+	
+		$retval = $response->WEBCentralizedShoppingCartMembershipOpenInvoiceGetResult;
+		return  $retval;
+	}
+	
+	public function WEBCentralizedShoppingCartMembershipOpenInvoiceAdd($cart, $invoice)
+	{
+		$arr = Array('oCentralizedOrderEntry'=>$cart, 'oOpenInvoice'=>$invoice);
+	
+		$response = $this->nfxweb->WEBCentralizedShoppingCartMembershipOpenInvoiceAdd($arr);
+	
+		return $response->WEBCentralizedShoppingCartMembershipOpenInvoiceAddResult;
+	}
+	
+	/******************************************************************/
+	public function getKeyFromEmail($email) {
+		$arr = Array('emailToMatch'=>$email);
+		
+		$response = $this->nfxweb->WEBWebUserFindUsersByEmail($arr);
+	
+		return $response->WEBWebUserFindUsersByEmailResult->any;
+	}
+	
+	/******************************************************************/
+	public function getProfileInfo($key) {
+		$arr = Array('key'=>$key);
+		
+		$response = $this->nfxweb->WEBIndividualGet($arr);
+
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getUserInfo($key) {
+		
+		$arr = Array('cst_key'=>$key);
+		
+		$response = $this->nfxweb->WEBWebUserGet($arr);
+
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getOrganizationInfo($key) {
+		$arr = Array('key'=>$key);
+
+		$response = $this->nfxweb->WEBOrganizationGet($arr);
+			
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function updateUserInfo($user) {
+		try {
+			
+			$arr = Array('oFacadeObject'=>$user);
+			
+			$response = $this->nfxweb->WEBIndividualUpdate($arr);
+			
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+			$response = null;
+		}
+	
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function insertUser($object) {
+		
+		try {
+				
+			$arr = Array('oFacadeObject'=>$object);
+				
+			$response = $this->nfxweb->WEBIndividualInsert($arr);
+				
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+			$response = null;
+		}
+
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function insertOrganization($object) {
+		
+		try {
+				
+			$arr = Array('oFacadeObject'=>$object);
+				
+			$response = $this->nfxweb->WEBOrganizationInsert($arr);
+				
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+
+		return $response;
+	}
+
+	/******************************************************************/
+	public function updateOrganization($object) {
+	
+		try {
+	
+			$arr = Array('oFacadeObject'=>$object);
+	
+			$response = $this->nfxweb->WEBOrganizationUpdate($arr);
+	
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+	
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getAllRegistrantTypes() {
+		$response = $this->nfxweb->WEBCentralizedShoppingCartGetEventRegistrantTypeList($arr);
+		return $response->WEBCentralizedShoppingCartGetEventRegistrantTypeListResult->any;
+	}
+	
+	/******************************************************************/
+	public function getRegistrantTypes($eventKey) {
+		$arr = Array('EventKey'=>$eventKey);
+	
+		$response = $this->nfxweb->WEBCentralizedShoppingCartGetEventRegistrantTypeListByEvent($arr);
+		return $response->WEBCentralizedShoppingCartGetEventRegistrantTypeListByEventResult->any;
+	}
+	
+	/******************************************************************/
+	public function getRegistrantGuestTypes($eventKey) {
+		$arr = Array('EventKey'=>$eventKey);
+	
+		$response = $this->nfxweb->	WEBCentralizedShoppingCartGetEventGuestRegistrantTypeListByEvent($arr);
+		return $response->	WEBCentralizedShoppingCartGetEventGuestRegistrantTypeListByEventResult->any;
+	}
+	
+	/******************************************************************/
+	public function isUserRegisteredForEvent($custKey, $eventKey) {
+
+		$arr = Array('CustomerKey'=>$custKey, 'EventKey'=>$eventKey);
+		
+		$response = $this->nfxweb->WEBActivityAlreadyRegisteredForEvent($arr);
+		
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getEventsForUser($custKey) {
+	
+		$arr = Array('CustomerKey'=>$custKey);
+	
+		$response = $this->nfxweb->WEBActivityGetPurchasedEventsByCustomer($arr);
+	
+		return $response;
+	}
+
+	/******************************************************************/
+	public function getEventsForUser2($regKey) {
+	
+		$arr = Array('RegKey'=>$regKey);
+	
+		$response = $this->nfxweb->WEBActivityGetRegistrantEvents($arr);
+	
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getMembershipsForUser($custKey) {
+	
+		$arr = Array('CustomerKey'=>$custKey);
+	
+		$response = $this->nfxweb->WEBActivityGetPurchasedMembershipsByCustomer($arr);
+	
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getChaptersForUser($custKey) {
+	
+		$arr = Array('CustomerKey'=>$custKey);
+	
+		$response = $this->nfxweb->WEBActivityGetPurchasedChapterMembershipsByCustomer($arr);
+	
+		return $response;
+	}
+
+	/******************************************************************/
+	public function getDownloadsForUser($custKey) {
+	
+		$arr = Array('CustomerKey'=>$custKey);
+	
+		$response = $this->nfxweb->WEBActivityGetPurchasedDownoadableProductsByCustomer($arr);
+	
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getEventList() {
+		$response = $this->nfxweb->WEBCentralizedShoppingCartGetEventList();
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getEventSessions($evt_key) {	
+		$arr = Array('EventKey'=>$evt_key);
+		
+		$response = $this->nfxweb->WEBCentralizedShoppingCartGetSessionListByEventKey($arr);
+		
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getSessionsForTrack($trk_key) {	
+		$arr = Array('TrackKey'=>$trk_key);
+		
+		$response = $this->nfxweb->WEBCentralizedShoppingCartGetSessionListByTrackKey($arr);
+		
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getEventTracks($evt_key) {	
+		$arr = Array('EventKey'=>$evt_key);
+		
+		$response = $this->nfxweb->WEBCentralizedShoppingCartGetTrackListByEventKey($arr);
+		
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getEventDetails($evt_key) {	
+		$arr = Array('EventKey'=>$evt_key);
+		
+		$response = $this->nfxweb->WEBCentralizedShoppingCartGetEventByKey($arr);
+		
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getEventRegistrant($custKey, $eventKey='') {
+	
+		if ($eventKey == '') {
+			$arr = Array('Key'=>$custKey);
+	
+			$response = $this->nfxweb->WEBCentralizedShoppingCartEventRegistrantGet($arr);
+			return $response->WEBCentralizedShoppingCartEventRegistrantGetResult;
+		} else {
+			$arr = Array('CustomerKey'=>$custKey, 'EventKey'=>$eventKey);
+			
+			$response = $this->nfxweb->WEBCentralizedShoppingCartEventRegistrantGetNew($arr);
+			return $response->WEBCentralizedShoppingCartEventRegistrantGetNewResult;
+		}
+	}
+	
+	/******************************************************************/
+	public function getNewShoppingCart($custKey) {
+	
+		$arr = Array('CustomerKey'=>$custKey);
+	
+		$response = $this->nfxweb->WEBCentralizedShoppingCartGetNew($arr);
+	
+		return $response->WEBCentralizedShoppingCartGetNewResult;
+	}
+	
+	/******************************************************************/
+	public function getEventFees($registrant, $cart) {
+
+		try {
+			$arr = Array('oRegistration'=>$registrant, 'oCOE'=>$cart);
+
+			$response = $this->nfxweb->WEBCentralizedShoppingCartGetEventFees($arr);	
+	
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+
+		return $response;
+	}
+
+	/******************************************************************/
+	public function getEventSessionFees($registrant, $cart) {
+	
+		try {
+			$arr = Array('oRegistration'=>$registrant, 'oCOE'=>$cart);
+	
+			$response = $this->nfxweb->WEBCentralizedShoppingCartGetEventSessionFees($arr);
+	
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function getEventTrackFees($registrant, $cart) {
+	
+		try {
+			$arr = Array('oRegistration'=>$registrant, 'oCOE'=>$cart);
+	
+			$response = $this->nfxweb->WEBCentralizedShoppingCartGetEventTrackFees($arr);
+	
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+
+		return $response;
+	}
+	
+	/******************************************************************/
+	public function setCartLineItems($registrant, $feeCollection) {
+		try {
+			$arr = Array('oRegistration'=>$registrant, 'oFeeCollection'=>$feeCollection);
+	
+			$response = $this->nfxweb->WEBCentralizedShoppingCartEventRegistrantSetLineItems($arr);
+
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+		
+		return $response;
+	}
+
+	/******************************************************************/
+	public function addRegistrantToCart($registrant, $cart) {
+		try {
+			$arr = Array('oCentralizedOrderEntry'=>$cart, 'oRegistration'=>$registrant);
+		
+			$response = $this->nfxweb->WEBCentralizedShoppingCartAddEventRegistrant($arr);
+		
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+		
+		return $response;
+	}
+		
+	/*TBE*****************************************************************/
+	public function purchaseCart($cart, $payment, $evt_cct_key, $evt_act_cct_key_ext) {
+		try {
+		//$val = Array();
+		//$val = $this->objectToArray($cart);
+
+		$cart->Invoice->inv_autoapply = 1;
+		$cart->Invoice->inv_autoapplypayment = 1;
+		$cart->Invoice->inv_send_email_confirmation = 1;
+		$cart->Invoice_DetailCollection->InvoiceDetailStatic->Invoice_Detail->ivd_autoapply = 1;
+		
+
+		$cart->RegistrantCollection->EventsRegistrant->Invoice->inv_send_email_confirmation = 1;
+		$cart->RegistrantCollection->Invoice_DetailCollection->InvoiceDetailStatic->Invoice_Detail->ivd_autoapply = 1;
+
+		//custom fields added to handle customization....
+		$cart->RegistrantCollection->EventsRegistrant->Event->evt_cct_key = "".$evt_cct_key;
+		$cart->RegistrantCollection->EventsRegistrant->Event->evt_act_cct_key_ext = "".$evt_act_cct_key_ext;
+		
+		//$cart->RegistrantCollection->EventsRegistrant->Registrant->reg_cancel_date = "";
+		$cart->RegistrantCollection->EventsRegistrant->Registrant->reg_on_wait_list_flag = 0;
+		//end custom fields
+			
+		$cart->Payment_Info->pin_cc_cardholder_name = $payment->getpin_cc_cardholder_name();
+		$cart->Payment_Info->pin_cc_number = $payment->getpin_cc_number();
+		$cart->Payment_Info->pin_cc_security_code = $payment->getpin_cc_security_code();
+		$cart->Payment_Info->pin_cc_expire = $payment->getpin_cc_expire();
+		$cart->Payment_Info->pin_apm_key = $payment->getpin_apm_key();
+		$cart->Payment_Info->pin_check_amount = $payment->getpin_check_amount();
+		$cart->Payment_Info->pin_check_amountSpecified = $payment->getpin_check_amountSpecified();
+		$arr = Array('oCentralizedOrderEntry'=>$cart);
+
+		//$array = (array)$cart;
+		//var_dump($cart);
+
+			//print_f($val);
+			//$arr = Array('oCentralizedOrderEntry'=>$cart);
+
+			//$array = $cart;
+			//$response = simplexml_load_string($cart);
+			//echo($response);
+			//echo('<pre>');
+			//var_dump($cart);
+
+			/*foreach ($cart as $key => $value) {
+				if ($key === 'Invoice')
+				{
+					echo('<br>++++++++++++++++++++++<br>');
+					var_dump($key);
+					echo('<br>--------------------<br>');
+					var_dump($value);
+				}	
+			}
+		*/
+
+			//fprint_r($cart->Invoice);
+			//, 
+//		'pin_cc_cardholder_name'=>'John Tester',
+//'pin_cc_number'=>'4111111111111111',
+//'pin_cc_security_code'=>'123',
+//'pin_cc_expire'=>'2013/12',
+//'pin_apm_key'=>$apm_key,
+//'pin_check_amount'=>'999.00',
+//'pin_check_amountSpecified'=>'true');
+//var_dump($arr);
+		$response = $this->nfxweb->WEBCentralizedShoppingCartInsert($arr);
+
+		} catch (SoapFault $exception) {
+			$this->printDebug($exception);
+			return false;
+		}
+		
+		return $response;
+	}
+				
+	/*TBE*****************************************************************/
+	public function getCommitteeList() {
+		try {
+			$response = $this->nfxweb->WEBCommitteeGetCommitteeList();		
+			return $response;
+		} 
+		catch(SoapFault $exception) {
+			$this->printDebug($exception);
+		}		
+	}
+
+
+	/*TBE*****************************************************************/
+	
+	public function getCommitteeDetails($key) {
+	
+		$arr = Array('CommitteeKey'=>$key);	
+		$response = $this->nfxweb->WEBCommitteeGetCommitteeByKey($arr);
+		return $response;		
+	}
+
+	/*TBE*****************************************************************/
+	public function getCommitteeMembers($cmt_key)
+	{
+		$arr = Array('CommitteeKey'=>$cmt_key);	
+		$response = $this->nfxweb->WEBCommitteeGetMembers($arr);
+		return $response;		
+	}
+
+	/*TBE*****************************************************************/
+	public function addUserToCommittee($cmt_key, $cust_key, $positionkey, $nom_date)
+	{
+		try {
+		
+			//$oFacadeObjectXML = new SimpleXMLElement("<oFacadeObject></oFacadeObject>");
+			//$oFacadeObjectXML->addChild('oFacadeObject', '');
+			//approve code: 9b3a17c0-7e22-4ad1-8d42-0c148432047d
+			//pending code: e6ee3cfe-ab62-45bf-b3d2-5879b0dbb0da
+			$oFacadeObject = array ("oFacadeObject"  => 
+				Array(
+					'Nominations' => array( 
+	//					'nom_key'=>'00000000-0000-0000-0000-000000000000', 
+						'nom_cmt_key'=>$cmt_key, 
+						'nom_cst_key'=>$cust_key, 
+						'nom_accepted_flag'=>'0',  
+						'nom_cop_key'=>$positionkey,
+						'nom_date'=>$nom_date,
+						'nom_nms_key' => 'e6ee3cfe-ab62-45bf-b3d2-5879b0dbb0da'
+						), 
+					'Nominee' => '', 
+					'Nominated_By' => '', 
+					'Committee' => array ('cmt_key'=>$cmt_key), 
+					'Committee_Nomination_Status' => array ('nms_key'=>'e6ee3cfe-ab62-45bf-b3d2-5879b0dbb0da'), 
+					'Committee_Position' => array('nom_cop_key'=>$positionkey), 
+					'Committee_Position_Codes' => '', 
+					'Address' => '', 
+					'Individual'=>''
+				)
+			);
+			
+	//		var_dump($oFacadeObject);
+			$response = $this->nfxweb->WEBCommitteeNominationInsert($oFacadeObject);
+			return $response;
+		} 
+		catch(SoapFault $exception) {
+			$this->printDebug($exception);
+		}				
+	}
+		
+	/*TBE*****************************************************************/
+	public function WEBCommitteeGetPositionList($cmt_key)
+	{
+		$arr = Array('CommitteeKey'=>$cmt_key);	
+		$response = $this->nfxweb->WEBCommitteeGetPositionList($arr);
+		return $response;	
+	}
+	
+	
+	/*TBE*****************************************************************/
+	public function getSubCommitteeList($cmt_key) {
+		try {
+				$arr = Array('CommitteeKey'=>$cmt_key);	
+			$response = $this->nfxweb->WEBCommitteeGetSubCommitteeListByCommittee($arr);	
+			return $response;
+		} 
+		catch(SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+		
+	}
+
+	/*TBE*****************************************************************/
+	public function getPaymentMethods($cart)
+	{
+		$response = $this->nfxweb->WEBCentralizedShoppingCartGetPaymentOptions($cart);
+		return $response;
+	}
+	
+	/*TBE*****************************************************************/
+	function objectToArray($d) {
+		if (is_object($d)) {
+			// Gets the properties of the given object
+			// with get_object_vars function
+			$d = get_object_vars($d);
+		}
+		
+		if (is_array($d)) {
+			/*
+			* Return array converted to object
+			* Using __FUNCTION__ (Magic constant)
+			* for recursive call
+			*/
+			return array_map(__FUNCTION__, $d);
+		}
+		else {
+			// Return array
+			return $d;
+		}
+	}
+	
+	public function changeUserPassword($recno, $oldPwd, $newPwd)
+	{
+		$arr = Array('recno'=>$recno, 'oldPassword'=>$oldPwd, 'newPassword'=>$newPwd);
+		$response = $this->nfxweb->WEBWebUserChangePassword($arr);
+	
+		return $response;
+	}
+	
+	public function changeUserPasswordForce($cst_key, $password)
+	{
+		try
+		{
+			$individual_xml = '<IndividualObjects>
+			<IndividualObject>
+			<cst_web_password>'.$password.'</cst_web_password>
+			</IndividualObject>
+			</IndividualObjects>';
+			$oUpdateNode = new SoapParam("this", "doesntmatter");//on purpose according to documentation in xWeb
+			$oUpdateNode->any = $individual_xml;
+			$arguments = Array('szObjectKey'=>$cst_key,
+					'szObjectName'=>'Individual',
+					'oNode'=>$oUpdateNode);
+			$response = $this->nfxweb->UpdateFacadeObject($arguments);
+		}
+		catch(SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+		
+		return $response;
+	}	
+
+	public function getActiveInvoicesForCustomer($cst_key)
+	{
+		try {
+			$arr = Array('CustomerKey'=>$cst_key);
+			$response = $this->nfxweb->WEBCentralizedShoppingCartMembershipOpenInvoiceGetList($arr);
+			return $response;
+		}
+		catch(SoapFault $exception) {
+			$this->printDebug($exception);
+		}
+	}
+	
+}
+
+
+
+
+?>
+
