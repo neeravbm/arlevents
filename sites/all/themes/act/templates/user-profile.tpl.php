@@ -66,9 +66,11 @@ $user_membership_renewal = $user_fields['user_membership_renewal'];
 		<div id="tab-myorganizationinfo" class="tabtitle"><a href="#tabcontent-myorganizationinfo"><?php print t('My Organization Info');?></a></div>
 		<div id="tab-changepwd" class="tabtitle"><a href="#tabcontent-changepwd"><?php print t('Change Password');?></a></div>
 		
-		<?php if(act_event_user_is_poc($user->uid)):?>
-		<div id="tab-membership" class="tabtitle"><a href="#tabcontent-membership"><?php print t('Membership Renewal');?></a></div>
-		<?php endif; ?>
+		<?php if(function_exists('act_event_user_is_poc')) {
+		   if(act_event_user_is_poc($user->uid)){ ?>
+		     <div id="tab-membership" class="tabtitle"><a href="#tabcontent-membership"><?php print t('Membership Renewal');?></a></div>
+		<?php }
+		} ?>
     
     </div>
    
@@ -94,11 +96,7 @@ $user_membership_renewal = $user_fields['user_membership_renewal'];
 				<p><?php print $field_user_contact_email;?></p>
 				<p><?php print $field_user_primary_phone;?></p>
 				<p><?php print $field_organization;?></p>
-            <p>
-            <?php if(user_access('update from netforum')) {
-			  print l(t('Update from NetForum'),'update-avectra/user/'.$uid);
-			} ?>
-			</p>
+           
 			  </div>
 			</div>
 		  </div>
@@ -131,12 +129,15 @@ $user_membership_renewal = $user_fields['user_membership_renewal'];
       <div class="content" id="avectra_pass_change"><?php print $avectra_pass_change; ?></div>
    </div>
   
-  <?php if(act_event_user_is_poc($user->uid)):?>
+  <?php if(function_exists('act_event_user_is_poc')) {
+	 if(act_event_user_is_poc($user->uid)){ ?>
   <div class="accr_sect"><a><?php print t('Membership Renewal'); ?></a></div>
   <div id="tabcontent-membership" class="tabcontent">
      <div class="content"><?php print $user_membership_renewal; ?></div>
   </div>
-  <?php endif; ?>
+  <?php }
+   }
+   ?>
   
  </div>
    

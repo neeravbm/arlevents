@@ -25,9 +25,9 @@
 
 <?php 
 
-global $user;
-$gid = $row->nid;
-$status = _avectra_user_subscriber_link_visibility($user->uid, $gid);
-if($status) print $output; 
-
+//global $user;
+//$gid = $row->nid;
+//$status = _avectra_user_subscriber_link_visibility($user->uid, $gid);
+//if($status) print $output; 
+print $output;
 ?>

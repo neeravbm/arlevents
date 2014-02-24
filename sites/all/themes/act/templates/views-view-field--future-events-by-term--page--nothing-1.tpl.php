@@ -1,5 +1,5 @@
 <?php
-
+global $user;
 /**
  * @file
  * This template is used to print a single field in a view.

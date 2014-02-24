@@ -36,8 +36,6 @@ $field_keep_phone_number_private = !empty($field_keep_phone_number_private[0]['v
   <div class="frnd_info">
     <div class="frnd_name"><?php print l(format_username($account),'user/'.$account->uid); ?></div>
     <?php if(function_exists('act_userprofile_get_user_organization')) { ?> <div class="frnd_org"> <?php print act_userprofile_get_user_organization($account->uid); ?> </div> <?php  } ?> 
-  <?php /* ?>  <div class="frnd_joined"><?php print t('Joined '); ?><?php print format_date($og_membership->created,'custom','M d, Y'); ?></div>
-    <div class="frnd_last_access"><?php print t('Last visited '); ?><?php print format_date($account->access,'custom','M d, Y'); ?> <?php */ ?>
-</div>
+    </div>
   </div>
 </div>
