@@ -186,6 +186,12 @@ function act_home_block_info() {
     'weight' => 0,
     'region' => -1,
   );
+  $blocks['slider'] = array(
+    'info' => t('Home slider'),
+    'status' => TRUE,
+    'weight' => 0,
+    'region' => -1,
+  );
   return $blocks;
 }
 
@@ -203,6 +209,10 @@ function act_home_block_view($delta = '') {
       $block['subject'] = NULL;
       $block['content'] = what_i_want_todo_display_contents();
       break;
+    case 'slider':
+      $block['subject'] = NULL;
+      $block['content'] = home_slider_display_contents();
+      break;
     }
   return $block;
 }
@@ -216,6 +226,10 @@ function act_home_theme() {
     'strategic_initiatives' => array(
        'template' => 'theme/strategic-initiatives',
        'variables' => array('title' => NULL, 'terms' => NULL, 'results' => NULL),
+     ),
+    'home_slider' => array(
+       'template' => 'theme/home--slider',
+       'variables' => array('title' => NULL, 'images' => NULL, 'results' => NULL,'count' => NULL),
      ),
   );
 }
@@ -249,23 +263,40 @@ function act_home_views_post_execute(&$view) {
   if ($view->name == 'future_events_by_term' && !empty($view->result) && count($view->result)==1) {
     drupal_goto('node/' . $view->result[0]->nid);
   }
-
-  if(isset($_GET['sd'])) {
-
-	if($view->name == "event_custom_links") {
-		dsm($view);
-		dsm($view->display['page']);
-	}  	
-
-  }
-
-
-
 }
 
 
 function what_i_want_todo_display_contents(){
    return drupal_get_form('what_i_want_todo');
+}
+
+/**
+ * Home page slider
+ */
+function home_slider_display_contents() {
+	$view = views_get_view('home_slider');
+  $view->set_display("block");
+  $view->render();  
+  $results = $images = $view->result;
+  $count = count($view->result);
+  $title = '';
+  $build['home_slider'] = array(
+    '#theme' => 'home_slider',
+    '#title' => $title,
+    '#images' => $images,
+    '#results' => $results,
+    '#count' => $count,
+  );
+  $build['home_slider']['#attached'] = array(
+    'js' => array(
+       drupal_get_path('module', 'act_home') . '/js/arlslider.js' => array( 'type' => 'file', 'weight' => 5000, 'scope' => 'footer',), 
+       drupal_get_path('module', 'act_home') . '/js/USAFRICOM.js' => array( 'type' => 'file', 'weight' => 50001, 'scope' => 'footer',),
+     ),
+  
+    'css' => array(drupal_get_path('module', 'act_home') . '/css/arlslider.css'),
+  );
+  $output = drupal_render($build);
+  return $output;
 }
 
 
