@@ -477,4 +477,43 @@
   margin-right: 10px;
 }
 
+/************** ARL Home page slider *********/
+#Billboards .billboardPhoto {
+  width: 68%;
+  height:340px;
+}
 
+#Billboards .billboardCaption {
+  float: left;
+  height: 260px;
+  padding: 10px;
+  width: 27%;
+  margin-left:2%;
+}
+
+#Billboards .billboardMenu {
+  top: 320px;
+}
+
+#Billboards{
+  min-height:390px;
+}
+
+#Billboards .billboards-items {
+  padding:25px;
+}
+
+#Billboards .billboardCaption p{
+  padding: 3px;
+}
+
+#Billboards .billboardMenu {
+    height: 45px;
+    max-width: 325px;
+    position: absolute;
+    right: 32px;
+    text-align: center;
+    top: 330px;
+    z-index: 5;
+    margin:0px;
+}

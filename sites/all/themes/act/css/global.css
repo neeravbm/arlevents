@@ -2125,7 +2125,11 @@ body #zone-postscript .region {
 #region-preface-first,
 #region-preface-second,
 #region-preface-third {
-  background: none;
+  background:url('../images/billboardFadeBG.png');
+}
+
+#zone-preface {
+  background:none!important;
 }
 
 body.front {
@@ -3000,7 +3004,7 @@ body.keynote-speaker {
 }
 
 .flex-control-nav.flex-control-paging {
-  display: none;
+  display: block;
 }
 
 #block-block-24 p {

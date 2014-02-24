@@ -1372,4 +1372,161 @@ ul.action-links li a {
   font-family:AvenirNextRegular;
 }
 
+/**************** ARL Slider ******/
 
+#Billboards h1 {
+  border: 0px;
+  color: #870000;
+  display: block;
+  font-weight: normal;
+  padding: 0px;
+}
+
+
+#Billboards .shadow {
+    -moz-box-shadow: 0 0 10px 2px #3D3D3D;
+    -webkit-box-shadow: 0 0 10px 2px #3D3D3D;
+    box-shadow: 0 0 10px 2px #3D3D3D;
+}
+#Billboards .croppedImageWrapper {
+    display: inline-block;
+    overflow: hidden;
+    position: relative;
+    *z-index: -1;
+}
+
+#Billboards .croppedImageWrapper img { position: absolute; height: 100%; left: -6px; top: 0px;}
+
+
+#Billboards {
+    background-image: url(/Content/billboardFadeBG.png);
+    background-repeat: repeat;
+    height:auto;
+    overflow: hidden;
+    position: relative;
+    vertical-align: top;
+    min-height: 620px;
+}
+
+#Billboards .billboards-items {
+ position: absolute; 
+ top: 0px; 
+ left: 0px; 
+ padding:0px;
+}
+
+#Billboards .billboardPhoto {
+    background-color: Black;
+    display: inline-block;
+    float: left;
+    height: auto;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    
+}
+
+#Billboards .billboardPhoto img{
+  width:100%;
+  height:auto;
+}
+
+#Billboards .billboardCaption {
+    background-color: #F0F0F1;
+    border: 3px solid white;
+    display: inline-block;
+    float: left;
+    height: 260px;
+    overflow: hidden;
+    padding: 10px;
+    position: relative;
+    width: 100%;
+    margin-left:0px;
+}
+
+#Billboards .billboardCaption h1{
+  font-weight: normal;
+  padding: 3px;
+  
+}
+
+#Billboards .billboardCaption p {
+  font-weight: normal;
+  padding-right: 20px;
+  text-align: justify;
+}
+
+#Billboards .billboardCaption p { font-size: 14px; }
+
+#Billboards .billboardMenu {
+    height: 45px;
+    margin-left: 45%;
+    margin-top: 46%;
+    max-width: 100%;
+    position: relative;
+    right: 32px;
+    text-align: center;
+    top: 0;
+    z-index: 5;
+}
+
+
+
+#Billboards .billboardMenu .bbMenuItem {
+    background-color: #91a7c1;
+    border: 1px solid #00d2ff;
+    color: #ececec;
+    cursor: pointer;
+    display: block;
+    float: left;
+    height: 25px;
+    line-height: 25px;
+    margin: 2px;
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+    width: 20px;
+}
+
+#Billboards .billboardMenu .bbMenuItem .bbMenuItemPhoto {
+    background-color: Black;
+    display: none;
+    position: absolute;
+    right: 0px;
+    top: -85px;
+    z-index: -1;
+}
+
+#Billboards .billboardMenu .bbMenuItem:hover .bbMenuItemPhoto {
+    display: block;
+    z-index: 10;
+}
+
+#Billboards .billboardMenu .bbMenuItem:hover {
+    border-color: #fff;
+    color: #fff;
+}
+
+#Billboards .billboardMenu .bbMenuItem.selected {
+    background-color: #fff;
+    border-color: #00d2ff;
+    color: #000;
+}
+
+#Billboards .billboardMenu .bbMenuItem.selected:hover {
+    background-color: #fff;
+    border-color: #00d2ff;
+    color: #000;
+}
+
+
+/*** Show add to Cal at event page ******/
+.venue-cal-add {
+  width:65%;
+}
+.venue-cal-add .date-display-start,
+.venue-cal-add .date-display-end
+ {
+  display:none;
+}
+    

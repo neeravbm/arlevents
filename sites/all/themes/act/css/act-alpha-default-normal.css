@@ -680,3 +680,26 @@ html .fc, .fc table {
 #block-commerce-cart-cart .content {
   width: 250px;
 }
+
+
+.flexslider .slides img {
+  width:auto;
+  float:left;
+  margin-right:20px;
+}
+
+.flex-control-nav {
+   bottom: 40px;
+}
+
+
+
+.views-field-field-slider-image .field-content{
+  background-color: #000000;
+    display: inline-block;
+    float: left;
+    height: 340px;
+    overflow: hidden;
+    position: relative;
+    width: 571px;
+}
