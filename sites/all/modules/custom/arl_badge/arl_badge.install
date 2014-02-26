@@ -16,15 +16,14 @@ function arl_badge_schema() {
   		'description' => 'User List for badge generation',
   		'fields' => array(
    			'user_id'       => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
-    		'cust_key'      => array('type' => 'varchar','length' => 40,'not null' => TRUE, 'default' => ''),
-    		'evt_key'  		=> array('type' => 'varchar','length' => 40,'not null' => TRUE,'default' => ''),
+   			'event_id'       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
     		'print_date'    => array('type' => 'int', 'not null' => TRUE, 'default' => 0)),
   			'primary key' 	=> array('user_id')
   	);
   	$schema["arl_badge_scans"] =  array(
   		'description' => 'List of badge scans',
   		'fields' => array(
-  		  	'scan_id'       => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+  		  'scan_id'       => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
    			'user_id'       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
     		'scan_location' => array('type' => 'varchar','length' => 40,'not null' => FALSE,'default' => ''),
     		'scan_date'     => array('type' => 'int', 'not null' => TRUE, 'default' => 0)),

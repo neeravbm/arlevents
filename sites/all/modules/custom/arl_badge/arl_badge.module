@@ -2,12 +2,11 @@
 
 require_once 'Zend/Pdf.php';
 require_once 'qrlib.php';
-require_once 'xwebSecureClient.class.php';
 
 // Set default path for Zend library
 ini_set('include_path', DRUPAL_ROOT . '/' . drupal_get_path('module','arl_badge') . '/' );
-
-define ("scanURL", 'http://www.actiac.org/eventScan?code=');
+global $base_url;
+define ("scanURL", $base_url.'/arlevents/eventScan?code=');
 define ("qrXOffset", '180');
 define ("qrYOffset", '160');
 define ("orgOffset", "30");
@@ -56,11 +55,13 @@ function getTempFolder() {
 }
 
 /******************************************************************/
-// $userArray is an array of customer keys.
-//   $onlyUnprinted is a boolean which when true will print all users who have not yet been printed.
-//   $if $onlyUnprinted is false and $userArray is null, will print every registrant
-//  Returns the number of badges created, or -1 on error
-function arl_badge_createBadges($soapURL, $xwebUser, $xwebPass, $evt_key, $outFile, $onlyUnprinted=false, $userArray=null) {
+/** $data is an array which contains user name, organization and user uid
+* $userArray is an array of customer keys.
+* $onlyUnprinted is a boolean which when true will print all users who have not yet been printed.
+* $if $onlyUnprinted is false and $userArray is null, will print every registrant
+* Returns the number of badges created, or -1 on error
+*/
+function arl_badge_createBadges($data, $outFile, $onlyUnprinted=false, $userArray=null) {
 	global $nfxweb;
 	global $pdf;
 	global $tempDir;
@@ -75,66 +76,12 @@ function arl_badge_createBadges($soapURL, $xwebUser, $xwebPass, $evt_key, $outFi
 
 	
 	$tempDir = getTempFolder();
-	echo('<br>TEMP: ' . $tempDir . '<br>');
 	
-	
-	try {
-		$nfxweb = new xwebSecureClient($soapURL, Array('trace'=>true, //turning on trace=true will let us grab the headers and responses
-						'exceptions'=>true,
-						'connection_timeout'=>120,
-						'xwebUserName'=>$xwebUser,
-						'xwebUserPass'=>$xwebPass));
-	} catch(Exception $e) {
-		$nfxweb = null;
-		return -1;
-	}
-		
-	// Create a new PDF
+  // Create a new PDF
 	$pdf = new Zend_Pdf();
-			
-	$where = 'evt_key = \'' . $evt_key . '\'';
-	$users = "";
-	
-	// Create the list of users
-	if ($onlyUnprinted == true) {
-		// Figure out which users have not been printed yet
-		// See if the user already exists in the table
-		$result = db_select('arl_badge_userlist', 'ul')
-		->fields('ul', array('cust_key'))
-		->condition('ul.evt_key', $evt_key, '=')
-		->execute();
-		while($record = $result->fetchObject()) {
-			if ($users != '') {
-				$users .= ', ';
-			}
-			
-			$users .= '\'' . $record->cust_key . '\'';
-		}
-		
-		$where .= ' AND reg_cst_key NOT IN (' . $users . ')';
-		
-	} else if ($userArray != null) {
-		foreach ($userArray as $reg) {
-			if ($users != '') {
-				$users .= ', ';
-			}
-	
-			$users .= '\'' . $reg . '\'';
-		}
-			
-		$where .= ' AND reg_cst_key IN (' . $users . ')';
-	}
-
-	$columns = 'reg_cst_key, ind_first_name, ind_last_name, reg_badge_name, cst_org_name_dn, cst_ixo_title_dn, adr_city, adr_country, ind_customer_type_ext, evt_title';
-	$arr = Array('szObjectName'=>'EventsRegistrant', 'szColumnList'=>$columns, 'szWhereClause'=>$where, 'szOrderBy'=>'');
-	$response = $nfxweb->GetQuery($arr);
-	
-	// Load the XML into an object for easier access
-	$xml = $response->GetQueryResult->any;
-	$response2 = @simplexml_load_string($xml);	
-	
-	$position = 1;
-	foreach ($response2 as $obj) {
+  $position = 1;
+  $obj = (object) $obj;
+	foreach ($data as $d) {
 		// If we are processing the first position, add a new page
 		if ($position == 1) {
 			$pdf->pages[] = $pdf->newPage(Zend_Pdf_Page::SIZE_LETTER);
@@ -143,13 +90,13 @@ function arl_badge_createBadges($soapURL, $xwebUser, $xwebPass, $evt_key, $outFi
 		//Get the last page
 		$page = $pdf->pages[count($pdf->pages)-1];
 		
-		$obj->ind_first_name = decode_entities2($obj->ind_first_name);
-		$obj->ind_last_name = decode_entities2($obj->ind_last_name);
-		$obj->cst_org_name_dn = decode_entities2($obj->cst_org_name_dn);
-		$obj->evt_title = decode_entities2($obj->evt_title);
+		$obj->ind_first_name = decode_entities2($d['first_name']);
+		$obj->ind_last_name = decode_entities2($d['last_name']);
+		$obj->cst_org_name_dn = decode_entities2($d['organization']);
+		$obj->evt_title = decode_entities2($d['title']);
 		
 		// Create the shorter code and store it
-		$obj->scanCode = arl_badge_createScanCode($evt_key, $obj->reg_cst_key);
+		$obj->scanCode = arl_badge_createScanCode($d['event_id'], $d['user_id']);
 
 		$result = arl_badge_merge($obj, $page, $position);
 	
@@ -178,8 +125,6 @@ function arl_badge_insertQR(&$pdfPage, $code, $posLeft, $posBottom, $size) {
 
 	$image = Zend_Pdf_Image::imageWithPath($outfile);
 	$pdfPage->drawImage($image, $posLeft, $posBottom, $posLeft + $size, $posBottom + $size);
-	
-	
 	
 	// Delete the QR graphic file
 	unlink($outfile);
@@ -240,23 +185,21 @@ function arl_badge_merge($mergeData, $page, $position) {
 	$style->setFont($pdfFontBold, 8);
 	$page->setStyle($style);
 	$page->drawText($mergeData->scanCode, $nameXPos[$position] + qrXOffset, $nameYPos[$position] - qrYOffset - 10);
-
 }
 
 /******************************************************************/
 // Returns the scanCode for the event/user combination and updated the print_date
-function arl_badge_createScanCode($evt_key, $cst_key) {
+function arl_badge_createScanCode($event_id, $user_id) {
 	$userid = "";
 	
-	if (($evt_key == '') or ($cst_key == '')) {
+	if (($event_id == '') or ($user_id == '')) {
 		return -1;
 	}
 	
 	// See if the user already exists in the table
 	$result = db_select('arl_badge_userlist', 'ul')
 	->fields('ul', array('user_id'))
-	->condition('ul.cust_key', $cst_key, '=')
-	->condition('ul.evt_key', $evt_key, '=')
+	->condition('ul.event_id', $event_id, '=')
 	->execute();
 	
 	$row = $result->fetchObject();
@@ -272,7 +215,7 @@ function arl_badge_createScanCode($evt_key, $cst_key) {
 	} else {
 		// Not in the table yet, so add the record
 		$userid = db_insert('arl_badge_userlist')
-		->fields(array('cust_key'=>$cst_key, 'evt_key'=>$evt_key, 'print_date'=>time()))
+		->fields(array('user_id'=>$user_id, 'event_id'=>$event_id, 'print_date'=>time()))
 		->execute();
 		
 		echo('Added: ' . $userid . '<br>');
