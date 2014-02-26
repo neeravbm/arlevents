@@ -326,8 +326,6 @@ function act_event_sponsorship_opp($node) {
  * Return Contact Us form
  */
 function act_event_contact_us($node) {
-
-  return array();
   return theme('event_get_contact_us', array('node' => $node));
 }
 
@@ -372,22 +370,17 @@ function act_event_conference_sponsors($node) {
 }
 
 function act_event_create_badges($node) {
-
-  $evt_key = field_get_items('node', $node, 'field_event_key');
-  if (empty($evt_key[0]['value'])) {
-    drupal_set_message(t("No registration information found for this event."), 'error');
+  // list for all registered users for the event
+  $data = array();
+  $data = act_event_registred_users($node);
+  if (empty($data)) {
+		drupal_set_message(t("No registration information found for this event."), 'error');
     return;
-  }
-  else {
-    $evt_key = $evt_key[0]['value'];
-  }
-
-  $tmp_path = realpath(file_directory_temp()) . '/';
-
+	}
+  
+  $tmp_path = realpath(file_directory_temp()) . '/'; 
   $filename = $clean = preg_replace('/[^\d\w.]+/', '_', $node->title . '.pdf');
-
-  $res = arl_badge_createBadges(SOAPURL, XWEBUSER, XWEBPASS, $evt_key, $tmp_path . $filename, FALSE, NULL);
-
+  $res = arl_badge_createBadges($data, $tmp_path . $filename, FALSE, NULL);
   if ($res > 0) {
 
     if (file_exists($tmp_path . $filename)) {
@@ -421,13 +414,19 @@ function _act_event_manage_badge($form, &$form_state) {
 
   $form['#tree'] = TRUE;
 
-  $totalUsers = _act_event_get_users_by_event($eventnode, '', TRUE);
-  $totalUnprintedUsers = _act_event_get_unprinted_badge_rec($event_id, TRUE);
+  //$totalUsers = _act_event_get_users_by_event($eventnode, '', TRUE);
+  $totalUsers = act_event_registred_users($eventnode);
+  $totalUnprintedUsers = _act_event_get_unprinted_badge_rec($eventnode, TRUE);
 
 
   $form['eventnid'] = array(
     '#type' => 'hidden',
     '#value' => $eventnode->nid,
+  );
+  
+  $form['event'] = array(
+    '#type' => 'hidden',
+    '#value' => $eventnode,
   );
 
   $form['badge_event_info'] = array(
@@ -456,13 +455,13 @@ function _act_event_manage_badge($form, &$form_state) {
   );
 
   $form['badge_container']['all_badge']['info'] = array(
-    '#markup' => t('There are currently ' . $totalUsers . ' registered participants attending this event.'),
+    '#markup' => t('There are currently ' . sizeof($totalUsers) . ' registered participants attending this event.'),
     '#prefix' => '<div class="badge-body">',
   );
 
   $form['badge_container']['all_badge']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Print All ' . $totalUsers . ' Badges'),
+    '#value' => t('Print All ' . sizeof($totalUsers) . ' Badges'),
     '#prefix' => '<div class="save">',
     '#suffix' => '</div></div>',
   );
@@ -512,11 +511,11 @@ function _act_event_manage_badge($form, &$form_state) {
   );
 
   $options = array();
-  $users = _act_event_get_users_by_event($eventnode);
-
-  if (!empty($users)) {
-    foreach ($users as $vuser) {
-      $options[$vuser->field_customer_key[LANGUAGE_NONE][0]['value']] = @$vuser->field_name_first[LANGUAGE_NONE][0]['value'] . ' ' . @$vuser->field_name_last[LANGUAGE_NONE][0]['value'];
+  //$users = _act_event_get_users_by_event($eventnode);
+  $data = act_event_registred_users($eventnode);
+  if (!empty($data)) {
+    foreach ($data as $vuser) {
+      $options[$vuser['uid']] = $vuser['first_name'] . ' ' . $vuser['last_name'];
     }
   }
 
@@ -572,29 +571,30 @@ function _act_event_manage_badge($form, &$form_state) {
 }
 
 function _act_event_manage_badge_submit($form, $form_state) {
-
+  
   $op = $form_state['clicked_button']['#id'];
   $eventnid = $form_state['values']['eventnid'];
+  $eventnode = $form_state['values']['event'];
 
   $users = array();
 
   switch ($op) {
 
     case 'edit-badge-container-all-badge-submit':
-      _act_event_print_user_badges($eventnid, array(), TRUE);
+      _act_event_print_user_badges($eventnode, array(), TRUE);
       break;
 
     case 'edit-badge-container-unprinted-badge-submit':
 
-      $data = _act_event_get_unprinted_badge_rec($eventnid);
+      $data = _act_event_get_unprinted_badge_rec($eventnode);
       foreach ($data as $key => $value) {
-        $users[] = $value->field_customer_key[LANGUAGE_NONE][0]['value'];
+        $users[] = $value->uid;
       }
       if (empty($users)) {
         drupal_set_message(t('No badges found to print'));
         return;
       }
-      _act_event_print_user_badges($eventnid, $users);
+      _act_event_print_user_badges($eventnode, $users);
       break;
 
     case 'edit-badge-container-group-badge-submit':
@@ -604,7 +604,7 @@ function _act_event_manage_badge_submit($form, $form_state) {
       }
 
       if (!empty($users) && $eventnid != '') {
-        _act_event_print_user_badges($eventnid, $users);
+        _act_event_print_user_badges($eventnode, $users);
       }
       break;
 
@@ -613,9 +613,9 @@ function _act_event_manage_badge_submit($form, $form_state) {
       $selectedUsers = explode(' ', $form_state['values']['badge_container']['single_badge']['single_badge_select']);
 
       $acc = user_load(array_pop($selectedUsers));
-      $users[] = $acc->field_customer_key['und'][0]['value'];
+      $users[] = $acc->uid;
       if (!empty($users) && $eventnid != '') {
-        _act_event_print_user_badges($eventnid, $users);
+        _act_event_print_user_badges($eventnode, $users);
       }
       break;
 
@@ -629,72 +629,32 @@ function _act_event_manage_badge_submit($form, $form_state) {
  * 
  */
 function _act_event_badge_autocomplete_user($eventnode) {
-
   $matches = array();
-
   $username = check_plain(arg(3));
-
-  $users = _act_event_get_users_by_event($eventnode, $username);
-
+  //$users = _act_event_get_users_by_event($eventnode, $username);
+  $users = act_event_registred_users($eventnode);
   foreach ($users as $vuser) {
-    $matches[$vuser->field_name_first[LANGUAGE_NONE][0]['value'] . ' ' . $vuser->field_name_last[LANGUAGE_NONE][0]['value'] . ' ' . $vuser->uid] = $vuser->field_name_first[LANGUAGE_NONE][0]['value'] . ' ' . $vuser->field_name_last[LANGUAGE_NONE][0]['value'];
+    $matches[$vuser['first_name'] . ' ' . $vuser['last_name'] . ' ' . $vuser['uid']] = $vuser['first_name'] . ' ' . $vuser['last_name'];
   }
-
   // return for JS
   drupal_json_output($matches);
 }
 
-/*
- * Function to return users key of particular event
- */
-function _act_event_get_users_by_event($eventnode, $username = '', $count = FALSE) {
-
-  /*if(!empty($eventnode->field_product['und'][0]['product_id'])) {
-    $pid = $eventnode->field_product['und'][0]['product_id'];
-  }
-  
-  //$pid = 122;
-  
-  $query = db_select('commerce_order', 'cord');
-  $query->join('commerce_line_item', 'li', 'cord.order_id = li.order_id');
-  $query->join('field_data_commerce_product', 'prod', 'li.line_item_id = prod.entity_id');
-  $query->join('field_data_field_name_first', 'fname', 'cord.uid = fname.entity_id');
-  $query->join('field_data_field_name_last', 'lname', 'cord.uid = lname.entity_id');
-  $query->join('field_data_field_customer_key', 'ckey', 'cord.uid = ckey.entity_id');
-  $query->condition('prod.commerce_product_product_id', $pid, '=')
-       // ->condition('cord.status', 'cart', '=')
-        ->groupBy('cord.uid');
-  
-  if($username != '')
-    $query->condition('fname.field_name_first_value', '%' . db_like($username) . '%', 'LIKE');
-          
-  $query->fields('cord', array('uid'))
-        ->fields('fname', array('field_name_first_value'))
-        ->fields('lname', array('field_name_last_value'))
-        ->fields('ckey', array('field_customer_key_value'));
-  
-  $result = $count ?  $query->execute()->rowCount() : $query->execute()->fetchAll();*/
-
-  return avectra_get_event_registered_user($eventnode, $username, $count);
-
-}
 
 /*
  * Function to print user badges 
  */
-function _act_event_print_user_badges($eventnid, $users, $all = FALSE) {
-
-  $eventnode = node_load($eventnid);
-  $eventKey = $eventnode->field_event_key['und'][0]['value'];
-
+function _act_event_print_user_badges($eventnode, $users, $all = FALSE) {
+  $data = array();
+  $data = act_event_registred_users($eventnode);
   $tmp_path = realpath(file_directory_temp()) . '/';
   $filename = $clean = preg_replace('/[^\d\w.]+/', '_', 'GroupBadge' . '.pdf');
-
+  $res = 0;
   if ($all) {
-    $res = arl_badge_createBadges(SOAPURL, XWEBUSER, XWEBPASS, $eventKey, $tmp_path . $filename, FALSE, NULL);
+    $res = arl_badge_createBadges($data, $tmp_path . $filename, FALSE, NULL);
   }
   else {
-    $res = arl_badge_createBadges(SOAPURL, XWEBUSER, XWEBPASS, $eventKey, $tmp_path . $filename, FALSE, $users);
+    $res = arl_badge_createBadges($data, $tmp_path . $filename, FALSE, $users);
   }
 
   if ($res > 0) {
@@ -723,23 +683,19 @@ function _act_event_print_user_badges($eventnid, $users, $all = FALSE) {
 /*
  * Function to return unprinted user key or count
  */
-function _act_event_get_unprinted_badge_rec($eventnid, $count = FALSE) {
-
-  $eventnode = node_load($eventnid);
-  $eventKey = $eventnode->field_event_key['und'][0]['value'];
+function _act_event_get_unprinted_badge_rec($eventnode, $count = FALSE) {
   $allusers = array();
 
   $printedusers = db_select('arl_badge_userlist', 'ul')
-    ->fields('ul', array('cust_key'))
-    ->condition('ul.evt_key', $eventKey, '=')
+    ->fields('ul', array('user_id'))
+    ->condition('ul.event_id', $eventnode->nid, '=')
     ->execute()->fetchCol();
-
-  $allusers = _act_event_get_users_by_event($eventnode);
-
-  if (is_array($allusers)) {
-
-    foreach ($allusers as $key => $value) {
-      if (in_array($value->field_customer_key[LANGUAGE_NONE][0]['value'], $printedusers)) {
+ 
+  //$allusers = _act_event_get_users_by_event($eventnode);
+  $allusers = act_event_registred_users($eventnode);
+  if (!empty($allusers) && is_array($allusers)) {
+   foreach ($allusers as $key => $value) {
+	   if (in_array($value['user_id'], $printedusers)) {
         unset($allusers[$key]);
       }
     }
@@ -772,7 +728,7 @@ function _act_event_badge_eventscan($code = '') {
   }
 
   $query = db_select('arl_badge_userlist', 'ul')
-    ->fields('ul', array('cust_key', 'evt_key'))
+    ->fields('ul', array('user_id', 'event_id'))
     ->condition('ul.user_id', $badge_no, '=')
     ->execute()->fetchAll();
 
@@ -780,14 +736,13 @@ function _act_event_badge_eventscan($code = '') {
 
     $rec = $query[0];
 
-    $ukey = $rec->cust_key;
-    $ekey = $rec->evt_key;
+    $ukey = $rec->user_id;
+    $ekey = $rec->event_id;
 
     $uid = getUidByKey($ukey);
 
     $query = db_select('node', 'node');
-    $query->join('field_data_field_event_key', 'ekey', 'ekey.entity_id = node.nid');
-    $query->condition('ekey.field_event_key_value', $ekey)
+    $query->condition('node.nid', $ekey)
       ->condition('node.type', 'events')
       ->fields('node', array('nid'));
     $result = $query->execute()->fetchCol();
@@ -929,9 +884,40 @@ function act_event_get_resize_page() {
     '#suffix' => '</div>',
 
   );
-
-
   return $form;
-
 }
 
+/**
+ * Function to get all registered user for a specific events
+ * @para node object
+ *   node as obect
+ * @return array $data
+ *   array contains title, first_name, organization etc.
+ */  
+function act_event_registred_users($node){
+	$data = array();
+  // list for all registered users for the event
+  $view = views_get_view('registered_users');
+	$view->set_display("page");
+	$view->set_arguments(array($node->nid));
+	$view->render();
+	$results = $view->result;
+  $data = array();
+  if (count($view->result) > 0){
+    foreach ($results as $result) {
+			$first_name = $result->field_field_name_first[0]['raw']['value'];
+		  $last_name = $result->field_field_name_last[0]['raw']['value'];
+		  $organization = $result->field_field_organization[0]['raw']['entity']->title;
+		  
+		  $data[] = array(
+		    'title' => $node->title,
+		    'first_name' => $first_name,
+		    'last_name' => $last_name,
+		    'organization' => $organization,
+		    'user_id' => $result->users_commerce_order_uid,
+		    'event_id' => $node->nid,
+		  ); 
+		}
+  } 
+	return $data;
+}

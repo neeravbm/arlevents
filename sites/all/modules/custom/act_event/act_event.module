@@ -1039,143 +1039,6 @@ function act_event_registration_badge_pane_checkout_form($form, &$form_state, $c
   return act_event_get_registration_badge_form($order);
 }
 
-/*
-function act_event_get_registration_badge_form ($order) {
-  
-  //global $user;
-  
-  $userprofiles[0] = '--select--';
-  
-  $user = user_load($order->uid);
-  
-  if(empty($user->field_organization)) return;
-    
-  $orgRef = $user->field_organization[LANGUAGE_NONE][0]['target_id'];
-  
-  // Extract POC of organization
-  $org_node = node_load($orgRef);
-  $poc_uid = @$org_node->field_organization_poc[LANGUAGE_NONE][0]['target_id'];
-  
-  if($user->uid != $poc_uid) return;
-  
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'user')
-        ->propertyCondition('status', 1)
-        ->fieldCondition('field_organization','target_id', $orgRef , '=');
-  $result = $query->execute();
-
-  if(isset($result['user']) && count($result['user']) > 0) {
-    $profiles = entity_load('user', array_keys($result['user']));
-
-    foreach ($profiles as $profile) {
-
-      $company = '';
-      if(!empty($user->field_organization[LANGUAGE_NONE])) {
-        $orgRef = $profile->field_organization[LANGUAGE_NONE][0]['target_id'];
-        $user_org = entity_load('node',array($orgRef));
-        $company = $user_org[$orgRef]->title;
-      }
-      $location = !empty($profile->field_user_address) ? $profile->field_user_address[LANGUAGE_NONE][0]['value'] : '';
-
-       $form['registration_badge_rec'][$profile->uid] = array(
-         '#type' => 'hidden',
-         '#attributes' => array( 'name' => $profile->name,
-                                 'company'=>$company,
-                                 'location'=>$location,
-                                 'id'=>'uid_'.$profile->uid,
-                                ),
-        );
-       $userprofiles[$profile->uid] = $profile->name;
-    }
-    
-    // Moves poc element to top of that array so it get default selected
-    $poc_name = $userprofiles[$poc_uid];
-    unset($userprofiles[$poc_uid]);
-    unset($userprofiles[0]);
-    $userprofiles = array(0=>'select',$poc_uid=>$poc_name) + $userprofiles;
-    
-  }
-  unset($users);
-    
-  $form['#tree'] = TRUE;
-  
-  for( $i=0; $i<100 ; $i++) {
-    
-      $form['registration_badge'][$i]['badgename'] = array(
-	   '#type' => 'select',
-	   '#title' => t('Name'),
-	   '#options' => $userprofiles,
-	   '#required' => FALSE,
-	   '#prefix' => '<div style="display:none" class="reg_badge_block" id="rb_'.$i.'">',
-	   '#attributes' => array('class' => array('reg-badge-name')),
-	  );
-
-      $form['registration_badge'][$i]['badgetitle'] = array(
-	   '#type' => 'textfield',
-	   '#title' => t('Title'),
-	   '#size' => 60,
-	   '#maxlength' => 128,
-	   '#required' => FALSE,
-	  );
-      
-      $form['registration_badge'][$i]['badgeorganization'] = array(
-       '#type' => 'textfield',
-       '#title' => t('Organization'),
-       '#size' => 60,
-       '#maxlength' => 128,
-       '#required' => FALSE,
-         '#attributes' => array( 'class' => array('company')),
-      );
-
-      $form['registration_badge'][$i]['badgelocation'] = array(
-       '#type' => 'textfield',
-       '#title' => t('Location'),
-       '#size' => 60,
-       '#maxlength' => 128,
-        '#attributes' => array( 'class' => array('location')),
-       '#required' => FALSE,
-      );
-
-      $form['registration_badge'][$i]['badgeregtype'] = array(
-       '#type' => 'textfield',
-       '#title' => t('Reg Type'),
-       '#default_value' =>'',
-       '#size' => 60,
-       '#maxlength' => 128,
-       '#required' => FALSE,
-      );
-
-      $form['registration_badge'][$i]['badgesource_code'] = array(
-       '#type' => 'textfield',
-       '#title' => t('Source Code'),
-       '#default_value' =>'',
-       '#size' => 60,
-       '#maxlength' => 128,
-       '#required' => FALSE,
-      );
-
-      $form['registration_badge'][$i]['reg_badge_remove_one'] = array(
-       '#type' => 'button',
-       '#value' => t('Remove'),
-        '#attributes' => array('onclick' => "return false;",'rbind'=>$i),
-        '#prefix' => '<div class="removebadge">',
-         '#suffix' => '</div></div>',
-      );
-      
-}
-
-  $form['reg_badge_add_more'] = array(
-   '#type' => 'button',
-   '#value' => t('Add more'),
-    '#attributes' => array('onclick' => "return false;",'rbind'=>'0'),
-     '#prefix' => '<div class="addmorebadge">',
-     '#suffix' => '</div>',
-  );
-  
- 
-  return $form;
-}*/
-
 
 function act_event_get_registration_badge_form($order) {
   //global $user;
@@ -1767,18 +1630,6 @@ function act_event_views_api() {
   );
 }
 
-/**
- * Provide a form API element exposed as a Registration entity setting.
- *
- * @param array $settings
- *   Existing settings values.
- *
- * @return array
- *   A FAPI array for a registration setting.
- */
-function act_event_registration_entity_settings($settings) {
-  //dsm($settings);
-}
 
 /**
  * Implements hook_menu_alter().
@@ -1870,11 +1721,8 @@ function act_event_product_is_purchased($product_id = '') {
  * function to get total count of successfully placed order of event product
  */
 function act_event_get_event_total_order_count($pid) {
-
   $count = 0;
-
   if ($pid != '') {
-
     $query = db_select('commerce_order', 'cord');
     $query->join('commerce_line_item', 'li', 'cord.order_id = li.order_id');
     $query->join('field_data_commerce_product', 'prod', 'li.line_item_id = prod.entity_id');
@@ -1885,9 +1733,7 @@ function act_event_get_event_total_order_count($pid) {
     $query->fields('cord', array('uid'));
 
     $count = $query->execute()->rowCount();
-
   }
-
   return $count;
 }
 
@@ -1906,10 +1752,3 @@ function _act_event_leadership_user_in_committe($uid, $committe_nid) {
   return $query->execute()->rowCount();
 }
 
-
-/**
- * Implements hook_form_FORM_ID_alter().
- */
-function act_event_form_search_block_form_alter(&$form, &$form_state) {
-  //$form['#validate']['act_event_search_validate'] = array();
-}
