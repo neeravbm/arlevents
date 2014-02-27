@@ -193,17 +193,11 @@ function _og_addpoc_users_form_submit($form, &$form_state) {
       if (is_object($account)) {
         // Add group membership form. We still don't have the user or state.
         if ($gid && !og_is_member('node', $gid, 'user', $account, array(OG_STATE_ACTIVE))) { // added by devendra
-
-          $status = _avectra_user_membership_status($account, $gid);
-
-          if ($status) {
-            og_group('node', $gid, array(
+           og_group('node', $gid, array(
               'entity type' => 'user',
               'entity' => $account,
               'membership type' => OG_MEMBERSHIP_TYPE_DEFAULT,
             ));
-          }
-          //og_role_grant('node', $gid, $account->uid, 2);
         }
         $count += 1;
 
@@ -522,7 +516,6 @@ function act_og_node_insert($node) {
  * Get Memberships For User
  */
 function getMembershipsForUserSubgroup($uid, $gid) {
-
   if ($gid) {
     $account = user_load($uid);
     $node_title = node_title_by_nid($gid);
@@ -533,18 +526,12 @@ function getMembershipsForUserSubgroup($uid, $gid) {
       'membership type' => OG_MEMBERSHIP_TYPE_DEFAULT,
     );
     og_group('node', $gid, $extra);
-    //og_role_grant('node', $gid, $account->uid, 2);
-    /*drupal_set_message(t('You (Uid @uid) have get membership of @title.', array(
-      '@title' => $node_title,
-      '@uid' => $uid
-    )));*/
-
   }
 }
 
 
 /**
- * Get Memberships For User
+ * Remove Memberships For User
  */
 function unsubscribeMembershipsForUserSubgroup($uid, $gid) {
   if ($gid) {

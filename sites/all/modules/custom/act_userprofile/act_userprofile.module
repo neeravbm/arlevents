@@ -71,12 +71,6 @@ function act_userprofile_init() {
  */
 function act_userprofile_user_login(&$edit, $account) {
   $page = $_GET['q'];
-  /*if ($page == 'user' || $page == 'user/login') {
-    $edit['redirect'] = 'user/' . $account->uid . '/dashboard';
-  }
-  else {
-    $edit['redirect'] = $page;
-  }*/
   $edit['redirect'] = 'homepage';
   if (variable_get('group_redirect')) {
     $group_redirect = variable_get('group_redirect');
@@ -915,16 +909,11 @@ function act_userprofile_form_alter(&$form, &$form_state, $form_id) {
     $form['field_mailing_address_country'][LANGUAGE_NONE][0]['value']['#default_value'] = t('United States');
     hide($form['field_mailing_address_country']);
     $form['flag_friend']['#weight'] = 16;
-    $form['#submit'][] = 'change_user_password_force_avectra';
     hide($form['field_user_contact_email']);
     $form['#after_build'][] = 'act_userprofile_profile_after_build';
   }
 
-  if ($form_id == 'user_register_form') {
-    $form['#submit'][] = 'change_new_user_password_force_avectra';
-  }
-
-  if ($form_id == 'user_pass') {
+    if ($form_id == 'user_pass') {
     $form['actions']['submit']['#value'] = t('Submit');
     $form['#submit'][] = 'act_userprofile_forgot_password_redirect';
   }
@@ -939,59 +928,6 @@ function act_userprofile_forgot_password_redirect($form, &$form_state) {
 }
 
 
-// Adds a submit handler/function to our form to update password in avectra as well 
-function change_user_password_force_avectra($form, &$form_state) {
-  module_load_include('php', 'avectra', 'includes/ACT');
-  module_load_include('php', 'avectra', 'includes/Profile');
-  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
-
-  $password = $form_state['values']['pass'];
-  $current_pass = isset($form_state['values']['current_pass']) ? $form_state['values']['current_pass'] : '';
-  $customer_key = $form_state['values']['field_customer_key'][LANGUAGE_NONE][0]['value'];
-
-  if (isset($customer_key) && !empty($customer_key)) {
-    if (isset($current_pass) && !empty($current_pass)) { //607cd636-aa6f-445d-a0d1-a3f4897d70f3 customer key
-      $status = $act->changeUserPassword($customer_key, $current_pass, $password);
-      if ($status) {
-        drupal_set_message(t('Password have been changed on avectra'));
-      }
-      else {
-        drupal_set_message(t('There is some issue so password has been not changed.'));
-      }
-    }
-    else {
-      if (isset($password) && !empty($password)) {
-        $status = $act->changeUserPasswordForce($customer_key, $password);
-        if ($status) {
-          drupal_set_message(t('Password have been changed on avectra'));
-        }
-        else {
-          drupal_set_message(t('There is some issue so password has been not changed.'));
-        }
-      }
-    }
-  }
-}
-
-
-// Adds a submit handler/function to our form to update password in avectra as well 
-function change_new_user_password_force_avectra($form, &$form_state) {
-  module_load_include('php', 'avectra', 'includes/ACT');
-  module_load_include('php', 'avectra', 'includes/Profile');
-  $act = new ACT(SOAPURL, XWEBUSER, XWEBPASS);
-  $password = $form_state['values']['pass'];
-  $customer_key = $form_state['user']->field_customer_key[LANGUAGE_NONE][0]['value'];
-
-  if (!empty($password) && !empty($customer_key)) {
-    $status = $act->changeUserPasswordForce($customer_key, $password);
-    if ($status) {
-      drupal_set_message(t('Password have been changed on avectra'));
-    }
-    else {
-      drupal_set_message(t('There is some issue so password have been not changed on avectra'));
-    }
-  }
-}
 
 /**
  * Implements hook_form_FORM_ID_alter(&$form, &$form_state, $form_id)
@@ -1135,93 +1071,58 @@ function act_userprofile_privacy_submit($form, &$form_state) {
  * Function to change user password at Change Password tab 
  * 
  */
-function act_userprofile_get_avectra_change_password_form($form, &$form_state) {
+function act_userprofile_change_password_form($form, &$form_state) {
+  if (user_is_anonymous()) {
+    return $form; // Or drupal_access_denied()?
+  }
 
-  $form['avectra']['old_pass'] = array(
+  // Get the currently logged in user object.
+  $form['#account'] = $GLOBALS['user'];
+ 
+ $form['current_pass'] = array(
+    '#title' => t('Current Password'),
     '#type' => 'password',
-    '#description' => t('Enter old password'),
+    '#description' => t('Enter current password'),
     '#size' => '30'
   );
 
-  $form['avectra']['new_pass'] = array(
-    '#type' => 'password',
-    '#description' => t('Enter new password'),
-    '#size' => '30'
+  // Password confirm field.
+  $form['account']['pass'] = array(
+    '#type' => 'password_confirm',
+    '#size' => 25,
+    '#title' => t('New Password'),
+    '#required' => TRUE
   );
 
-  $form['avectra']['new_pass_confirm'] = array(
-    '#type' => 'password',
-    '#description' => t('Confirm new password'),
-    '#size' => '30'
-  );
-
-  $form['avectra']['submit'] = array(
+  $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Change'),
-    '#submit' => array('act_userprofile_avectra_change_password_form_submit'),
+    '#value' => t('Change Password'),
   );
+  
   return $form;
 }
 
-/*
- * Submit handler to change user password 
+
+/**
+ * Validate handler for act_userprofile_change_password_form().
  */
-function act_userprofile_avectra_change_password_form_submit(&$form, &$form_state) {
-
-  global $user;
-  global $base_url;
-
-  module_load_include('php', 'avectra', 'includes/ACT');
-  module_load_include('php', 'avectra', 'includes/Profile');
-
-  $newpass = check_plain($form_state['input']['new_pass']);
-  $confpass = check_plain($form_state['input']['new_pass_confirm']);
-  $old_pass = check_plain($form_state['input']['old_pass']);
-
-  $err = FALSE;
-
-  if (empty($old_pass)) {
-    form_set_error('old_pass', t('Old password is required.'));
-    $err = TRUE;
+function act_userprofile_change_password_form_validate(&$form, &$form_state) {  
+  require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
+  if (!user_check_password($form_state['values']['current_pass'], $form['#account'])) {
+    form_set_error('current_pass', t('The current password you provided is incorrect.'));
   }
-
-  if (empty($newpass) && empty($confpass)) {
-    form_set_error('new_pass', t('New Password is required'));
-    form_set_error('new_pass_confirm', t('Confirm Password is required'));
-    $err = TRUE;
-  }
-  else {
-    if ($newpass != $confpass) {
-
-      form_set_error('new_pass_confirm', t('Confirm Password do not match'));
-      $err = TRUE;
-    }
-  }
-
-  $form_state['redirect'] = $base_url . '/' . request_path() . '?pass=t';
-
-  if ($err) {
-    return;
-  }
-
-  $account = user_load($user->uid);
-  //$customer_key = $account->field_customer_key[LANGUAGE_NONE][0]['value'];
-
-  $status = avectra_set_new_password($account, $newpass, $old_pass);
-
-  //$field_customer_key = field_get_items('user', $userload, 'field_customer_key');
-  //$customer_key = $field_customer_key[0]['value'];
-  //$status = $act->changeUserPassword($customer_key, $old_pass, $newpass);
-
-  if ($status) {
-    drupal_set_message(t('Password has been changed successfully'));
-  }
-  else {
-    drupal_set_message(t('Password could not be changed'), 'error');
-  }
-
-
 }
+
+ /**
+ * Submit handler for act_userprofile_change_password_form().
+ */
+function act_userprofile_change_password_form_submit(&$form, &$form_state) {
+  $edit = array('pass' => $form_state['values']['pass']); 
+  user_save($form['#account'], $edit);
+  drupal_set_message(t('Your password has been changed.'));
+}
+
+
 
 /*
  * Function to get Events, Invoice of a user on My Transaction
@@ -1249,33 +1150,7 @@ function _act_userprofile_get_user_invoice() {
   $acc = user_load($uid);
   $invoicesData = array();
 
-  unset($acc->data['avectra']);
-  if (!empty($acc->data['avectra']['invoices']) && ($acc->data['avectra']['invoices']['time'] >= strtotime('-2 day')) &&
-    isset($acc->data['avectra']['invoices']['data'])
-  ) {
-    $invoicesData = unserialize($acc->data['avectra']['invoices']['data']);
-  }
-  else {
-    $invoices = avectra_get_user_invoice($acc);
-
-    if (!empty($invoices) && sizeof($invoices)) {
-      foreach ($invoices as $inv) {
-        $invoicesData[] = array(
-          'total' => (string) $inv->getTotal(),
-          'bal' => (string) $inv->getBalance(),
-          'date' => (string) $inv->getDate(),
-          'invNum' => (string) $inv->getInvoiveNum(),
-          //'custType' => (string) $inv->getCustType()
-          'eventName' => (string) $inv->getEventName(),
-        );
-      }
-    }
-
-    $acc->data['avectra']['invoices']['time'] = REQUEST_TIME;
-    $acc->data['avectra']['invoices']['data'] = serialize($invoicesData);
-    user_save($acc);
-  }
-
+  
   if (empty($invoicesData)) {
 
     $rows = array(
@@ -1285,27 +1160,7 @@ function _act_userprofile_get_user_invoice() {
     );
 
   }
-  else {
-
-    foreach ($invoicesData as $invoice) {
-      $paid = 0;
-      $total = $invoice['total'];
-      $bal = $invoice['bal'];
-      $paid = $total - $paid;
-
-      $rows[] = array(
-        $invoice['date'],
-        $invoice['eventName'],
-        $invoice['invNum'],
-        $total,
-        $paid,
-        $bal,
-        //$invoice['custType'],
-      );
-    }
-
-  }
-
+  
   $attributes = array();
 
   $table = array(
@@ -1337,26 +1192,6 @@ function _act_userprofile_get_user_events() {
   $acc = user_load($uid);
   $eventsData = array();
 
-  if (!empty($acc->data['avectra']['events']) && ($acc->data['avectra']['events']['time'] >= strtotime('-2 day'))) {
-    $eventsData = unserialize($acc->data['avectra']['events']['data']);
-  }
-  else {
-    $events = avectra_get_user_events($acc);
-    if (!empty($events) && sizeof($events)) {
-      foreach ($events as $ev) {
-        $eventsData[] = array(
-          'name' => (string) $ev->getEventName(),
-          'code' => (string) $ev->getEventCode(),
-          'regtype' => (string) $ev->getRegType(),
-          'regdate' => (string) $ev->getRegDate(),
-        );
-      }
-    }
-    $acc->data['avectra']['events']['time'] = REQUEST_TIME;
-    $acc->data['avectra']['events']['data'] = serialize($eventsData);
-    user_save($acc);
-  }
-
   if (empty($eventsData)) {
 
     $rows = array(
@@ -1366,19 +1201,6 @@ function _act_userprofile_get_user_events() {
     );
 
   }
-  else {
-
-    foreach ($eventsData as $event) {
-      $rows[] = array(
-        $event['name'],
-        $event['code'],
-        $event['regtype'],
-        $event['regdate'],
-      );
-    }
-
-  }
-
   $attributes = array();
 
   $table = array(
@@ -1417,31 +1239,7 @@ function _act_userprofile_get_user_membership() {
   $acc = user_load($uid);
   $membershipsData = array();
 
-  if (!empty($acc->data['avectra']['membersips']) &&
-    ($acc->data['avectra']['membersips']['time'] >= strtotime('-2 day'))
-  ) {
-    $membershipsData = unserialize($acc->data['avectra']['membersips']['data']);
-  }
-  else {
-    $memberships = avectra_get_user_membership($acc);
-    if (!empty($memberships) && sizeof($memberships)) {
-      foreach ($memberships as $mb) {
-        $membershipsData[] = array(
-          'association' => (string) $mb->getAssociation(),
-          'type' => (string) $mb->getType(),
-          'status' => (string) $mb->getStatus(),
-          'effective' => (string) $mb->getEffective(),
-          'expires' => (string) $mb->getExpires(),
-          'joined' => (string) $mb->getJoined(),
-          'terminate' => (string) $mb->getTerminate(),
-        );
-      }
-    }
-    $acc->data['avectra']['membersips']['time'] = REQUEST_TIME;
-    $acc->data['avectra']['membersips']['data'] = serialize($membershipsData);
-    user_save($acc);
-  }
-
+  
   if (empty($membershipsData)) {
 
     $rows = array(
@@ -1451,23 +1249,7 @@ function _act_userprofile_get_user_membership() {
     );
 
   }
-  else {
-
-    foreach ($membershipsData as $membership) {
-      $rows[] = array(
-        $membership['association'],
-        $membership['type'],
-        $membership['status'],
-        $membership['effective'],
-        $membership['expires'],
-        $membership['joined'],
-        $membership['terminate'],
-        '' /*$membership->getRenew()*/,
-      );
-    }
-
-  }
-
+  
   $attributes = array();
 
   $table = array(
@@ -1499,30 +1281,7 @@ function _act_userprofile_get_user_chapters() {
   $acc = user_load($uid);
   $chaptersData = array();
 
-  if (!empty($acc->data['avectra']['chapter_membersips']) &&
-    ($acc->data['avectra']['chapter_membersips']['time'] >= strtotime('-2 day'))
-  ) {
-    $chaptersData = unserialize($acc->data['avectra']['chapter_membersips']['data']);
-  }
-  else {
-    $chapters = avectra_get_user_chapters($acc);
-    if (!empty($chapters) && sizeof($chapters)) {
-      foreach ($chapters as $mb) {
-        $chaptersData[] = array(
-          'key' => (string) $mb->getKey(),
-          'type' => (string) $mb->getType(),
-          'status' => (string) $mb->getStatus(),
-          'joined' => (string) $mb->getJoined(),
-          'expires' => (string) $mb->getExpires(),
-          'terminates' => (string) $mb->getTerminates(),
-        );
-      }
-    }
-    $acc->data['avectra']['chapter_membersips']['time'] = REQUEST_TIME;
-    $acc->data['avectra']['chapter_membersips']['data'] = serialize($chaptersData);
-    user_save($acc);
-  }
-
+  
   if (empty($chaptersData)) {
 
     $rows = array(
@@ -1532,21 +1291,7 @@ function _act_userprofile_get_user_chapters() {
     );
 
   }
-  else {
-
-    foreach ($chaptersData as $chapter) {
-      $rows[] = array(
-        $chapter['key'],
-        $chapter['type'],
-        $chapter['status'],
-        $chapter['joined'],
-        $chapter['expires'],
-        $chapter['terminates'],
-      );
-    }
-
-  }
-
+  
   $attributes = array();
 
   $table = array(

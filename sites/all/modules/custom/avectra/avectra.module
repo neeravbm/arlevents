@@ -2801,14 +2801,12 @@ function add_members_to_committee_node($node, $members) {
     foreach ($members as $uid) {
       $account = user_load($uid);
       if ($gid && !og_is_member('node', $gid, 'user', $account, array(OG_STATE_ACTIVE))) { // added by devendra
-        $status = _avectra_user_membership_status($account, $gid);
-        if ($status) {
-          og_group('node', $gid, array(
-            'entity type' => 'user',
-            'entity' => $account,
-            'membership type' => OG_MEMBERSHIP_TYPE_DEFAULT,
-          ));
-        }
+        og_group('node', $gid, array(
+          'entity type' => 'user',
+          'entity' => $account,
+          'membership type' => OG_MEMBERSHIP_TYPE_DEFAULT,
+        ));
+        
       }
     }
   }

@@ -20,6 +20,8 @@ class NFComm {
 		
 		// Create the connection object
 		$this->nfxweb = new xwebSecureClient($soapURL, Array('trace'=>true, //turning on trace=true will let us grab the headers and responses
+						'proxy_host'=>'192.168.1.11',
+            'proxy_port'=>8080,
 						'exceptions'=>true,
 						'connection_timeout'=>60,
 						'xwebUserName'=>$xwebUser,

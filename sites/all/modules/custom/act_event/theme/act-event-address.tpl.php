@@ -50,6 +50,7 @@ else {
   return;
 }
 
+$display = array('label' => 'hidden','type' => 'addtocal_view','settings' => array('format_type' => 'medium','past_events' => TRUE,));
 ?>
 <div>
 
@@ -57,13 +58,15 @@ else {
     <div id="event_title"><h3><?php print render($node->title); ?></h3></div>
 
     <div id="event_slogan"><?php print render($node->field_event_slogan['und'][0]['value']); ?></div>
-
+    
+    
+    
     <div id="event_date">
-      <div
-        class="venue-cal-icon"><?php echo '<img src="' . base_path() . path_to_theme() . '/images/calender.png' . '">'; ?></div>
-      <div class="venue-cal-info"><?php print $start . (($start != $end) ? (' to ' . $end) : '') . ',
-      ' . $year; ?></div>
-    </div>
+			<div class="venue-cal-add"> <?php print drupal_render(field_view_field('node', $node, 'field_date',$display));?></div>
+      <div class="venue-cal-icon"><?php echo '<img src="' . base_path() . path_to_theme() . '/images/calender.png' . '">'; ?></div>
+      <div class="venue-cal-info"><?php print $start . (($start != $end) ? (' to ' . $end) : '') . ',' . $year; ?></div>
+      
+   </div>
 
     <?php if (sizeof($venue_address) > 0) { ?>
       <div id="event_venue">
@@ -111,16 +114,12 @@ else {
     <div id="event_register_btn">
       <?php print $product; ?>
     </div>
-
+   
     <?php if (og_user_access_entity('administer group', 'node', $node, $user)) { ?>
       <div class="create-badges"><?php print l(t("Create Badges"), "create-badges/$node->nid"); ?></div>
     <?php } ?>
-
-    <?php if (user_access('update from netforum')) { ?>
-      <div class="create-badges"><?php print l(t("Update from NetForum"), "update-avectra/event/$node->nid"); ?></div>
-    <?php } ?>
-
-    <?php if ($user->uid == 0) { ?>
+   
+   <?php if ($user->uid == 0) { ?>
       <div class="anonymous-addtocart">
         <?php
         $query = drupal_get_destination();

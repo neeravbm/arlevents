@@ -3622,7 +3622,7 @@ $terminationDate = "";
 		try {	
 
 
-			$response = $this->comm->getNewShoppingCart($custKey);
+			//$response = $this->comm->getNewShoppingCart($custKey);
 
 
 	
@@ -4979,7 +4979,7 @@ $terminationDate = "";
 		$cart = $this->getNewShoppingCart($this->customerKey);
 
 
-		$resultant = $this->comm->getPaymentMethods($cart);
+//		$resultant = $this->comm->getPaymentMethods($cart);
 
 
 		$xml = $resultant->WEBCentralizedShoppingCartGetPaymentOptionsResult->any;
