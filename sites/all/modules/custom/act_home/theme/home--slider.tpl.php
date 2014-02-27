@@ -1,13 +1,10 @@
 <?php
-//drupal_add_js(drupal_get_path('module', 'act_home') . '/js/arlslider.js');
-//drupal_add_js(drupal_get_path('module', 'act_home') . '/js/USAFRICOM.js');
 $path = drupal_get_path('module','act_home').'/images';
 $i = $j = 1;
-
 ?>
 <div id="Billboards" data-billboards="<?php print $count;?>">              
   <?php foreach($results as $result): $node = node_load($result->nid)?>
-		<div data-billboard="<?php print $i;?>"  class="billboards-items">
+		<div data-billboard="<?php print $i;?>"  class="billboards-items" style="<?php if($i == 1) { print 'display: block;';} else { print 'display: none;';}?>">
 				<div class="billboardPhoto shadow" style="cursor: pointer;">
 						<?php $slider = drupal_render(field_view_field('node', $node, 'field_slider_image',array('label' => 'hidden', 'settings' => array('image_style' => 'home-slider')))); ?>
 				    <?php print l($slider, 'node/'.$node->nid, array('html' => TRUE));?>
@@ -23,7 +20,7 @@ $i = $j = 1;
 
 	 <div class="billboardMenu">
 		 <?php foreach($images as $image):?>
-			<div data-bbmenuitem="<?php print $j;?>" class="bbMenuItem" onclick="javascript:billboards.moveTo('<?php print $j;?>');">
+			<div data-bbmenuitem="<?php print $j;?>" class="bbMenuItem <?php if ( $j == 1) print 'selected';?>" onclick="javascript:billboards.moveTo('<?php print $j;?>');">
 					<strong><?php print $j;?></strong>
 					<span class="bbMenuItemPhoto shadow">
 							<span class="croppedImageWrapper" style="height:75px;width:100px;">
