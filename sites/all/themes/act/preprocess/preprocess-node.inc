@@ -29,18 +29,8 @@ function act_alpha_preprocess_node(&$vars) {
     }
     
     if ($node->type == 'group' || $node->type == 'sub_community') {
-			
-			global $user;
-			
-			$mem_status = _avectra_user_subscriber_link_visibility($user->uid, $node->nid);
-			// if $mem_status is TRUE then only subscriber link can be visible
-			// Remove group subscribe link if user is already nominated in netforum
-			if(!$mem_status && isset($vars['content']['og_roles_permissions']))		unset($vars['content']['og_roles_permissions']);
-			
-			$status = _act_event_leadership_user_in_committe($user->uid, $node->nid) || in_array('stff', array_values($user->roles)) || ($user->uid == 1);
-	
-			if($status) {
-				$vars['content']['links']['custom_messages'] = array(
+		global $user;
+			$vars['content']['links']['custom_messages'] = array(
 					'#theme' => 'link',
 					'#text' => 'Send Message',
 					'#attributes' => array(
@@ -53,15 +43,7 @@ function act_alpha_preprocess_node(&$vars) {
 						),
 					),
 				);
-			}
-     
-     if(user_access('update from netforum') && $node->type != 'sub_community') {
-       $vars['content']['links']['custom_messages']['#links']['update_avectra_community_link'] = array(
-          'title' => l('Update from NetForum','update-avectra/community/'.$node->nid,array('attributes' => array('class' => ' my_message_link message-wrapper message-link'))),
-          'html' => TRUE,
-        );
-     }
-   }
+	}
    
   }
   

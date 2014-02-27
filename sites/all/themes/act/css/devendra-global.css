@@ -1525,7 +1525,8 @@ ul.action-links li a {
   width:65%;
 }
 .venue-cal-add .date-display-start,
-.venue-cal-add .date-display-end
+.venue-cal-add .date-display-end,
+.venue-cal-add .date-display-single
  {
   display:none;
 }

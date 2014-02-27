@@ -1,13 +1,10 @@
 (function ($) {
    Drupal.behaviors.acttab = {
         attach: function(context, settings) {
-	           
-
-           $(".tabs ul.primary li:last-child").addClass("last");
-			
-		   if($('.tabs ul.primary li a').hasClass('active')){
-			  $(".tabs ul.primary").css('border-bottom','4px solid #850606');
-			}
+	      $(".tabs ul.primary li:last-child").addClass("last");
+		    if($('.tabs ul.primary li a').hasClass('active')){
+			    $(".tabs ul.primary").css('border-bottom','4px solid #850606');
+		  	}
 			
 			/******** My ACT-IAC Vertical Tabs *********/
 			 
