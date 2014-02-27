@@ -28,10 +28,12 @@ function act_alpha_preprocess_user_profile(&$variables) {
   $privacy_form = drupal_get_form('act_userprofile_get_privacy_form');
   $variables['user_profile']['userprivacyform'] = drupal_render($privacy_form);
 
-  $password_change_form = drupal_get_form('act_userprofile_get_avectra_change_password_form');
+  $password_change_form = drupal_get_form('act_userprofile_change_password_form');
   $variables['user_profile']['avectra_pass_change'] = drupal_render($password_change_form);
-
-  $variables['user_profile']['user_membership'] = act_userprofile_get_my_transaction();
+  
+  if (function_exists('act_userprofile_get_my_transaction')) {
+    $variables['user_profile']['user_membership'] = act_userprofile_get_my_transaction();
+  }
 
   module_load_include('inc', 'act_invoice', 'includes/act_invoice.class');
 
