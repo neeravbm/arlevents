@@ -2129,6 +2129,7 @@ body #zone-postscript .region {
   background: -o-linear-gradient(#C2D1DD, #53789C); /* For Opera 11.1 to 12.0 */
   background: -moz-linear-gradient(#C2D1DD, #53789C); /* For Firefox 3.6 to 15 */
   background: linear-gradient(#C2D1DD, #53789C); /* Standard syntax */
+  margin-bottom:20px;
 }
 
 #zone-preface {
